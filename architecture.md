@@ -89,7 +89,7 @@ A change should not be considered complete until relevant checks pass:
 
 ## 3. Mobile front end
 
-### Core technologies
+### Front End Core technologies
 
 - **TypeScript:** Primary application language, with strict type checking enabled.
 - **React Native:** Native iOS and Android application UI using React.
@@ -130,7 +130,7 @@ A change should not be considered complete until relevant checks pass:
 
 ## 4. Backend
 
-### Core technologies
+### Backend Core technologies
 
 - **C#:** Primary backend language.
 - **ASP.NET Core Web API:** HTTP API, dependency injection, middleware, authentication, authorization, and OpenAPI.
@@ -268,12 +268,14 @@ Start without additional infrastructure unless the product needs it.
 AI is optional for the initial MVP. First build reliable catalog, tracking, rating, and list data.
 
 Potential later features:
+
 - Personalized recommendations based on user preferences and history.
 - Natural-language search, such as “a short sci-fi series with a satisfying ending.”
 - Summaries of a user's own viewing habits.
 - Discovery assistants that explain why a title may fit a user's tastes.
 
 Guidelines:
+
 - Keep AI calls behind a backend service/interface.
 - Never expose provider API keys in the mobile client.
 - Treat model output as untrusted input and validate structured outputs.
@@ -284,6 +286,7 @@ Guidelines:
 ## 11. Automation with n8n
 
 Use n8n for workflows such as:
+
 - Internal alerts for failed catalog syncs.
 - Admin notifications.
 - Scheduled operational reports.
@@ -330,7 +333,7 @@ Do not chase a coverage percentage without testing meaningful behavior. Prioriti
 ## 15. Initial decisions summary
 
 | Area | Recommendation |
-|---|---|
+
 | Mobile | React Native + Expo + TypeScript |
 | Navigation | Expo Router |
 | Server-state cache | TanStack Query |
