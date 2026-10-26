@@ -1,0 +1,23 @@
+# Environment-specific configuration and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# .NET build output
+**/bin/
+**/obj/
+
+# Expo and Node
+**/node_modules/
+**/.expo/
+**/dist/
+**/web-build/
+**/*.tsbuildinfo
+
+# Local development tooling
+.tools/
+.agent/skills/
+.agents/skills/

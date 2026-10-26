@@ -109,14 +109,19 @@ A change should not be considered complete until relevant checks pass:
 
 - Establish Reelix design tokens for colors, spacing, typography, radii, shadows, and motion.
 - Brand direction: cinematic dark surfaces with a distinctive red accent, not a generic blue gradient.
-- Suggested starting palette:
-  - `brand`: `#FF3B30`
-  - `brand-strong`: `#B91C1C`
-  - `brand-deep`: `#3B0F10`
-  - `background`: `#0F0F10`
-  - `surface`: `#2A2A2E`
-  - `text-primary`: `#F5F5F7`
-  - `text-secondary`: `#A7A7AE`
+- The Reelix Brand Kit in `mobile/assets/brand/` is the visual source of truth; keep app tokens aligned with `mobile/assets/brand/docs/design-tokens.json`.
+- Typography: Sora, with the system sans-serif fallback.
+- Palette:
+  - `primary`: `#FF2D55`
+  - `secondary`: `#FF6688`
+  - `background`: `#080B0F`
+  - `surface`: `#10141B`
+  - `surface-raised`: `#202D36`
+  - `text`: `#FFFFFF`
+  - `text-muted`: `#A1A1AA`
+  - `success`: `#B7F34A`
+  - `warning`: `#FBBF24`
+  - `info`: `#38BDF8`
 - Build reusable components: poster card, show/movie row, progress indicator, rating control, watchlist button, empty state, loading skeleton, error state, and confirmation dialog.
 - Use accessibility labels, adequate contrast, dynamic text sizing, and touch targets appropriate for mobile.
 - **shadcn/ui is designed for web React, not React Native.** Do not assume its components can be reused directly in the mobile app. If a web admin is added, shadcn/ui is a good option there.

@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Reelix",
+    "slug": "reelix",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/brand/app-icons/app-icon.png",
+    "scheme": "reelix",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "icon": "./assets/brand/app-icons/app-icon.png"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#080B0F",
+        "foregroundImage": "./assets/brand/app-icons/adaptive-icon-foreground.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "server",
+      "favicon": "./assets/brand/app-icons/app-icon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#080B0F",
+          "image": "./assets/brand/logos/logo-vertical.png",
+          "imageWidth": 220
+        }
+      ],
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

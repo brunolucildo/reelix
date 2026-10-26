@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#080b0f">
+    <meta
+      name="description"
+      content="Plano de desenvolvimento do módulo de autenticação do Reelix."
+    >
+    <title>Plano de desenvolvimento — Autenticação | Reelix</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --brand: #ff2d55;
+        --brand-secondary: #ff6688;
+        --background: #080b0f;
+        --surface: #10141b;
+        --surface-raised: #202d36;
+        --border: #202d36;
+        --text-primary: #ffffff;
+        --text-secondary: #a1a1aa;
+        --text-muted: #a1a1aa;
+        --success: #b7f34a;
+        --radius: 14px;
+        font-family: "Sora", "Segoe UI", sans-serif;
+        background: var(--background);
+        color: var(--text-primary);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        background:
+          radial-gradient(ellipse at 8% 0%, rgb(255 45 85 / 18%), transparent 32rem),
+          var(--background);
+        color: var(--text-primary);
+        line-height: 1.65;
+      }
+
+      a {
+        color: var(--brand-secondary);
+        text-underline-offset: 3px;
+      }
+
+      .page {
+        width: min(1080px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 42px 0 72px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 44px;
+        font-size: 1.05rem;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border-radius: 12px;
+        background: var(--brand);
+        color: white;
+        font-size: 1.3rem;
+        font-weight: 900;
+      }
+
+      .eyebrow {
+        margin: 0 0 12px;
+        color: var(--brand-secondary);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        max-width: 780px;
+        margin-bottom: 16px;
+        font-size: clamp(2.25rem, 6vw, 4.25rem);
+        letter-spacing: -0.065em;
+        line-height: 1.08;
+      }
+
+      h1 span {
+        color: var(--brand);
+      }
+
+      .intro {
+        max-width: 720px;
+        margin-bottom: 28px;
+        color: var(--text-secondary);
+        font-size: 1.08rem;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 8px 13px;
+        border: 1px solid rgb(255 59 48 / 40%);
+        border-radius: 999px;
+        background: rgb(59 15 16 / 55%);
+        color: #ffd8d5;
+        font-size: 0.84rem;
+        font-weight: 700;
+      }
+
+      .status::before {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--brand);
+        content: "";
+      }
+
+      .hero {
+        padding: 30px;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: linear-gradient(135deg, rgb(42 42 46 / 80%), rgb(24 24 27 / 90%));
+        box-shadow: 0 24px 80px rgb(0 0 0 / 28%);
+      }
+
+      .hero-grid,
+      .columns,
+      .phase-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .hero-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-top: 28px;
+      }
+
+      .metric {
+        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: rgb(15 15 16 / 55%);
+      }
+
+      .metric strong {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 1.05rem;
+      }
+
+      .metric span {
+        color: var(--text-secondary);
+        font-size: 0.88rem;
+      }
+
+      main {
+        display: grid;
+        gap: 48px;
+        margin-top: 56px;
+      }
+
+      section > h2 {
+        margin-bottom: 8px;
+        font-size: clamp(1.45rem, 3vw, 2rem);
+        letter-spacing: -0.04em;
+      }
+
+      .section-lead {
+        margin-bottom: 22px;
+        color: var(--text-secondary);
+      }
+
+      .phase-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .card {
+        padding: 22px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+
+      .phase-number {
+        display: inline-grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        margin-bottom: 13px;
+        border-radius: 10px;
+        background: var(--brand-deep);
+        color: #ff8a83;
+        font-size: 0.85rem;
+        font-weight: 800;
+      }
+
+      .card h3 {
+        margin-bottom: 8px;
+        font-size: 1.08rem;
+      }
+
+      .card p,
+      .card li {
+        color: var(--text-secondary);
+        font-size: 0.93rem;
+      }
+
+      ul,
+      ol {
+        margin: 10px 0 0;
+        padding-left: 21px;
+      }
+
+      li + li {
+        margin-top: 7px;
+      }
+
+      .columns {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .callout {
+        padding: 18px 20px;
+        border-left: 3px solid var(--brand);
+        border-radius: 0 12px 12px 0;
+        background: rgb(59 15 16 / 32%);
+        color: var(--text-secondary);
+      }
+
+      .callout strong {
+        color: var(--text-primary);
+      }
+
+      .checklist {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .checklist li {
+        position: relative;
+        padding: 12px 14px 12px 42px;
+        border: 1px solid var(--border);
+        border-radius: 11px;
+        background: var(--surface);
+        color: var(--text-secondary);
+      }
+
+      .checklist li::before {
+        position: absolute;
+        top: 12px;
+        left: 15px;
+        color: var(--success);
+        content: "✓";
+        font-weight: 900;
+      }
+
+      .decision {
+        margin-top: 16px;
+        padding: 18px;
+        border: 1px solid rgb(255 59 48 / 34%);
+        border-radius: 14px;
+        background: var(--surface-raised);
+      }
+
+      .decision h3 {
+        margin-bottom: 5px;
+      }
+
+      .decision p {
+        margin-bottom: 0;
+        color: var(--text-secondary);
+      }
+
+      footer {
+        margin-top: 54px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 0.86rem;
+      }
+
+      @media (max-width: 720px) {
+        .page {
+          width: min(100% - 28px, 1080px);
+          padding-top: 26px;
+        }
+
+        .brand {
+          margin-bottom: 34px;
+        }
+
+        .hero {
+          padding: 22px;
+        }
+
+        .hero-grid,
+        .phase-grid,
+        .columns {
+          grid-template-columns: 1fr;
+        }
+
+        main {
+          gap: 38px;
+          margin-top: 42px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+        }
+      }
+
+      @media print {
+        :root {
+          color-scheme: light;
+          --background: white;
+          --surface: #f5f5f7;
+          --surface-raised: #eeeeF1;
+          --border: #d1d1d6;
+          --text-primary: #171719;
+          --text-secondary: #414147;
+          --text-muted: #66666d;
+          background: white;
+          color: var(--text-primary);
+        }
+
+        body {
+          background: white;
+        }
+
+        .page {
+          width: 100%;
+          padding: 0;
+        }
+
+        .hero,
+        .card,
+        .metric,
+        .checklist li {
+          break-inside: avoid;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <div class="brand" aria-label="Reelix">
+          <span class="brand-mark" aria-hidden="true">R</span>
+          <span>reelix</span>
+        </div>
+        <div class="hero">
+          <p class="eyebrow">Plano de desenvolvimento · 01</p>
+          <h1>Autenticação <span>segura</span>, do primeiro acesso ao logout.</h1>
+          <p class="intro">
+            Plano aprovado para o módulo de autenticação, baseado na especificação funcional
+            e na arquitetura do Reelix. A implementação seguiu estas etapas; a conexão integrada
+            ainda depende da configuração do Supabase e do PostgreSQL em ambiente local.
+          </p>
+          <span class="status">Plano aprovado</span>
+          <div class="hero-grid" aria-label="Resumo do plano">
+            <div class="metric">
+              <strong>Identidade</strong>
+              <span>Supabase Auth como provedor</span>
+            </div>
+            <div class="metric">
+              <strong>Aplicativo</strong>
+              <span>React Native · Expo · TypeScript</span>
+            </div>
+            <div class="metric">
+              <strong>Backend</strong>
+              <span>ASP.NET Core · validação JWT · PostgreSQL</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section aria-labelledby="objective">
+          <h2 id="objective">Objetivo e limites</h2>
+          <p class="section-lead">
+            Permitir criar conta, entrar, recuperar acesso e encerrar sessão, com uma identidade
+            validada de ponta a ponta entre o aplicativo e a API.
+          </p>
+          <div class="columns">
+            <article class="card">
+              <h3>Incluído</h3>
+              <ul>
+                <li>Cadastro, login, recuperação de senha e confirmação de e-mail conforme a configuração do Supabase.</li>
+                <li>Persistência/restauração segura de sessão, logout e estados de formulário.</li>
+                <li>Navegação pública/privada no Expo Router e proteção real dos endpoints na API.</li>
+                <li>Validação criptográfica do token e associação do identificador Supabase ao usuário interno.</li>
+                <li>Endpoint protegido para consultar o estado básico da conta autenticada.</li>
+                <li>Testes, tratamento de indisponibilidade e documentação de configuração.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Fora deste módulo</h3>
+              <ul>
+                <li>Onboarding: autenticar não dependerá de concluir esse fluxo.</li>
+                <li>Perfil, preferências, amizades e funcionalidades sociais.</li>
+                <li>Armazenamento próprio de senhas ou autenticação paralela com ASP.NET Identity.</li>
+                <li>Decisões de infraestrutura não exigidas para a implementação inicial.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section aria-labelledby="phases">
+          <h2 id="phases">Etapas propostas</h2>
+          <p class="section-lead">
+            As etapas avançam de decisões de integração para fluxos completos, mantendo as regras
+            de negócio fora das telas e a autorização no servidor.
+          </p>
+          <div class="phase-grid">
+            <article class="card">
+              <span class="phase-number">01</span>
+              <h3>Reconhecimento do repositório e contratos</h3>
+              <ul>
+                <li>Identificar a estrutura atual, convenções, dependências e pontos de entrada mobile/backend.</li>
+                <li>Confirmar o projeto Supabase e a configuração do fluxo de tokens usado pelo provedor.</li>
+                <li>Definir configuração por ambiente sem incluir segredos privados no código ou no aplicativo.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">02</span>
+              <h3>Fundação de autenticação no aplicativo</h3>
+              <ul>
+                <li>Configurar o SDK oficial do Supabase e armazenamento de sessão recomendado para Expo.</li>
+                <li>Centralizar estado de sessão e restauração na inicialização.</li>
+                <li>Configurar navegação pública/privada sem usar a navegação como mecanismo de autorização.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">03</span>
+              <h3>Experiências de acesso</h3>
+              <ul>
+                <li>Construir telas acessíveis de cadastro, login e recuperação de senha.</li>
+                <li>Validar os dados no cliente e apresentar carregamento, sucesso e erro.</li>
+                <li>Usar mensagens que não revelem se um endereço está cadastrado.</li>
+                <li>Tratar confirmação de e-mail conforme a configuração do Supabase.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">04</span>
+              <h3>Validação de identidade na API</h3>
+              <ul>
+                <li>Configurar autenticação ASP.NET Core para validar assinatura, emissor, audiência e validade.</li>
+                <li>Usar metadados/chaves públicas do provedor conforme a configuração confirmada; nunca apenas decodificar JWT.</li>
+                <li>Obter a identidade do contexto autenticado, sem confiar em IDs enviados pelo cliente.</li>
+                <li>Tratar token inválido/expirado e conta desabilitada de forma consistente.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">05</span>
+              <h3>Identidade interna e endpoint protegido</h3>
+              <ul>
+                <li>Localizar ou criar o registro interno usando o identificador estável do Supabase.</li>
+                <li>Aplicar autorização server-side aos recursos protegidos deste módulo.</li>
+                <li>Disponibilizar consulta protegida do estado básico da conta autenticada.</li>
+                <li>Manter a criação mínima; sem implementar perfil ou preferências.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">06</span>
+              <h3>Integração, testes e documentação</h3>
+              <ul>
+                <li>Conectar o cliente autenticado à API e validar restauração e logout ponta a ponta.</li>
+                <li>Testar cadastro, login, recuperação, erros de rede e confirmação de e-mail configurada.</li>
+                <li>Testar tokens válidos, inválidos, expirados/adulterados e chamadas sem autenticação.</li>
+                <li>Documentar variáveis de ambiente e executar os quality gates disponíveis.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section aria-labelledby="security">
+          <h2 id="security">Salvaguardas e decisões de implementação</h2>
+          <div class="columns">
+            <article class="card">
+              <h3>Segurança e privacidade</h3>
+              <ul>
+                <li>Nenhuma senha será persistida pelo Reelix.</li>
+                <li>Nenhuma chave privada ou chave <code>service_role</code> será enviada ao mobile.</li>
+                <li>Tokens e credenciais não serão escritos em logs; HTTPS será exigido fora do ambiente local.</li>
+                <li>Mensagens de autenticação evitarão enumeração de contas.</li>
+                <li>Operações sensíveis terão limites de requisição compatíveis com a infraestrutura existente.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Testabilidade e qualidade</h3>
+              <ul>
+                <li>Testes unitários para validação e comportamento de aplicação quando houver regras próprias.</li>
+                <li>Testes de integração para middleware, endpoint protegido e persistência da identidade interna.</li>
+                <li>Testes no cliente para estados e fluxos principais, seguindo o ferramental já presente no projeto.</li>
+                <li>Verificação de build, tipos, lint/formatação e testes relevantes sem introduzir tooling desnecessário.</li>
+              </ul>
+            </article>
+          </div>
+          <div class="callout" style="margin-top: 16px">
+            <strong>Compatibilidade com a arquitetura:</strong> o Supabase fica como provedor de identidade;
+            a API continua responsável por validar tokens e autorizar operações. As regras não serão
+            duplicadas nas telas, e a autenticação não criará dependência do onboarding.
+          </div>
+        </section>
+
+        <section aria-labelledby="acceptance">
+          <h2 id="acceptance">Critérios para considerar concluído</h2>
+          <ul class="checklist">
+            <li>Usuário consegue criar conta, entrar, recuperar acesso e sair, com feedback apropriado.</li>
+            <li>Sessão válida é restaurada com armazenamento adequado à plataforma; logout remove o estado autenticado da interface.</li>
+            <li>Confirmação de e-mail respeita a configuração ativa do Supabase.</li>
+            <li>API rejeita chamadas sem autenticação e tokens inválidos, expirados ou adulterados.</li>
+            <li>A identidade interna é vinculada à identidade estável do provedor, não a um ID confiado do cliente.</li>
+            <li>Não há senhas no banco Reelix, segredos privados no app ou dados sensíveis nos logs.</li>
+            <li>Testes automatizados relevantes e verificações disponíveis do repositório passam.</li>
+            <li>Variáveis/configuração necessárias estão documentadas sem valores secretos.</li>
+          </ul>
+        </section>
+
+        <section aria-labelledby="approval">
+          <h2 id="approval">Registro da aprovação</h2>
+          <div class="decision">
+            <h3>Escopo aprovado</h3>
+            <p>
+              O plano foi aprovado antes do início do desenvolvimento. A implementação criou a base
+              mobile/backend necessária no repositório vazio e manteve as credenciais e decisões
+              específicas do projeto Supabase fora do código versionado.
+            </p>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        Reelix · Plano elaborado a partir de <a href="../specs/01-authentication.md">01-authentication.md</a>
+        e de <a href="../../architecture.md">architecture.md</a>.         Plano aprovado, usado para orientar a implementação do módulo.
+      </footer>
+    </div>
+  </body>
+</html>
