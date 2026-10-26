@@ -45,10 +45,12 @@ Para desenvolvimento, inicie a API em HTTP local e aponte o app para a URL corre
 ```powershell
 $env:Supabase__Url = "https://your-project-ref.supabase.co"
 $env:ConnectionStrings__Reelix = "Host=localhost;Port=5432;Database=reelix;Username=postgres;Password=<senha-local>"
-dotnet run --project backend\Reelix.Api\Reelix.Api.csproj
+dotnet run --project backend\Reelix.Api\Reelix.Api.csproj --launch-profile http
 ```
 
 Não salve valores reais em `appsettings.json`, `mobile/.env.example`, no Git ou em logs. O backend nunca usa um identificador enviado pelo cliente como identidade autenticada; ele obtém `sub` do JWT validado.
+
+Para testar endpoints autenticados pelo Swagger local, use a página auxiliar de desenvolvimento em `http://localhost:5035/dev-auth.html` para fazer login diretamente no Supabase e obter um access token temporário. A API não recebe a senha. Consulte [como iniciar o Swagger e autorizar as chamadas](catalog-setup.md#iniciar-e-abrir-swagger). Esse recurso está disponível somente em `Development`.
 
 ## Banco e verificações
 

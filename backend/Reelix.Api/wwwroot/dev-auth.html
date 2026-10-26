@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autenticação local do Reelix</title>
+  <style>
+    body { font: 16px system-ui, sans-serif; line-height: 1.5; margin: 2rem auto; max-width: 42rem; padding: 0 1rem; }
+    label { display: block; font-weight: 600; margin-top: 1rem; }
+    input, textarea, button { box-sizing: border-box; font: inherit; margin-top: .35rem; padding: .6rem; width: 100%; }
+    textarea { min-height: 9rem; overflow-wrap: anywhere; }
+    button { cursor: pointer; }
+    [role="alert"] { color: #a00000; }
+  </style>
+</head>
+<body>
+  <h1>Gerar token para o Swagger</h1>
+  <p>O login é enviado diretamente do navegador ao Supabase. A API local não recebe sua senha. O token de acesso é temporário; não o compartilhe.</p>
+  <form id="login-form">
+    <label for="publishable-key">Chave publishable do Supabase (ou anon legada)</label>
+    <input id="publishable-key" name="publishable-key" type="password" autocomplete="off" required>
+    <label for="email">E-mail</label>
+    <input id="email" name="email" type="email" autocomplete="username" required>
+    <label for="password">Senha</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <button id="submit" type="submit">Entrar e gerar token</button>
+  </form>
+  <p id="message" role="alert" aria-live="polite"></p>
+  <section id="token-section" hidden>
+    <label for="token">Access token — copie e cole no Authorize do Swagger, sem “Bearer ”</label>
+    <textarea id="token" readonly></textarea>
+    <button id="copy" type="button">Copiar token</button>
+  </section>
+  <script>
+    const form = document.querySelector('#login-form');
+    const message = document.querySelector('#message');
+    const tokenSection = document.querySelector('#token-section');
+    const tokenInput = document.querySelector('#token');
+    const submitButton = document.querySelector('#submit');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      message.textContent = '';
+      tokenSection.hidden = true;
+      tokenInput.value = '';
+      submitButton.disabled = true;
+
+      const publishableKey = document.querySelector('#publishable-key').value.trim();
+      const email = document.querySelector('#email').value.trim();
+      const passwordInput = document.querySelector('#password');
+      const password = passwordInput.value;
+
+      try {
+        const configResponse = await fetch('/api/v1/dev/auth/config', { cache: 'no-store' });
+        if (!configResponse.ok) {
+          throw new Error('Não foi possível carregar a configuração local do Supabase.');
+        }
+        const { supabaseUrl } = await configResponse.json();
+        const loginResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+          method: 'POST',
+          headers: {
+            apikey: publishableKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password }),
+        });
+        const result = await loginResponse.json();
+        if (!loginResponse.ok) {
+          throw new Error(result.msg || result.message || result.error_description || 'Falha no login do Supabase.');
+        }
+        if (!result.access_token) {
+          throw new Error('O Supabase não retornou um access token.');
+        }
+
+        tokenInput.value = result.access_token;
+        tokenSection.hidden = false;
+        message.textContent = 'Token gerado. Ele expira conforme a configuração de sessão do Supabase.';
+      } catch (error) {
+        message.textContent = error instanceof Error ? error.message : 'Falha ao gerar o token.';
+      } finally {
+        passwordInput.value = '';
+        submitButton.disabled = false;
+      }
+    });
+
+    document.querySelector('#copy').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(tokenInput.value);
+        message.textContent = 'Token copiado. Cole-o no Authorize do Swagger.';
+      } catch {
+        message.textContent = 'Não foi possível copiar automaticamente. Selecione e copie o token manualmente.';
+      }
+    });
+  </script>
+</body>
+</html>

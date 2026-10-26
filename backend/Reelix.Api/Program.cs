@@ -1,14 +1,48 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Reelix.Application;
 using Reelix.Application.Authentication;
+using Reelix.Api.Catalog;
 using Reelix.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(
+        new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+});
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
+    {
+        Title = "Reelix API",
+        Version = "v1",
+        Description = "API do Reelix, incluindo pesquisa e detalhes de catálogo.",
+    });
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.ParameterLocation.Header,
+        Description = "Token JWT do usuário autenticado. Informe somente o token.",
+    });
+    options.AddSecurityRequirement(document =>
+        new Microsoft.OpenApi.OpenApiSecurityRequirement
+        {
+            [new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", document)] = [],
+        });
+});
+builder.Logging.AddFilter(
+    "System.Net.Http.HttpClient.Reelix.Infrastructure.Catalog.OmdbCatalogProvider",
+    LogLevel.Warning);
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options =>
@@ -75,7 +109,18 @@ app.UseStatusCodePages();
 
 if (app.Environment.IsDevelopment())
 {
+    app.UseStaticFiles();
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Reelix API v1");
+    });
+    app.MapGet("/api/v1/dev/auth/config", () => Results.Ok(new
+    {
+        supabaseUrl = supabaseUrl.TrimEnd('/'),
+    }))
+        .ExcludeFromDescription();
 }
 
 app.UseCors("App");
@@ -104,6 +149,8 @@ app.MapGet("/api/v1/auth/me", async (
     .RequireAuthorization()
     .WithName("GetAuthenticatedAccount")
     .WithTags("Authentication");
+
+app.MapCatalogEndpoints();
 
 app.Run();
 

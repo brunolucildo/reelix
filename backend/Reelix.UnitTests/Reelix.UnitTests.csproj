@@ -23,6 +23,7 @@
     <ProjectReference Include="..\Reelix.Application\Reelix.Application.csproj" />
     <ProjectReference Include="..\Reelix.Domain\Reelix.Domain.csproj" />
     <ProjectReference Include="..\Reelix.Api\Reelix.Api.csproj" />
+    <ProjectReference Include="..\Reelix.Infrastructure\Reelix.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

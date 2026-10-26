@@ -115,10 +115,10 @@
         align-items: center;
         gap: 9px;
         padding: 8px 13px;
-        border: 1px solid rgb(255 191 36 / 40%);
+        border: 1px solid rgb(183 243 74 / 40%);
         border-radius: 999px;
-        background: rgb(59 43 15 / 55%);
-        color: #ffe5a3;
+        background: rgb(31 48 15 / 55%);
+        color: #e1f7b0;
         font-size: 0.84rem;
         font-weight: 700;
       }
@@ -127,7 +127,7 @@
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: #fbbf24;
+        background: var(--success);
         content: "";
       }
 
@@ -380,7 +380,7 @@
             do Reelix. Este documento define escopo, sequência e critérios de aceite; nenhuma
             implementação será iniciada antes da aprovação.
           </p>
-          <span class="status">Aguardando aprovação</span>
+          <span class="status">Plano aprovado</span>
           <div class="hero-grid" aria-label="Resumo do plano">
             <div class="metric">
               <strong>Backend</strong>
@@ -554,11 +554,11 @@
         <section aria-labelledby="approval">
           <h2 id="approval">Registro da aprovação</h2>
           <div class="decision">
-            <h3>Aguardando aprovação do escopo</h3>
+            <h3>Escopo aprovado</h3>
             <p>
-              Este plano ainda não foi aprovado. O desenvolvimento do módulo de catálogo só
-              começará depois da confirmação do usuário; ajustes solicitados serão incorporados
-              ao plano antes de qualquer alteração de implementação.
+              O escopo foi aprovado pelo usuário antes do início do desenvolvimento. A
+              implementação seguirá estas etapas e manterá integrações e persistência dentro
+              dos limites documentados.
             </p>
           </div>
         </section>
@@ -566,8 +566,8 @@
 
       <footer>
         Reelix · Plano elaborado a partir de <a href="../specs/03-catalog.md">03-catalog.md</a>
-        e de <a href="../architecture.md">architecture.md</a>. Documento proposto para aprovação,
-        não autorização para iniciar a implementação.
+        e de <a href="../architecture.md">architecture.md</a>. Plano aprovado antes do início
+        da implementação.
       </footer>
     </div>
   </body>
