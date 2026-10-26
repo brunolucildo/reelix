@@ -6,7 +6,7 @@ O app usa Supabase Auth para cadastro, login, confirmação de e-mail, recupera�
 
 1. Copie `mobile/.env.example` para `mobile/.env`.
 2. Preencha `EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` com os dados públicos do projeto Supabase.
-3. Configure `EXPO_PUBLIC_API_URL` para a URL alcançável pela instalação do app. Em um emulador Android, use o endereço do host acessível pelo emulador (normalmente `http://10.0.2.2:5000`); no simulador iOS, `http://localhost:5000`; em um dispositivo físico, use o endereço local da máquina de desenvolvimento. Não use HTTP fora do desenvolvimento.
+3. Configure `EXPO_PUBLIC_API_URL` para a URL alcançável pela instalação do app. No navegador e no simulador iOS, use `http://localhost:5035`; em um emulador Android, use `http://10.0.2.2:5035`; em um dispositivo físico, use o endereço local da máquina de desenvolvimento. Para emuladores e dispositivos, inicie a API escutando na rede com `--urls http://0.0.0.0:5035`. Não use HTTP fora do desenvolvimento.
 4. Instale as dependências e inicie o Expo:
 
    ```powershell
@@ -36,13 +36,16 @@ Configure estas variáveis no ambiente da API, no gerenciador de segredos da hos
 | `Supabase__Audience` | Não | Audiência validada; padrão `authenticated` |
 | `Supabase__JwtSecret` | Apenas legado HS256 | Segredo de assinatura legado, exclusivamente no backend |
 | `ConnectionStrings__Reelix` | Sim | Connection string PostgreSQL |
+| `Cors__AllowedOrigins__0` | Para clientes web | Origem HTTPS exata do frontend; origens locais do Expo web já estão em `appsettings.Development.json` |
+
+O app nativo não depende de CORS. Para web, a API aceita somente as origens explicitamente configuradas; em produção, defina `Cors__AllowedOrigins__0` (e índices adicionais, se necessário) com a origem HTTPS exata do frontend. Não use curingas.
 
 Para desenvolvimento, inicie a API em HTTP local e aponte o app para a URL correspondente:
 
 ```powershell
 $env:Supabase__Url = "https://your-project-ref.supabase.co"
 $env:ConnectionStrings__Reelix = "Host=localhost;Port=5432;Database=reelix;Username=postgres;Password=<senha-local>"
-dotnet run --project backend\Reelix.Api\Reelix.Api.csproj --urls http://0.0.0.0:5000
+dotnet run --project backend\Reelix.Api\Reelix.Api.csproj
 ```
 
 Não salve valores reais em `appsettings.json`, `mobile/.env.example`, no Git ou em logs. O backend nunca usa um identificador enviado pelo cliente como identidade autenticada; ele obtém `sub` do JWT validado.

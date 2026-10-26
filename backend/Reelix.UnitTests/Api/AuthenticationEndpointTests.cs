@@ -33,6 +33,26 @@ public sealed class AuthenticationEndpointTests
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    [Fact]
+    public async Task AccountEndpoint_AllowsPreflightFromConfiguredWebOrigin()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Options, "/api/v1/auth/me");
+        request.Headers.Add("Origin", "http://localhost:8081");
+        request.Headers.Add("Access-Control-Request-Method", "GET");
+        request.Headers.Add("Access-Control-Request-Headers", "authorization");
+
+        using var response = await _client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal(
+            "http://localhost:8081",
+            response.Headers.GetValues("Access-Control-Allow-Origin").Single());
+        Assert.Contains(
+            "authorization",
+            response.Headers.GetValues("Access-Control-Allow-Headers").Single()
+                .ToLowerInvariant());
+    }
+
     [Theory]
     [InlineData("invalid-signature")]
     [InlineData("expired")]
@@ -79,9 +99,12 @@ public sealed class AuthenticationApiFactory : WebApplicationFactory<Program>
         Environment.GetEnvironmentVariable("Supabase__Url");
     private readonly string? _previousConnectionString =
         Environment.GetEnvironmentVariable("ConnectionStrings__Reelix");
+    private readonly string? _previousCorsOrigin =
+        Environment.GetEnvironmentVariable("Cors__AllowedOrigins__0");
 
     public AuthenticationApiFactory()
     {
+        Environment.SetEnvironmentVariable("Cors__AllowedOrigins__0", "http://localhost:8081");
         Environment.SetEnvironmentVariable("Supabase__Url", "https://reelix-test.supabase.co");
         Environment.SetEnvironmentVariable(
             "ConnectionStrings__Reelix",
@@ -137,5 +160,6 @@ public sealed class AuthenticationApiFactory : WebApplicationFactory<Program>
         base.Dispose(disposing);
         Environment.SetEnvironmentVariable("Supabase__Url", _previousSupabaseUrl);
         Environment.SetEnvironmentVariable("ConnectionStrings__Reelix", _previousConnectionString);
+        Environment.SetEnvironmentVariable("Cors__AllowedOrigins__0", _previousCorsOrigin);
     }
 }

@@ -30,6 +30,24 @@ public sealed class InitialUserAccounts : Migration
             table: "user_accounts",
             column: "supabase_user_id",
             unique: true);
+
+        migrationBuilder.Sql(
+            """
+            ALTER TABLE public.user_accounts ENABLE ROW LEVEL SECURITY;
+            REVOKE ALL ON TABLE public.user_accounts FROM PUBLIC;
+            DO $$
+            DECLARE
+                role_name text;
+            BEGIN
+                FOREACH role_name IN ARRAY ARRAY['anon', 'authenticated', 'service_role'] LOOP
+                    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = role_name) THEN
+                        EXECUTE format(
+                            'REVOKE ALL ON TABLE public.user_accounts FROM %I',
+                            role_name);
+                    END IF;
+                END LOOP;
+            END $$;
+            """);
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)

@@ -19,3 +19,5 @@
 
 # Local development tooling
 .tools/
+.agent/skills/
+.agents/skills/
