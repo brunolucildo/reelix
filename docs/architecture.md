@@ -4,7 +4,7 @@
 > **Purpose:** Mobile app for tracking movies and TV shows, managing watchlists, recording progress, rating titles, discovering content, and sharing activity with friends.  
 > **Architecture principle:** Clean Architecture, SOLID, pragmatic DDD, KISS, security by design, and a modular monolith with managed services. Keep the design simple until real usage justifies additional infrastructure.
 >
-> **Visual reference:** [`visual_identity.png`](./visual_identity.png) — Reelix logo and visual identity. Treat this image as the reference for the brand's initial direction; implement its colors and components as design tokens rather than embedding the image into the app UI.
+> **Visual reference:** [`visual_identity.png`](./visual_identity.png) — visual direction for Reelix. The editable assets in `mobile/assets/brand/` and `mobile/assets/brand/docs/design-tokens.json` are the implementation source of truth. When the reference board and the brand kit differ, follow the brand kit; do not embed the reference board in the app UI.
 
 ## 1. Engineering principles and non-negotiable standards
 
@@ -107,11 +107,12 @@ A change should not be considered complete until relevant checks pass:
 
 ### UI and design system
 
-- Establish Reelix design tokens for colors, spacing, typography, radii, shadows, and motion.
-- Brand direction: cinematic dark surfaces with a distinctive red accent, not a generic blue gradient.
-- The Reelix Brand Kit in `mobile/assets/brand/` is the visual source of truth; keep app tokens aligned with `mobile/assets/brand/docs/design-tokens.json`.
-- Typography: Sora, with the system sans-serif fallback.
-- Palette:
+- Use `mobile/assets/brand/` as the source for Reelix logos, app icons, navigation and genre icons, badges, and UI illustrations. Use the matching variant from `logos/` for the background and context; do not redraw, recolor, or approximate the logo with styled text.
+- Treat `docs/visual_identity.png` as a mood board, not a production asset or a pixel-perfect screen specification. If its displayed colors, typography, or examples conflict with the editable brand kit, follow `mobile/assets/brand/docs/design-tokens.json` and the supplied brand assets.
+- Keep reusable colors, spacing, typography, and radii in design tokens, mapped from `mobile/assets/brand/docs/design-tokens.json` to `mobile/src/theme/tokens.ts`. Avoid hard-coded brand values in individual screens and components.
+- Brand direction: cinematic near-black surfaces, a vivid red/pink accent, restrained supporting colors, and high-contrast white typography. Use red for primary actions, active navigation, and emphasis rather than as a full-screen fill or decorative gradient.
+- Typography: Sora, with a system sans-serif fallback. Load the provided weights once at the app root and refer to them through the shared font tokens.
+- Palette from the brand kit:
   - `primary`: `#FF2D55`
   - `secondary`: `#FF6688`
   - `background`: `#080B0F`
@@ -122,7 +123,9 @@ A change should not be considered complete until relevant checks pass:
   - `success`: `#B7F34A`
   - `warning`: `#FBBF24`
   - `info`: `#38BDF8`
-- Build reusable components: poster card, show/movie row, progress indicator, rating control, watchlist button, empty state, loading skeleton, error state, and confirmation dialog.
+- Use the supplied SVG assets through the existing Expo SVG integration or convert them to typed React Native components where needed. Keep platform-required raster exports, such as the Expo app icon and splash image, in sync with the supplied logo artwork.
+- Use the provided navigation, genre, and badge icons where appropriate; preserve their intended stroke/fill behavior and avoid substituting unrelated emoji or platform glyphs for brand assets.
+- Build reusable components that follow these tokens and assets: poster card, show/movie row, progress indicator, rating control, watchlist button, empty state, loading skeleton, error state, and confirmation dialog.
 - Use accessibility labels, adequate contrast, dynamic text sizing, and touch targets appropriate for mobile.
 - **shadcn/ui is designed for web React, not React Native.** Do not assume its components can be reused directly in the mobile app. If a web admin is added, shadcn/ui is a good option there.
 
@@ -326,7 +329,7 @@ Do not chase a coverage percentage without testing meaningful behavior. Prioriti
 
 ## 14. MVP implementation order
 
-1. Create the mobile app shell, navigation, Reelix design tokens, and API client.
+1. Create the mobile app shell, navigation, Reelix brand assets and design tokens, and API client.
 2. Implement authentication and user profile/preferences.
 3. Integrate a permitted movie/TV metadata provider and catalog search.
 4. Implement movie/series detail screens.
@@ -348,7 +351,7 @@ Do not chase a coverage percentage without testing meaningful behavior. Prioriti
 | ORM | EF Core + Npgsql |
 | Database | PostgreSQL, optionally managed by Supabase |
 | Authentication | Supabase Auth or ASP.NET Core Identity + identity provider |
-| UI styling | NativeWind or React Native StyleSheet |
+| UI styling | React Native StyleSheet or NativeWind, using tokens mapped from the Reelix Brand Kit |
 | Web admin (optional) | Next.js + shadcn/ui |
 | Lint/format | Biome where supported; ESLint if needed |
 | Date handling | date-fns |
@@ -370,4 +373,4 @@ Do not chase a coverage percentage without testing meaningful behavior. Prioriti
 
 **Guiding principle:** Build the smallest secure and reliable version of Reelix. Apply Clean Architecture, SOLID, pragmatic DDD, and KISS consistently so code remains readable, testable, and maintainable. Preserve security and privacy at every layer, and add infrastructure only when real product requirements justify its cost and complexity.
 
-**Brand reference:** Keep [`visual_identity.png`](./visual_identity.png) in the repository root alongside this document. Use it as a visual reference for the Reelix red-and-black identity; derive reusable design tokens from it and keep the app's actual UI accessible and responsive.
+**Brand reference:** Keep [`visual_identity.png`](./visual_identity.png) in `docs/` as a visual direction board. Use the editable logos and other artwork in `mobile/assets/brand/`, with `mobile/assets/brand/docs/design-tokens.json` as the token source, for the app UI. Keep the implementation accessible and responsive; do not use the board itself as an app screen or asset.
