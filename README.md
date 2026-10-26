@@ -1,20 +1,21 @@
 # Reelix
 
-Aplicativo para acompanhar filmes e séries, registrar o que você assistiu e, nas próximas etapas, descobrir títulos e compartilhar atividade com amigos.
+Aplicativo para descobrir e acompanhar filmes e séries, registrar o que você assistiu e, em etapas futuras, compartilhar atividade com amigos.
 
 O repositório reúne o aplicativo mobile em React Native/Expo e uma API ASP.NET Core. A autenticação usa Supabase Auth; os dados da conta Reelix são armazenados em PostgreSQL.
 
-## Primeira etapa
+## Etapas entregues
 
-Esta etapa entrega o fluxo inicial de autenticação e a estrutura para consultar a conta:
+O projeto já inclui autenticação e consulta de catálogo:
 
 - Cadastro, login, confirmação de e-mail, recuperação de senha e logout pelo Supabase Auth.
 - Callback de autenticação por deep link, compatível com Expo.
-- API .NET que valida tokens JWT do Supabase e expõe `GET /api/v1/auth/me`.
-- Criação do registro da conta no PostgreSQL, com migration inicial e RLS habilitado.
-- Testes automatizados dos endpoints e da configuração CORS para desenvolvimento web.
+- API .NET que valida tokens JWT do Supabase e expõe `GET /api/v1/auth/me` e endpoints autenticados de pesquisa e detalhes de catálogo.
+- Integração com TMDB e OMDb, com referências externas persistidas no PostgreSQL.
+- Swagger para testar a API localmente e uma página exclusiva de desenvolvimento para obter um token de usuário diretamente pelo Supabase Auth.
+- Migrations e testes automatizados para autenticação, catálogo e configuração CORS de desenvolvimento web.
 
-O catálogo, descoberta, acompanhamento de títulos e recursos sociais ainda não fazem parte desta etapa.
+Descoberta, acompanhamento de títulos e recursos sociais permanecem para etapas futuras.
 
 ## Tecnologias
 
@@ -48,10 +49,15 @@ Use os valores de conexão PostgreSQL exibidos no painel do seu projeto Supabase
 
 ```powershell
 dotnet restore Reelix.sln
-dotnet run --project backend\Reelix.Api\Reelix.Api.csproj
+dotnet run --project backend\Reelix.Api\Reelix.Api.csproj --launch-profile http
 ```
 
-No perfil local, a API fica disponível em `http://localhost:5035`. A especificação OpenAPI de desenvolvimento fica em `http://localhost:5035/openapi/v1.json`.
+No perfil local, a API fica disponível em `http://localhost:5035`. O Swagger UI e a especificação OpenAPI, habilitados apenas em `Development`, ficam em:
+
+- Swagger UI: <http://localhost:5035/swagger>
+- OpenAPI JSON: <http://localhost:5035/openapi/v1.json>
+
+Os endpoints protegidos exigem um access token válido do mesmo projeto Supabase configurado na API. Para testar com sua conta, abra <http://localhost:5035/dev-auth.html>, informe a chave publishable (ou a chave `anon` legada), e-mail e senha, e cole o access token retornado no botão **Authorize** do Swagger, sem o prefixo `Bearer`. O navegador envia as credenciais diretamente ao Supabase; a API local não recebe nem armazena sua senha. Nunca use uma chave `service_role` ou secret nesse fluxo. Veja [as instruções detalhadas de teste do catálogo](docs/catalog-setup.md#iniciar-e-abrir-swagger).
 
 ### 3. Configure e inicie o app
 
@@ -71,13 +77,13 @@ Nunca use `service_role`, chaves secretas ou a chave privada JWT no app mobile.
 
 ## Banco de dados
 
-Para criar/atualizar as tabelas no banco configurado, execute a migration inicial:
+Para criar ou atualizar as tabelas no banco configurado, aplique as migrations:
 
 ```powershell
 dotnet ef database update --project backend\Reelix.Infrastructure\Reelix.Infrastructure.csproj --startup-project backend\Reelix.Api\Reelix.Api.csproj
 ```
 
-A tabela `public.user_accounts` tem RLS habilitado e não concede acesso direto aos papéis da API Data; o backend acessa o PostgreSQL com sua própria connection string.
+A tabela `public.user_accounts` tem RLS habilitado e não concede acesso direto aos papéis da API Data; o backend acessa o PostgreSQL com sua própria connection string. A migration do catálogo cria referências aos IDs externos dos títulos; veja [a documentação do catálogo](docs/catalog-setup.md#banco-local) para detalhes e configuração dos provedores.
 
 ## Verificações
 
@@ -97,5 +103,6 @@ npx expo lint
 ## Documentação
 
 - [Configuração de autenticação e ambiente local](docs/authentication-setup.md)
+- [Configuração do catálogo, provedores e teste no Swagger](docs/catalog-setup.md)
 - [Arquitetura](docs/architecture.md)
 - [Especificações do produto](docs/specs/)

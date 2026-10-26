@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#080b0f">
+    <meta
+      name="description"
+      content="Plano proposto para o desenvolvimento do módulo de catálogo do Reelix."
+    >
+    <title>Plano de desenvolvimento — Catálogo | Reelix</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --brand: #ff2d55;
+        --brand-secondary: #ff6688;
+        --background: #080b0f;
+        --surface: #10141b;
+        --surface-raised: #202d36;
+        --border: #202d36;
+        --text-primary: #ffffff;
+        --text-secondary: #a1a1aa;
+        --text-muted: #a1a1aa;
+        --success: #b7f34a;
+        --radius: 14px;
+        font-family: "Sora", "Segoe UI", sans-serif;
+        background: var(--background);
+        color: var(--text-primary);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        background:
+          radial-gradient(ellipse at 8% 0%, rgb(255 45 85 / 18%), transparent 32rem),
+          var(--background);
+        color: var(--text-primary);
+        line-height: 1.65;
+      }
+
+      a {
+        color: var(--brand-secondary);
+        text-underline-offset: 3px;
+      }
+
+      .page {
+        width: min(1080px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 42px 0 72px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 44px;
+        font-size: 1.05rem;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border-radius: 12px;
+        background: var(--brand);
+        color: white;
+        font-size: 1.3rem;
+        font-weight: 900;
+      }
+
+      .eyebrow {
+        margin: 0 0 12px;
+        color: var(--brand-secondary);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        max-width: 780px;
+        margin-bottom: 16px;
+        font-size: clamp(2.25rem, 6vw, 4.25rem);
+        letter-spacing: -0.065em;
+        line-height: 1.08;
+      }
+
+      h1 span {
+        color: var(--brand);
+      }
+
+      .intro {
+        max-width: 720px;
+        margin-bottom: 28px;
+        color: var(--text-secondary);
+        font-size: 1.08rem;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 8px 13px;
+        border: 1px solid rgb(183 243 74 / 40%);
+        border-radius: 999px;
+        background: rgb(31 48 15 / 55%);
+        color: #e1f7b0;
+        font-size: 0.84rem;
+        font-weight: 700;
+      }
+
+      .status::before {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--success);
+        content: "";
+      }
+
+      .hero {
+        padding: 30px;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: linear-gradient(135deg, rgb(42 42 46 / 80%), rgb(24 24 27 / 90%));
+        box-shadow: 0 24px 80px rgb(0 0 0 / 28%);
+      }
+
+      .hero-grid,
+      .columns,
+      .phase-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .hero-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-top: 28px;
+      }
+
+      .metric {
+        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: rgb(15 15 16 / 55%);
+      }
+
+      .metric strong {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 1.05rem;
+      }
+
+      .metric span {
+        color: var(--text-secondary);
+        font-size: 0.88rem;
+      }
+
+      main {
+        display: grid;
+        gap: 48px;
+        margin-top: 56px;
+      }
+
+      section > h2 {
+        margin-bottom: 8px;
+        font-size: clamp(1.45rem, 3vw, 2rem);
+        letter-spacing: -0.04em;
+      }
+
+      .section-lead {
+        margin-bottom: 22px;
+        color: var(--text-secondary);
+      }
+
+      .phase-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .card {
+        padding: 22px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+
+      .phase-number {
+        display: inline-grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        margin-bottom: 13px;
+        border-radius: 10px;
+        background: rgb(59 15 16 / 70%);
+        color: #ff8a83;
+        font-size: 0.85rem;
+        font-weight: 800;
+      }
+
+      .card h3 {
+        margin-bottom: 8px;
+        font-size: 1.08rem;
+      }
+
+      .card p,
+      .card li {
+        color: var(--text-secondary);
+        font-size: 0.93rem;
+      }
+
+      ul,
+      ol {
+        margin: 10px 0 0;
+        padding-left: 21px;
+      }
+
+      li + li {
+        margin-top: 7px;
+      }
+
+      .columns {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .callout {
+        padding: 18px 20px;
+        border-left: 3px solid var(--brand);
+        border-radius: 0 12px 12px 0;
+        background: rgb(59 15 16 / 32%);
+        color: var(--text-secondary);
+      }
+
+      .callout strong {
+        color: var(--text-primary);
+      }
+
+      .checklist {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .checklist li {
+        position: relative;
+        padding: 12px 14px 12px 42px;
+        border: 1px solid var(--border);
+        border-radius: 11px;
+        background: var(--surface);
+        color: var(--text-secondary);
+      }
+
+      .checklist li::before {
+        position: absolute;
+        top: 12px;
+        left: 15px;
+        color: var(--success);
+        content: "✓";
+        font-weight: 900;
+      }
+
+      .decision {
+        margin-top: 16px;
+        padding: 18px;
+        border: 1px solid rgb(255 191 36 / 34%);
+        border-radius: 14px;
+        background: var(--surface-raised);
+      }
+
+      .decision h3 {
+        margin-bottom: 5px;
+      }
+
+      .decision p {
+        margin-bottom: 0;
+        color: var(--text-secondary);
+      }
+
+      footer {
+        margin-top: 54px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 0.86rem;
+      }
+
+      @media (max-width: 720px) {
+        .page {
+          width: min(100% - 28px, 1080px);
+          padding-top: 26px;
+        }
+
+        .brand {
+          margin-bottom: 34px;
+        }
+
+        .hero {
+          padding: 22px;
+        }
+
+        .hero-grid,
+        .phase-grid,
+        .columns {
+          grid-template-columns: 1fr;
+        }
+
+        main {
+          gap: 38px;
+          margin-top: 42px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+        }
+      }
+
+      @media print {
+        :root {
+          color-scheme: light;
+          --background: white;
+          --surface: #f5f5f7;
+          --surface-raised: #eeeeF1;
+          --border: #d1d1d6;
+          --text-primary: #171719;
+          --text-secondary: #414147;
+          --text-muted: #66666d;
+          background: white;
+          color: var(--text-primary);
+        }
+
+        body {
+          background: white;
+        }
+
+        .page {
+          width: 100%;
+          padding: 0;
+        }
+
+        .hero,
+        .card,
+        .metric,
+        .checklist li {
+          break-inside: avoid;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <div class="brand" aria-label="Reelix">
+          <span class="brand-mark" aria-hidden="true">R</span>
+          <span>reelix</span>
+        </div>
+        <div class="hero">
+          <p class="eyebrow">Plano de desenvolvimento · 03</p>
+          <h1>Catálogo <span>confiável</span>, com provedores substituíveis.</h1>
+          <p class="intro">
+            Proposta de desenvolvimento baseada na especificação do catálogo e na arquitetura
+            do Reelix. Este documento define escopo, sequência e critérios de aceite; nenhuma
+            implementação será iniciada antes da aprovação.
+          </p>
+          <span class="status">Plano aprovado</span>
+          <div class="hero-grid" aria-label="Resumo do plano">
+            <div class="metric">
+              <strong>Backend</strong>
+              <span>ASP.NET Core · C# · Clean Architecture</span>
+            </div>
+            <div class="metric">
+              <strong>Provedores</strong>
+              <span>TMDB e OMDb atrás de adaptadores</span>
+            </div>
+            <div class="metric">
+              <strong>Persistência</strong>
+              <span>PostgreSQL · EF Core · Npgsql</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section aria-labelledby="objective">
+          <h2 id="objective">Objetivo e limites</h2>
+          <p class="section-lead">
+            Expor pesquisa e consulta de filmes e séries por contratos próprios do Reelix,
+            normalizando metadados de provedores sem acoplar regras de negócio aos formatos externos.
+          </p>
+          <div class="columns">
+            <article class="card">
+              <h3>Incluído</h3>
+              <ul>
+                <li>Contratos normalizados para títulos, temporadas, episódios, gêneros e datas disponíveis.</li>
+                <li>Abstração de consulta e adaptadores isolados para TMDB e OMDb.</li>
+                <li>Pesquisa paginada, detalhes de filmes/séries e consulta de temporadas/episódios quando suportada.</li>
+                <li>Identidade interna do título e referências externas únicas por provedor.</li>
+                <li>Endpoints REST, validação de entrada, erros previsíveis e documentação OpenAPI.</li>
+                <li>Testes com respostas simuladas, persistência relevante e documentação de configuração, atribuição e cache.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Fora deste módulo</h3>
+              <ul>
+                <li>Telas e navegação mobile; o módulo entrega contratos de backend para consumo pelo aplicativo.</li>
+                <li>Tracking, avaliações, comentários, listas, recomendações e disponibilidade em serviços de streaming.</li>
+                <li>Sincronização em massa, jobs agendados, Redis ou infraestrutura de filas sem necessidade comprovada.</li>
+                <li>Armazenamento ou redistribuição de imagens sem confirmação dos direitos aplicáveis.</li>
+                <li>Fallback automático entre provedores antes de confirmar compatibilidade e regras de uso.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section aria-labelledby="phases">
+          <h2 id="phases">Etapas propostas</h2>
+          <p class="section-lead">
+            A implementação começa pela verificação das regras externas e do estado real do
+            repositório, depois evolui dos contratos internos às integrações, API e validação.
+          </p>
+          <div class="phase-grid">
+            <article class="card">
+              <span class="phase-number">01</span>
+              <h3>Reconhecimento e verificação dos provedores</h3>
+              <ul>
+                <li>Inspecionar a solução .NET existente, convenções de DI, persistência, autenticação e testes.</li>
+                <li>Consultar documentação oficial atual do TMDB e da OMDb antes de codificar os adaptadores.</li>
+                <li>Confirmar operações disponíveis, limites, atribuição, uso comercial, retenção/cache e direitos de imagem.</li>
+                <li>Definir configuração por ambiente e registrar qualquer limitação relevante sem inserir credenciais no repositório.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">02</span>
+              <h3>Modelo normalizado e contratos de aplicação</h3>
+              <ul>
+                <li>Definir tipos para filme/série, títulos, metadados opcionais e referências de provedor.</li>
+                <li>Modelar consultas de pesquisa, detalhes, temporadas e episódios sem exigir campos ausentes.</li>
+                <li>Manter datas e fusos conforme a informação recebida; não inferir lançamentos desconhecidos.</li>
+                <li>Criar a abstração de consulta e os resultados de aplicação sem dependência de HTTP ou SDK externo.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">03</span>
+              <h3>Adaptadores TMDB e OMDb</h3>
+              <ul>
+                <li>Usar HttpClient/IHttpClientFactory e DTOs específicos para cada API.</li>
+                <li>Implementar mapeamentos explícitos para o modelo interno e validar respostas incompletas.</li>
+                <li>Respeitar endpoints, parâmetros e operações documentadas; encapsular diferenças por provedor.</li>
+                <li>Tratar timeout, cancelamento, falhas de rede, títulos inexistentes e rate limits sem fabricar resultados.</li>
+                <li>Manter a seleção/combinação de provedores explícita; não presumir equivalência de campos ou fallback seguro.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">04</span>
+              <h3>Persistência e identidade estável</h3>
+              <ul>
+                <li>Inspecionar o modelo de dados existente e acrescentar somente entidades necessárias ao catálogo.</li>
+                <li>Preservar ID interno separado do par provedor/ID externo, com unicidade e índices de consulta.</li>
+                <li>Evitar duplicidade para a mesma referência externa e manter a origem dos metadados identificável.</li>
+                <li>Aplicar migração EF Core e testes de integração PostgreSQL apenas se a persistência fizer parte do fluxo aprovado.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">05</span>
+              <h3>Endpoints Reelix e contrato público</h3>
+              <ul>
+                <li>Expor pesquisa paginada e consultas de detalhes para filmes e séries em rotas REST consistentes.</li>
+                <li>Disponibilizar temporadas, episódios, datas de lançamento e gêneros quando suportados.</li>
+                <li>Validar termos, IDs e paginação; usar status HTTP e ProblemDetails consistentes.</li>
+                <li>Aplicar autenticação/autorização conforme as convenções já definidas na API, sem confiar em IDs do cliente.</li>
+                <li>Atualizar OpenAPI para contratos consumíveis pelo aplicativo e evitar expor DTOs dos provedores.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">06</span>
+              <h3>Resiliência, testes e documentação</h3>
+              <ul>
+                <li>Testar mapeamentos, campos ausentes, paginação, título não encontrado, timeout e rate limit com respostas simuladas.</li>
+                <li>Testar endpoints, persistência e restrições únicas com a infraestrutura de testes existente.</li>
+                <li>Não adicionar cache até verificar que cada provedor permite o comportamento e a duração propostos.</li>
+                <li>Documentar variáveis de ambiente, atribuição, política de cache/retenção e uso de imagens.</li>
+                <li>Executar build e testes relevantes; corrigir falhas introduzidas pelo módulo e registrar bloqueios externos.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section aria-labelledby="decisions">
+          <h2 id="decisions">Salvaguardas e decisões de implementação</h2>
+          <div class="columns">
+            <article class="card">
+              <h3>Segurança e conformidade</h3>
+              <ul>
+                <li>Chaves dos provedores permanecem no backend, configuradas por variáveis de ambiente ou secret manager.</li>
+                <li>Credenciais, tokens e corpos sensíveis não serão registrados em logs.</li>
+                <li>Aplicar timeouts, cancelamento, limites de entrada e rate limiting conforme os padrões existentes.</li>
+                <li>Respeitar termos, limites, atribuição, políticas de cache e direitos de imagem de cada serviço.</li>
+                <li>Um erro ou resposta vazia não será convertido em título fictício nem escondido por fallback silencioso.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Limites arquiteturais</h3>
+              <ul>
+                <li>Regras e contratos de aplicação não dependem dos DTOs do TMDB/OMDb.</li>
+                <li>Integrações externas ficam na infraestrutura; endpoints apenas traduzem HTTP para casos de uso.</li>
+                <li>Persistir referências internas estáveis, sem tornar IDs de terceiros a identidade primária do Reelix.</li>
+                <li>Adicionar abstrações, cache ou processamento assíncrono somente com necessidade concreta.</li>
+                <li>Manter o módulo no monólito modular atual, sem criar microserviços para provedores.</li>
+              </ul>
+            </article>
+          </div>
+          <div class="callout" style="margin-top: 16px">
+            <strong>Decisão a validar antes da integração:</strong> a especificação pede adaptadores
+            para TMDB e OMDb, mas a arquitetura também recomenda um provedor aprovado e evitar
+            dependência múltipla sem necessidade. O plano contempla os dois adaptadores exigidos;
+            chamadas, prioridade e eventual fallback só serão definidos após validar documentação,
+            cobertura funcional e termos de uso, sem prometer substituição automática.
+          </div>
+        </section>
+
+        <section aria-labelledby="acceptance">
+          <h2 id="acceptance">Critérios para considerar concluído</h2>
+          <ul class="checklist">
+            <li>Pesquisa de filmes e séries funciona pelos endpoints Reelix com paginação suportada e validada.</li>
+            <li>Detalhes, temporadas e episódios são consultáveis quando fornecidos pelos provedores.</li>
+            <li>Respostas externas são convertidas para contratos internos, com campos opcionais preservados como opcionais.</li>
+            <li>Identificador interno, provedor e identificador externo são preservados sem duplicar a mesma referência.</li>
+            <li>Datas e fusos refletem os dados recebidos; títulos inexistentes e dados ausentes não são inventados.</li>
+            <li>Indisponibilidade, timeout e limites de provedor têm comportamento previsível e erros observáveis.</li>
+            <li>Credenciais não aparecem em respostas, logs ou código distribuído ao aplicativo.</li>
+            <li>Regras aplicáveis de atribuição, cache/retenção e imagens estão documentadas.</li>
+            <li>Testes automatizados com respostas simuladas e verificações relevantes da solução passam.</li>
+          </ul>
+        </section>
+
+        <section aria-labelledby="approval">
+          <h2 id="approval">Registro da aprovação</h2>
+          <div class="decision">
+            <h3>Escopo aprovado</h3>
+            <p>
+              O escopo foi aprovado pelo usuário antes do início do desenvolvimento. A
+              implementação seguirá estas etapas e manterá integrações e persistência dentro
+              dos limites documentados.
+            </p>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        Reelix · Plano elaborado a partir de <a href="../specs/03-catalog.md">03-catalog.md</a>
+        e de <a href="../architecture.md">architecture.md</a>. Plano aprovado antes do início
+        da implementação.
+      </footer>
+    </div>
+  </body>
+</html>
