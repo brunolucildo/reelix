@@ -1,6 +1,7 @@
 import type { PropsWithChildren } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import ReelixLogo from '../../../assets/brand/logos/logo-horizontal.svg';
 import { colors, fontFamily, spacing } from '@/theme/tokens';
 
 type AuthScreenProps = PropsWithChildren<{
@@ -16,11 +17,7 @@ export function AuthScreen({ title, subtitle, children }: AuthScreenProps) {
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.container}>
-        <View style={styles.brandRow}>
-          <Text accessibilityLabel="Reelix" style={styles.brandMark}>R</Text>
-          <Text style={styles.brandName}>reelix</Text>
-        </View>
-        <Text style={styles.tagline}>YOUR STORIES. YOUR SCREEN.</Text>
+        <ReelixLogo accessibilityLabel="Reelix — filmes, séries e amigos" width={320} height={74} />
         <View style={styles.heading}>
           <Text accessibilityRole="header" style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>{subtitle}</Text>
@@ -44,35 +41,6 @@ const styles = StyleSheet.create({
     maxWidth: 480,
     alignSelf: 'center',
     gap: 12,
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  brandMark: {
-    width: 38,
-    height: 38,
-    overflow: 'hidden',
-    borderRadius: 11,
-    backgroundColor: colors.brand,
-    color: colors.white,
-    fontSize: 27,
-    fontFamily: fontFamily.extraBold,
-    lineHeight: 38,
-    textAlign: 'center',
-  },
-  brandName: {
-    color: colors.textPrimary,
-    fontSize: 28,
-    fontFamily: fontFamily.extraBold,
-    letterSpacing: -1.3,
-  },
-  tagline: {
-    color: colors.brand,
-    fontSize: 10,
-    fontFamily: fontFamily.bold,
-    letterSpacing: 2.2,
   },
   heading: {
     gap: 8,

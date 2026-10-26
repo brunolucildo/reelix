@@ -4,33 +4,31 @@
     "slug": "reelix",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/brand/app-icons/app-icon.png",
     "scheme": "reelix",
     "userInterfaceStyle": "dark",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/brand/app-icons/app-icon.png"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0F0F10",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#080B0F",
+        "foregroundImage": "./assets/brand/app-icons/adaptive-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "server",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/brand/app-icons/app-icon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0F0F10",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#080B0F",
+          "image": "./assets/brand/logos/logo-vertical.png",
+          "imageWidth": 220
         }
       ],
       "expo-secure-store"

@@ -1,7 +1,7 @@
 import { Controller, type Control, type FieldPath, type FieldValues } from 'react-hook-form';
 import { StyleSheet, Text, TextInput, type TextInputProps, View } from 'react-native';
 
-import { colors, fontFamily } from '@/theme/tokens';
+import { colors, fontFamily, radii } from '@/theme/tokens';
 
 type AuthInputProps<TValues extends FieldValues> = {
   control: Control<TValues>;
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: radii.medium,
     backgroundColor: colors.surface,
     color: colors.textPrimary,
     fontSize: 16,

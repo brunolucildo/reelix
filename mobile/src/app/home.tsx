@@ -6,7 +6,7 @@ import { AuthScreen } from '@/components/auth/auth-screen';
 import { PrimaryButton } from '@/components/auth/primary-button';
 import { fetchAuthenticatedAccount } from '@/services/api-client';
 import { useAuthSession } from '@/providers/auth-provider';
-import { colors, fontFamily } from '@/theme/tokens';
+import { colors, fontFamily, radii } from '@/theme/tokens';
 
 export default function AuthenticatedHomeScreen() {
   const { session, signOut } = useAuthSession();
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     padding: 18,
     borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: radii.medium,
     backgroundColor: colors.surface,
   },
   cardLabel: {

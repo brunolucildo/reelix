@@ -1,0 +1,7 @@
+{
+  "brand": "Reelix",
+  "colors": {"primary": "#FF2D55", "secondary": "#FF6688", "background": "#080B0F", "surface": "#10141B", "surfaceRaised": "#202D36", "text": "#FFFFFF", "textMuted": "#A1A1AA", "success": "#B7F34A", "warning": "#FBBF24", "info": "#38BDF8"},
+  "typography": {"family": "Sora", "fallback": "Arial, sans-serif", "titleWeight": 700, "bodyWeight": 400},
+  "radius": {"small": 8, "medium": 14, "large": 24, "pill": 999},
+  "spacing": {"xs": 4, "sm": 8, "md": 16, "lg": 24, "xl": 32}
+}

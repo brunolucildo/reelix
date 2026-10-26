@@ -1,11 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
-  PlusJakartaSans_400Regular,
-  PlusJakartaSans_500Medium,
-  PlusJakartaSans_600SemiBold,
-  PlusJakartaSans_700Bold,
-  PlusJakartaSans_800ExtraBold,
-} from '@expo-google-fonts/plus-jakarta-sans';
+  Sora_400Regular,
+  Sora_500Medium,
+  Sora_600SemiBold,
+  Sora_700Bold,
+  Sora_800ExtraBold,
+} from '@expo-google-fonts/sora';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
@@ -68,11 +68,11 @@ function RootNavigator() {
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    [fontFamily.regular]: PlusJakartaSans_400Regular,
-    [fontFamily.medium]: PlusJakartaSans_500Medium,
-    [fontFamily.semiBold]: PlusJakartaSans_600SemiBold,
-    [fontFamily.bold]: PlusJakartaSans_700Bold,
-    [fontFamily.extraBold]: PlusJakartaSans_800ExtraBold,
+    [fontFamily.regular]: Sora_400Regular,
+    [fontFamily.medium]: Sora_500Medium,
+    [fontFamily.semiBold]: Sora_600SemiBold,
+    [fontFamily.bold]: Sora_700Bold,
+    [fontFamily.extraBold]: Sora_800ExtraBold,
   });
 
   if (!fontsLoaded && !fontError) {

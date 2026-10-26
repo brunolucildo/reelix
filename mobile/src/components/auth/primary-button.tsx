@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors, fontFamily } from '@/theme/tokens';
+import { colors, fontFamily, radii } from '@/theme/tokens';
 
 type PrimaryButtonProps = {
   label: string;
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
+    borderRadius: radii.medium,
     paddingHorizontal: 18,
   },
   primary: {
