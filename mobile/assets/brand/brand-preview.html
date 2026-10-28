@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reelix — prévia dos Brand Assets</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: "Sora", "Arial", sans-serif;
+        background: #0f0f10;
+        color: #fff;
+      }
+
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { width: min(1120px, calc(100% - 40px)); margin: 48px auto; }
+      h1 { margin: 0; font-size: clamp(28px, 5vw, 44px); letter-spacing: -1.5px; }
+      h2 { margin: 0 0 18px; font-size: 18px; }
+      p { color: #b8b8bd; line-height: 1.6; }
+      .accent { color: #ff2d55; }
+      section { margin-top: 40px; }
+      .panel { padding: 24px; border: 1px solid #2a2a2e; border-radius: 20px; background: #1a1a1e; }
+      .logo-row, .app-row, .icon-grid { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+      .logo-card { display: grid; min-height: 130px; flex: 1 1 360px; place-items: center; padding: 22px; border-radius: 14px; background: #0f0f10; }
+      .logo-card img { display: block; width: min(100%, 400px); height: auto; }
+      .logo-card.light { background: #e5e7eb; }
+      .logo-card.vertical img { width: 190px; }
+      .logo-card figcaption, figure figcaption { margin-top: 12px; color: #b8b8bd; font-size: 12px; }
+      figure { margin: 0; text-align: center; }
+      .app-card { display: grid; min-width: 180px; flex: 1 1 180px; justify-items: center; gap: 12px; padding: 20px; border-radius: 14px; background: #0f0f10; }
+      .app-card img { width: 144px; height: 144px; object-fit: contain; }
+      .app-card.light { background: #2a2a2e; }
+      .icon-card { display: grid; width: 68px; min-height: 72px; place-items: center; gap: 8px; padding: 10px 4px; border: 1px solid #2a2a2e; border-radius: 12px; background: #0f0f10; }
+      .icon-card img { width: 24px; height: 24px; }
+      .icon-card figcaption { margin: 0; font-size: 9px; }
+      .badge-card img { width: 58px; height: 66px; object-fit: contain; }
+      .note { margin-top: 18px; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Reelix <span class="accent">Brand Assets</span></h1>
+        <p>Prévia dos arquivos vetoriais e PNG individuais. Esta galeria é somente para revisão; não substitui nem agrupa os assets-fonte.</p>
+      </header>
+
+      <section>
+        <h2>Logotipos</h2>
+        <div class="panel logo-row">
+          <figure class="logo-card">
+            <img src="./logos/logo-horizontal.png" alt="Logo Reelix horizontal colorido">
+            <figcaption>Horizontal · fundo escuro</figcaption>
+          </figure>
+          <figure class="logo-card">
+            <img src="./logos/logo-white.png" alt="Logo Reelix monocromático branco">
+            <figcaption>Monocromático branco</figcaption>
+          </figure>
+          <figure class="logo-card light">
+            <img src="./logos/logo-black.png" alt="Logo Reelix monocromático escuro">
+            <figcaption>Monocromático escuro · fundo claro</figcaption>
+          </figure>
+          <figure class="logo-card vertical">
+            <img src="./logos/logo-vertical.png" alt="Logo Reelix vertical">
+            <figcaption>Lockup compacto</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section>
+        <h2>Ícones da aplicação</h2>
+        <div class="panel app-row">
+          <figure class="app-card">
+            <img src="./app-icons/app-icon.png" alt="Ícone Reelix com fundo escuro">
+            <figcaption>App · dark</figcaption>
+          </figure>
+          <figure class="app-card light">
+            <img src="./app-icons/app-icon-light.png" alt="Ícone Reelix com fundo vermelho">
+            <figcaption>App · light</figcaption>
+          </figure>
+          <figure class="app-card">
+            <img src="./app-icons/adaptive-icon-foreground.png" alt="Foreground transparente do ícone adaptativo Android">
+            <figcaption>Android · foreground</figcaption>
+          </figure>
+          <figure class="app-card">
+            <img src="./app-icons/adaptive-icon-monochrome.png" alt="Símbolo monocromático para ícone temático Android">
+            <figcaption>Android · monocromático</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section>
+        <h2>Navegação e funcionalidades</h2>
+        <div class="panel icon-grid">
+          <figure class="icon-card"><img src="./navigation-icons/home.svg" alt=""><figcaption>home</figcaption></figure>
+          <figure class="icon-card"><img src="./navigation-icons/search.svg" alt=""><figcaption>search</figcaption></figure>
+          <figure class="icon-card"><img src="./navigation-icons/favorites.svg" alt=""><figcaption>favorites</figcaption></figure>
+          <figure class="icon-card"><img src="./navigation-icons/films.svg" alt=""><figcaption>films</figcaption></figure>
+          <figure class="icon-card"><img src="./navigation-icons/series.svg" alt=""><figcaption>series</figcaption></figure>
+          <figure class="icon-card"><img src="./navigation-icons/friends.svg" alt=""><figcaption>friends</figcaption></figure>
+          <figure class="icon-card"><img src="./navigation-icons/rating.svg" alt=""><figcaption>rating</figcaption></figure>
+          <figure class="icon-card"><img src="./navigation-icons/achievements.svg" alt=""><figcaption>awards</figcaption></figure>
+          <figure class="icon-card"><img src="./navigation-icons/check.svg" alt=""><figcaption>watched</figcaption></figure>
+          <figure class="icon-card"><img src="./navigation-icons/clock.svg" alt=""><figcaption>pending</figcaption></figure>
+          <figure class="icon-card"><img src="./navigation-icons/fire.svg" alt=""><figcaption>release</figcaption></figure>
+          <figure class="icon-card"><img src="./navigation-icons/calendar.svg" alt=""><figcaption>calendar</figcaption></figure>
+          <figure class="icon-card"><img src="./navigation-icons/notifications.svg" alt=""><figcaption>alerts</figcaption></figure>
+          <figure class="icon-card"><img src="./navigation-icons/profile.svg" alt=""><figcaption>profile</figcaption></figure>
+          <figure class="icon-card"><img src="./navigation-icons/share.svg" alt=""><figcaption>share</figcaption></figure>
+          <figure class="icon-card"><img src="./navigation-icons/settings.svg" alt=""><figcaption>settings</figcaption></figure>
+        </div>
+      </section>
+
+      <section>
+        <h2>Gêneros</h2>
+        <div class="panel icon-grid">
+          <figure class="icon-card"><img src="./genre-icons/action.svg" alt=""><figcaption>action</figcaption></figure>
+          <figure class="icon-card"><img src="./genre-icons/adventure.svg" alt=""><figcaption>adventure</figcaption></figure>
+          <figure class="icon-card"><img src="./genre-icons/animation.svg" alt=""><figcaption>animation</figcaption></figure>
+          <figure class="icon-card"><img src="./genre-icons/comedy.svg" alt=""><figcaption>comedy</figcaption></figure>
+          <figure class="icon-card"><img src="./genre-icons/documentary.svg" alt=""><figcaption>documentary</figcaption></figure>
+          <figure class="icon-card"><img src="./genre-icons/drama.svg" alt=""><figcaption>drama</figcaption></figure>
+          <figure class="icon-card"><img src="./genre-icons/horror.svg" alt=""><figcaption>horror</figcaption></figure>
+          <figure class="icon-card"><img src="./genre-icons/romance.svg" alt=""><figcaption>romance</figcaption></figure>
+          <figure class="icon-card"><img src="./genre-icons/scifi.svg" alt=""><figcaption>sci-fi</figcaption></figure>
+        </div>
+      </section>
+
+      <section>
+        <h2>Badges de conquistas</h2>
+        <div class="panel icon-grid">
+          <figure class="icon-card badge-card"><img src="./badges/collector.svg" alt=""><figcaption>collector</figcaption></figure>
+          <figure class="icon-card badge-card"><img src="./badges/critic.svg" alt=""><figcaption>critic</figcaption></figure>
+          <figure class="icon-card badge-card"><img src="./badges/explorer.svg" alt=""><figcaption>explorer</figcaption></figure>
+          <figure class="icon-card badge-card"><img src="./badges/first-film.svg" alt=""><figcaption>first-film</figcaption></figure>
+          <figure class="icon-card badge-card"><img src="./badges/friend.svg" alt=""><figcaption>friend</figcaption></figure>
+          <figure class="icon-card badge-card"><img src="./badges/legend.svg" alt=""><figcaption>legend</figcaption></figure>
+          <figure class="icon-card badge-card"><img src="./badges/marathon.svg" alt=""><figcaption>marathon</figcaption></figure>
+          <figure class="icon-card badge-card"><img src="./badges/series-fan.svg" alt=""><figcaption>series-fan</figcaption></figure>
+        </div>
+      </section>
+
+      <p class="note">Cada item acima é carregado do seu próprio SVG ou PNG. Consulte o README desta pasta para dimensões, usos e geração dos PNGs.</p>
+    </main>
+  </body>
+</html>

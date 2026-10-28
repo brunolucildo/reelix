@@ -12,21 +12,22 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#080B0F",
-        "foregroundImage": "./assets/brand/app-icons/adaptive-icon-foreground.png"
+        "backgroundColor": "#0F0F10",
+        "foregroundImage": "./assets/brand/app-icons/adaptive-icon-foreground.png",
+        "monochromeImage": "./assets/brand/app-icons/adaptive-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "server",
-      "favicon": "./assets/brand/app-icons/app-icon.png"
+      "favicon": "./assets/brand/app-icons/favicon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#080B0F",
+          "backgroundColor": "#0F0F10",
           "image": "./assets/brand/logos/logo-vertical.png",
           "imageWidth": 220
         }

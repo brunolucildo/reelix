@@ -17,7 +17,7 @@ export function AuthScreen({ title, subtitle, children }: AuthScreenProps) {
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.container}>
-        <ReelixLogo accessibilityLabel="Reelix — filmes, séries e amigos" width={320} height={74} />
+        <ReelixLogo accessibilityLabel="Reelix — filmes, séries e amigos" width={320} height={96} />
         <View style={styles.heading}>
           <Text accessibilityRole="header" style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>{subtitle}</Text>
