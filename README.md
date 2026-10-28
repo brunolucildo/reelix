@@ -106,3 +106,4 @@ npx expo lint
 - [Configuração do catálogo, provedores e teste no Swagger](docs/catalog-setup.md)
 - [Arquitetura](docs/architecture.md)
 - [Especificações do produto](docs/specs/)
+- [Identidade visual e Brand Assets](mobile/assets/brand/README.md)
