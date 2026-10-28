@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#080b0f">
+    <meta
+      name="description"
+      content="Plano proposto para desenvolvimento sincronizado dos módulos de onboarding e perfil do Reelix."
+    >
+    <title>Plano de desenvolvimento — Onboarding e Perfil | Reelix</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --brand: #ff2d55;
+        --brand-secondary: #ff6688;
+        --background: #080b0f;
+        --surface: #10141b;
+        --surface-raised: #202d36;
+        --border: #202d36;
+        --text-primary: #ffffff;
+        --text-secondary: #a1a1aa;
+        --success: #b7f34a;
+        --warning: #fbbf24;
+        --radius: 14px;
+        font-family: "Sora", "Segoe UI", sans-serif;
+        background: var(--background);
+        color: var(--text-primary);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        background:
+          radial-gradient(ellipse at 8% 0%, rgb(255 45 85 / 18%), transparent 32rem),
+          var(--background);
+        color: var(--text-primary);
+        line-height: 1.65;
+      }
+
+      a {
+        color: var(--brand-secondary);
+        text-underline-offset: 3px;
+      }
+
+      .page {
+        width: min(1080px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 42px 0 72px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 44px;
+        font-size: 1.05rem;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border-radius: 12px;
+        background: var(--brand);
+        color: white;
+        font-size: 1.3rem;
+        font-weight: 900;
+      }
+
+      .eyebrow {
+        margin: 0 0 12px;
+        color: var(--brand-secondary);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        max-width: 850px;
+        margin-bottom: 16px;
+        font-size: clamp(2.25rem, 6vw, 4.25rem);
+        letter-spacing: -0.065em;
+        line-height: 1.08;
+      }
+
+      h1 span {
+        color: var(--brand);
+      }
+
+      h2 {
+        margin-bottom: 12px;
+        font-size: clamp(1.45rem, 3vw, 2rem);
+        letter-spacing: -0.04em;
+      }
+
+      h3 {
+        margin-bottom: 10px;
+        font-size: 1.08rem;
+      }
+
+      .intro,
+      .section-lead {
+        max-width: 780px;
+        color: var(--text-secondary);
+      }
+
+      .intro {
+        margin-bottom: 20px;
+        font-size: 1.08rem;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 12px;
+        border: 1px solid rgb(251 191 36 / 40%);
+        border-radius: 999px;
+        background: rgb(251 191 36 / 10%);
+        color: var(--warning);
+        font-size: 0.82rem;
+        font-weight: 800;
+      }
+
+      .hero-grid,
+      .columns,
+      .phase-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .hero-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-top: 30px;
+      }
+
+      .metric,
+      .card,
+      .callout {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+
+      .metric {
+        padding: 16px;
+      }
+
+      .metric strong,
+      .metric span {
+        display: block;
+      }
+
+      .metric strong {
+        margin-bottom: 4px;
+      }
+
+      .metric span,
+      .muted {
+        color: var(--text-secondary);
+      }
+
+      main {
+        display: grid;
+        gap: 44px;
+        margin-top: 54px;
+      }
+
+      .columns {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 20px;
+      }
+
+      .card {
+        padding: 22px;
+      }
+
+      .card ul,
+      .callout ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      li + li {
+        margin-top: 7px;
+      }
+
+      .phase-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 20px;
+      }
+
+      .phase-number {
+        display: inline-grid;
+        width: 32px;
+        height: 32px;
+        margin-bottom: 14px;
+        place-items: center;
+        border-radius: 10px;
+        background: rgb(255 45 85 / 14%);
+        color: var(--brand-secondary);
+        font-weight: 800;
+      }
+
+      .callout {
+        padding: 20px 22px;
+        border-left: 3px solid var(--brand);
+        background: linear-gradient(110deg, rgb(255 45 85 / 9%), var(--surface) 42%);
+      }
+
+      .callout strong {
+        color: var(--text-primary);
+      }
+
+      .acceptance {
+        display: grid;
+        gap: 10px;
+        margin: 18px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .acceptance li {
+        position: relative;
+        padding: 12px 14px 12px 42px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+      }
+
+      .acceptance li::before {
+        position: absolute;
+        left: 15px;
+        color: var(--success);
+        content: "✓";
+        font-weight: 900;
+      }
+
+      code {
+        color: var(--brand-secondary);
+        overflow-wrap: anywhere;
+      }
+
+      footer {
+        margin-top: 48px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 700px) {
+        .hero-grid,
+        .columns,
+        .phase-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .page {
+          width: min(100% - 28px, 1080px);
+          padding-top: 28px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <div class="brand" aria-label="Reelix">
+          <span class="brand-mark" aria-hidden="true">R</span>
+          <span>reelix</span>
+        </div>
+        <div class="hero">
+          <p class="eyebrow">Plano de desenvolvimento · 02 + 06</p>
+          <h1>Onboarding e Perfil <span>sincronizados</span>, com contratos únicos.</h1>
+          <p class="intro">
+            Proposta para desenvolver as especificações de onboarding e perfil em paralelo,
+            com um agente responsável por cada módulo e coordenação central dos contratos,
+            integração, testes, arquitetura e identidade visual. Nenhuma implementação será
+            iniciada antes da aprovação deste plano.
+          </p>
+          <span class="status">Aguardando aprovação — implementação bloqueada</span>
+          <div class="hero-grid" aria-label="Resumo do plano">
+            <div class="metric">
+              <strong>Onboarding</strong>
+              <span>Preferências, fluxo retomável e conclusão persistida</span>
+            </div>
+            <div class="metric">
+              <strong>Perfil</strong>
+              <span>Dados pessoais, privacidade e avatar sob decisão explícita</span>
+            </div>
+            <div class="metric">
+              <strong>Coordenação</strong>
+              <span>Dois agentes especialistas · uma integração e validação final</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section aria-labelledby="objective">
+          <h2 id="objective">Objetivo e limites</h2>
+          <p class="section-lead">
+            Implementar os fluxos descritos em
+            <a href="../specs/02-onboarding.md">02-onboarding.md</a> e
+            <a href="../specs/06-profile.md">06-profile.md</a> sem duplicar preferências,
+            identidade de autenticação, dados de catálogo ou regras de autorização.
+          </p>
+          <div class="columns">
+            <article class="card">
+              <h3>Incluído</h3>
+              <ul>
+                <li>Fluxo mobile de onboarding com estado consultado no backend, retomada, navegação entre etapas e salvamento resiliente.</li>
+                <li>Preferências de gêneros e referências a títulos de filmes/séries existentes no módulo de catálogo.</li>
+                <li>Consulta e edição do perfil próprio, preferências de privacidade e avatar padrão/removível.</li>
+                <li>Contratos REST/OpenAPI, persistência necessária, autorização, validação e estados de interface.</li>
+                <li>Testes unitários, integração dos contratos e validação mobile/backend compatíveis com o repositório.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Fora do escopo ou sujeito a decisão</h3>
+              <ul>
+                <li>Cadastro, login, senhas ou alteração da identidade gerenciada pelo provedor de autenticação.</li>
+                <li>Um novo catálogo, recomendações próprias, estatísticas inventadas ou dados de conquistas fora dos módulos responsáveis.</li>
+                <li>Amizades, seguidores e implementação completa de perfis sociais.</li>
+                <li>Upload de avatar até que serviço, direitos de acesso, limites e configuração segura estejam aprovados.</li>
+                <li>Exclusão de conta ou retenção além do fluxo/política já existente; documentar lacunas para decisão do produto.</li>
+              </ul>
+            </article>
+          </div>
+          <div class="callout" style="margin-top: 16px">
+            <strong>Regra de bloqueio:</strong> se catálogo, PostgreSQL, autenticação, armazenamento,
+            estatísticas ou gamificação não estiverem disponíveis no repositório/ambiente, os
+            agentes não devem simular sucesso nem criar dependências fictícias. O orquestrador
+            registra o bloqueio e solicita decisão antes de ampliar o escopo.
+          </div>
+        </section>
+
+        <section aria-labelledby="roles">
+          <h2 id="roles">Responsabilidades dos agentes e do orquestrador</h2>
+          <div class="columns">
+            <article class="card">
+              <h3>Agente 1 — especificação 02: Onboarding</h3>
+              <ul>
+                <li>Implementar experiência mobile, estado inicial, retomada e navegação entre etapas.</li>
+                <li>Definir e implementar o contrato de preferências e estado/conclusão do onboarding, após a sincronização inicial.</li>
+                <li>Persistir gêneros e IDs internos de catálogo; rejeitar referências inválidas no servidor.</li>
+                <li>Integrar pesquisa/seleção com o catálogo existente e expor preferências para consumo pelos módulos autorizados.</li>
+                <li>Entregar testes e documentação do contrato e dos estados de erro/carregamento.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Agente 2 — especificação 06: Perfil</h3>
+              <ul>
+                <li>Implementar consulta/edição do perfil próprio e validações server-side de campos e limites.</li>
+                <li>Separar dados editáveis do perfil da identidade autenticada; jamais aceitar ID do cliente como prova de autorização.</li>
+                <li>Consumir o contrato canônico de preferências do onboarding, sem criar segunda fonte para gêneros ou títulos favoritos.</li>
+                <li>Aplicar privacidade às respostas; integrar estatísticas/conquistas apenas por contratos existentes.</li>
+                <li>Implementar avatar padrão e remoção; upload só após decisão sobre armazenamento e segurança.</li>
+              </ul>
+            </article>
+          </div>
+          <div class="callout" style="margin-top: 16px">
+            <strong>Orquestrador:</strong> valida o estado real do repositório e as especificações;
+            conduz o alinhamento de contratos; define limites de arquivos e dependências compartilhados;
+            integra as contribuições; resolve divergências; executa os quality gates; e só declara
+            conclusão após verificar critérios de aceite de ambos os módulos.
+          </div>
+        </section>
+
+        <section aria-labelledby="contracts">
+          <h2 id="contracts">Contratos que serão alinhados antes do trabalho paralelo</h2>
+          <p class="section-lead">
+            Na primeira etapa, os dois agentes e o orquestrador fecham os modelos e exemplos de
+            requisição/resposta. Os nomes abaixo são propostas de recursos, não autorização para
+            codificar endpoints sem conferir convenções e versões existentes.
+          </p>
+          <div class="card">
+            <ul>
+              <li><strong>Identidade:</strong> toda operação usa a conta autenticada resolvida no servidor; identificadores de usuário não são aceitos para selecionar o proprietário.</li>
+              <li><strong>Preferências:</strong> um contrato e uma fonte de verdade para gêneros, IDs internos de filmes/séries favoritos e estado de conclusão/retomada; o onboarding é o proprietário desse contrato.</li>
+              <li><strong>Perfil:</strong> contrato separado para campos básicos, avatar e privacidade; consulta/edição de preferências no perfil reutiliza o contrato do onboarding.</li>
+              <li><strong>API:</strong> definir rotas REST, verbos, DTOs, validação, códigos HTTP, <code>ProblemDetails</code>, autenticação e política de privacidade conforme padrões atuais.</li>
+              <li><strong>Persistência:</strong> acordar a relação com a conta interna, limites e invariantes. Alterações compartilhadas de DbContext, snapshot/migrações, DI, OpenAPI ou cliente gerado ficam sob coordenação do orquestrador para evitar conflitos de merge.</li>
+              <li><strong>Dados dependentes:</strong> identificar interfaces disponíveis de catálogo, Tracking e Gamificação. Não copiar dados, atribuir estatísticas, expor campos privados ou inventar resultados quando uma fonte não existir.</li>
+              <li><strong>Avatar:</strong> decidir entre apenas avatar padrão neste incremento ou habilitar upload com armazenamento aprovado, autorização, limites, validação de conteúdo e política de URLs. Sem decisão/infraestrutura, upload permanece bloqueado.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section aria-labelledby="phases">
+          <h2 id="phases">Etapas propostas e sincronização</h2>
+          <p class="section-lead">
+            O trabalho paralelo começa somente depois da aprovação do plano e do fechamento
+            dos contratos compartilhados. Cada agente mantém ownership do seu módulo; o
+            orquestrador conduz os checkpoints de integração.
+          </p>
+          <div class="phase-grid">
+            <article class="card">
+              <span class="phase-number">01</span>
+              <h3>Reconhecimento e decisões</h3>
+              <ul>
+                <li>Inspecionar solution, projetos, migrations, autenticação, APIs, mobile, testes, dependências e alterações locais.</li>
+                <li>Conferir as duas specs, arquitetura, convenções existentes e configuração do catálogo.</li>
+                <li>Mapear fontes de estatísticas/conquistas e decidir se upload de avatar é viável sem presumir serviços ou credenciais.</li>
+                <li>Registrar lacunas e bloquear itens que exijam decisão; não expandir escopo silenciosamente.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">02</span>
+              <h3>Alinhamento conjunto de contratos</h3>
+              <ul>
+                <li>Os dois agentes revisam os limites entre perfil e preferências antes de iniciar implementações independentes.</li>
+                <li>O orquestrador confirma DTOs, rotas, estados de onboarding, semântica de salvamento parcial/conclusão e regras de autorização.</li>
+                <li>Definir propriedade de pastas/arquivos, pontos de integração e tratamento das alterações compartilhadas.</li>
+                <li>Se não houver acordo, interromper a execução paralela e pedir decisão em vez de aceitar contratos incompatíveis.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">03</span>
+              <h3>Implementação paralela por módulo</h3>
+              <ul>
+                <li>Agente 1 constrói onboarding + contrato de preferências; Agente 2 constrói perfil + privacidade consumindo o contrato aprovado.</li>
+                <li>Trabalhar em branches/worktrees isolados e evitar edição simultânea de arquivos compartilhados.</li>
+                <li>Cada agente entrega alterações delimitadas, testes relevantes, resumo de decisões e dependências/bloqueios.</li>
+                <li>Sincronização breve em cada mudança de contrato ou descoberta que altere comportamento dos dois módulos.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">04</span>
+              <h3>Integração coordenada</h3>
+              <ul>
+                <li>O orquestrador integra migrations/snapshot, registro de serviços, rotas/OpenAPI e cliente tipado, evitando conflitos e drift.</li>
+                <li>Verificar referências de catálogo, identidade autenticada, preferências compartilhadas e filtragem por privacidade no servidor.</li>
+                <li>Revisar estados de navegação entre autenticação, onboarding e áreas protegidas sem tratar navegação como autorização.</li>
+                <li>Resolver conflitos semanticamente e confirmar com ambos os agentes que as implementações atendem os contratos comuns.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">05</span>
+              <h3>Testes ponta a ponta e revisão</h3>
+              <ul>
+                <li>Testar usuários novos, onboarding parcial/concluído, retomada após reinício, salvamento/falha e edição posterior no perfil.</li>
+                <li>Testar validação, IDs de catálogo inexistentes, concorrência/consistência relevante e isolamento entre usuários.</li>
+                <li>Testar privacidade, ausência de exposição de identidade, avatar padrão/remoção e integração de fontes existentes.</li>
+                <li>Revisar acessibilidade, design tokens, estados vazios/erro/sucesso, regressões e qualidade dos contratos.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">06</span>
+              <h3>Quality gates e documentação</h3>
+              <ul>
+                <li>Executar testes backend, migrations quando aplicável, build, validação OpenAPI/cliente e verificações mobile.</li>
+                <li>Executar lint e typecheck mobile, além dos testes de componentes/fluxo disponíveis no projeto.</li>
+                <li>Atualizar documentação de configuração, limites dos campos, privacidade, armazenamento e contratos.</li>
+                <li>Corrigir falhas introduzidas, registrar bloqueios externos e apresentar resumo final ao usuário.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section aria-labelledby="brand">
+          <h2 id="brand">Arquitetura, segurança e identidade visual</h2>
+          <div class="columns">
+            <article class="card">
+              <h3>Arquitetura e segurança</h3>
+              <ul>
+                <li>Seguir Clean Architecture, modular monolith, SOLID pragmático e KISS: regras no domínio/aplicação, HTTP na API e persistência/adaptadores na infraestrutura.</li>
+                <li>Manter PostgreSQL como fonte de verdade; migrations EF Core com constraints/índices justificados e mudanças coordenadas.</li>
+                <li>Autenticar e autorizar no servidor; validar entradas e referências; aplicar least privilege, ProblemDetails e logs sem dados sensíveis.</li>
+                <li>Não armazenar senhas/tokens no perfil, nem expor email ou URLs privadas por padrão; respeitar LGPD, minimização e exclusão/retensão documentadas.</li>
+                <li>Não adicionar infraestrutura, bibliotecas ou abstrações sem necessidade comprovada.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Brand e design mobile</h3>
+              <ul>
+                <li>Usar <code>mobile/assets/brand/docs/design-tokens.json</code> e <code>mobile/src/theme/tokens.ts</code> como fontes; não codificar valores de marca em telas.</li>
+                <li>Aplicar base cinematográfica escura, superfícies do kit, rosa/vermelho para ações e ênfase, Sora e contrastes legíveis.</li>
+                <li>Reutilizar logos, ícones de gênero/navegação, badges e ilustrações fornecidos, sem emojis/glyphs substitutos nem redesenho de logo.</li>
+                <li>Construir telas mobile acessíveis, com labels, alvos de toque adequados, texto dinâmico e estados de carregamento/erro/vazio/sucesso.</li>
+                <li>Antes de alterar APIs Expo/React Native, verificar versão instalada e documentação Expo correspondente, conforme <code>mobile/AGENTS.md</code>.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section aria-labelledby="acceptance">
+          <h2 id="acceptance">Critérios para considerar concluído</h2>
+          <ul class="acceptance">
+            <li>Onboarding e perfil implementados com limites claros e sem duplicar preferências ou identidade.</li>
+            <li>Estado de onboarding e preferências permanecem consistentes após navegação, falhas recuperáveis e reinício do app.</li>
+            <li>Perfil edita apenas campos autorizados; API impede acesso/alteração indevidos e aplica privacidade nas respostas.</li>
+            <li>Gêneros/títulos válidos são associados ao usuário autenticado e referenciam o catálogo existente; entradas inválidas são rejeitadas.</li>
+            <li>Avatar padrão funciona; upload só existe se o serviço e as regras tiverem sido aprovados e testados.</li>
+            <li>Estatísticas e conquistas vêm de contratos do módulo responsável ou são explicitamente registrados como dependência pendente, nunca fabricados.</li>
+            <li>OpenAPI/cliente e implementação mobile/backend não divergem; testes de contrato, autorização e fluxos relevantes passam.</li>
+            <li>Build, testes, lint e typecheck pertinentes passam; mudanças relacionadas estão documentadas e revisadas pelo orquestrador.</li>
+          </ul>
+        </section>
+
+        <section aria-labelledby="approval">
+          <h2 id="approval">Registro de aprovação</h2>
+          <div class="callout">
+            <strong>Status: aguardando aprovação do usuário.</strong>
+            Nenhum agente de implementação foi iniciado e nenhum código funcional foi alterado
+            para estas specs. Após a aprovação, a execução seguirá as etapas descritas acima;
+            qualquer decisão de produto bloqueante será apresentada antes de ampliar o escopo.
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        Referências: <a href="../architecture.md">architecture.md</a>,
+        <a href="../specs/02-onboarding.md">02-onboarding.md</a>,
+        <a href="../specs/06-profile.md">06-profile.md</a>,
+        <a href="../../mobile/AGENTS.md">mobile/AGENTS.md</a> e
+        <a href="../../mobile/assets/brand/docs/design-tokens.json">design-tokens.json</a>.
+      </footer>
+    </div>
+  </body>
+</html>
