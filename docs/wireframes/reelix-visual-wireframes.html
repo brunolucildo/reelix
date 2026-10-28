@@ -1,0 +1,1191 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080B0F">
+  <meta name="description" content="Wireframes visuais AS IS e TO BE do Reelix, baseados nos planos de autenticação, onboarding, perfil e catálogo.">
+  <title>Visual Wireframes | Reelix</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --brand: #FF2D55;
+      --pink: #FF6688;
+      --bg: #080B0F;
+      --surface: #10141B;
+      --raised: #202D36;
+      --border: #29323B;
+      --text: #FFFFFF;
+      --muted: #A1A1AA;
+      --success: #B7F34A;
+      --warning: #FBBF24;
+      --info: #38BDF8;
+      --radius: 14px;
+      font-family: "Sora", "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        radial-gradient(ellipse at 12% -8%, rgb(255 45 85 / 17%), transparent 34rem),
+        radial-gradient(ellipse at 92% 10%, rgb(255 102 136 / 7%), transparent 30rem),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    button, select { font: inherit; }
+    button { color: inherit; }
+    a { color: var(--pink); }
+
+    .wrap { width: min(1440px, calc(100% - 48px)); margin: 0 auto; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 21px 0;
+      border-bottom: 1px solid rgb(255 255 255 / 8%);
+    }
+
+    .brand-lockup { display: flex; align-items: center; gap: 16px; min-width: 0; }
+    .brand-lockup img { display: block; width: 154px; height: auto; border-radius: 10px; }
+    .brand-caption { color: var(--muted); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+
+    .pill, .status, .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: rgb(16 20 27 / 84%);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .status::before {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      content: "";
+    }
+
+    .status.done { color: var(--success); border-color: rgb(183 243 74 / 28%); }
+    .status.partial { color: var(--warning); border-color: rgb(251 191 36 / 32%); }
+    .status.todo { color: var(--pink); border-color: rgb(255 102 136 / 28%); }
+    .status.unknown { color: var(--info); border-color: rgb(56 189 248 / 28%); }
+
+    .hero { padding: 42px 0 26px; }
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--pink);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 11px; font-size: clamp(36px, 5vw, 64px); letter-spacing: -.065em; line-height: 1.03; }
+    h1 span { color: var(--brand); }
+    .hero-copy { max-width: 850px; margin-bottom: 22px; color: #BEC3CB; font-size: 15px; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 2px 0 30px;
+    }
+    .summary-card, .panel, .section-card, .screen-info, .flow-card, .observation {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: linear-gradient(145deg, rgb(20 25 33 / 95%), rgb(13 17 23 / 96%));
+      box-shadow: 0 18px 48px rgb(0 0 0 / 16%);
+    }
+    .summary-card { padding: 17px 18px; }
+    .summary-card strong { display: block; margin-bottom: 4px; font-size: 14px; }
+    .summary-card span { color: var(--muted); font-size: 12px; }
+
+    .module-nav {
+      position: sticky;
+      z-index: 20;
+      top: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgb(255 255 255 / 8%);
+      background: rgb(8 11 15 / 92%);
+      backdrop-filter: blur(14px);
+    }
+    .module-button, .mode-button, .utility-button, .screen-select, .action {
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color .16s ease, color .16s ease, background .16s ease, transform .16s ease;
+    }
+    .module-button { padding: 10px 15px; font-size: 12px; font-weight: 750; }
+    .module-button:hover, .mode-button:hover, .utility-button:hover, .action:hover, .screen-select:hover {
+      border-color: rgb(255 102 136 / 55%);
+      color: var(--text);
+    }
+    .module-button[aria-selected="true"], .mode-button[aria-pressed="true"] {
+      border-color: rgb(255 45 85 / 65%);
+      background: rgb(255 45 85 / 15%);
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgb(255 45 85 / 16%);
+    }
+    .nav-count { margin-left: 6px; color: var(--pink); font-size: 10px; }
+
+    main { padding: 26px 0 70px; }
+    .section-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 16px;
+    }
+    .section-heading h2 { margin: 0 0 4px; font-size: 22px; letter-spacing: -.035em; }
+    .section-heading p { max-width: 760px; margin: 0; color: var(--muted); font-size: 12px; }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 16px;
+    }
+    .toolbar-label { color: var(--muted); font-size: 11px; font-weight: 700; }
+    .screen-select { min-width: 255px; padding: 10px 34px 10px 12px; color: var(--text); font-size: 12px; }
+    .mode-group { display: flex; gap: 5px; padding: 4px; border: 1px solid var(--border); border-radius: 13px; background: #0B0F14; }
+    .mode-button { padding: 8px 11px; font-size: 11px; font-weight: 750; }
+    .toolbar-spacer { flex: 1; }
+    .utility-button { padding: 9px 12px; font-size: 11px; font-weight: 700; }
+
+    .screen-context {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+      padding: 13px 15px;
+      border: 1px solid rgb(255 255 255 / 7%);
+      border-radius: 13px;
+      background: rgb(16 20 27 / 75%);
+    }
+    .screen-context h3 { margin: 0 0 3px; font-size: 14px; }
+    .screen-context p { margin: 0; color: var(--muted); font-size: 11px; }
+    .screen-context .tag { color: var(--pink); }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      align-items: start;
+    }
+    .comparison.single { grid-template-columns: minmax(0, 1fr); }
+    .comparison.single .compare-panel { max-width: 100%; }
+    .compare-panel { min-width: 0; overflow: hidden; }
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgb(255 255 255 / 7%);
+    }
+    .panel-title { display: flex; align-items: center; gap: 9px; }
+    .panel-title h3 { margin: 0; font-size: 13px; letter-spacing: .02em; }
+    .panel-title small { color: var(--muted); font-size: 10px; }
+    .panel-symbol { display: grid; width: 27px; height: 27px; place-items: center; border-radius: 9px; background: rgb(255 45 85 / 14%); color: var(--brand); font-size: 13px; font-weight: 900; }
+    .panel-symbol.future { background: rgb(255 102 136 / 14%); color: var(--pink); }
+    .panel-content { padding: 15px; }
+
+    .device-stage {
+      display: grid;
+      grid-template-columns: minmax(0, 350px) minmax(0, 1fr);
+      align-items: start;
+      gap: 18px;
+    }
+    .device {
+      width: min(100%, 350px);
+      margin: 0 auto;
+      padding: 9px;
+      border: 1px solid #49515D;
+      border-radius: 34px;
+      background: linear-gradient(145deg, #242B35, #0E1116 45%, #222833);
+      box-shadow: 0 18px 42px rgb(0 0 0 / 42%), inset 0 0 0 1px rgb(255 255 255 / 5%);
+    }
+    .device-screen {
+      position: relative;
+      min-height: 644px;
+      overflow: hidden;
+      border: 1px solid rgb(255 255 255 / 8%);
+      border-radius: 26px;
+      background: var(--bg);
+    }
+    .device-screen.auth-screen { display: flex; flex-direction: column; justify-content: center; }
+    .not-built {
+      display: grid;
+      min-height: 644px;
+      align-content: center;
+      justify-items: center;
+      padding: 30px;
+      text-align: center;
+      background:
+        radial-gradient(ellipse at 50% 34%, rgb(255 45 85 / 13%), transparent 55%),
+        #0B0F14;
+    }
+    .not-built .empty-symbol {
+      display: grid;
+      width: 68px;
+      height: 68px;
+      place-items: center;
+      margin-bottom: 17px;
+      border: 1px dashed rgb(255 102 136 / 48%);
+      border-radius: 22px;
+      color: var(--pink);
+      font-size: 25px;
+    }
+    .not-built h4 { margin: 0 0 8px; font-size: 16px; }
+    .not-built p { max-width: 230px; margin: 0 0 14px; color: var(--muted); font-size: 11px; }
+
+    .phone-status {
+      display: flex;
+      justify-content: space-between;
+      padding: 13px 18px 8px;
+      color: #E8E8EA;
+      font-size: 9px;
+      font-weight: 800;
+    }
+    .phone-status span:last-child { letter-spacing: 2px; }
+    .phone-content { padding: 12px 17px 18px; }
+    .phone-logo { display: block; width: 142px; height: auto; margin: 0 auto 15px; border-radius: 8px; }
+    .phone-kicker { margin: 0 0 5px; color: var(--pink); font-size: 8px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    .phone-title { margin: 0 0 5px; font-size: 20px; font-weight: 800; letter-spacing: -.045em; line-height: 1.16; }
+    .phone-subtitle { margin: 0 0 16px; color: var(--muted); font-size: 10px; line-height: 1.55; }
+    .phone-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 13px; }
+    .phone-heading .phone-title { margin: 0; font-size: 17px; }
+    .tiny { color: var(--muted); font-size: 8px; }
+    .phone-logo-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+    .phone-logo-row .phone-logo { width: 102px; margin: 0; }
+    .step-mark { color: var(--muted); font-size: 8px; font-weight: 700; }
+    .progress { height: 4px; overflow: hidden; margin: 0 0 17px; border-radius: 99px; background: #20252D; }
+    .progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--brand), var(--pink)); }
+
+    .field { margin: 0 0 11px; }
+    .field label { display: block; margin: 0 0 5px; color: #D7D9DE; font-size: 9px; font-weight: 700; }
+    .input {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 39px;
+      padding: 0 11px;
+      border: 1px solid #303944;
+      border-radius: 10px;
+      background: #11161D;
+      color: #89919B;
+      font-size: 9px;
+    }
+    .input.search { min-height: 36px; border-radius: 11px; }
+    .input .icon { color: var(--pink); font-size: 12px; }
+    .input.error { border-color: var(--brand); color: #FFC0CF; }
+    .field-error { margin: 4px 0 0; color: var(--pink); font-size: 8px; }
+    .text-link { display: block; margin: 1px 0 12px; color: var(--pink); font-size: 8px; text-align: right; text-decoration: none; }
+    .action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 37px;
+      padding: 0 12px;
+      font-size: 9px;
+      font-weight: 800;
+    }
+    .action.primary { border-color: transparent; background: linear-gradient(100deg, var(--brand), #F64970); color: white; box-shadow: 0 7px 18px rgb(255 45 85 / 22%); }
+    .action.secondary { background: #171D25; color: #E8E9ED; }
+    .action.ghost { border-color: transparent; background: transparent; color: var(--pink); }
+    .action.full { display: flex; width: 100%; }
+    .phone-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .phone-actions .action { flex: 1; }
+    .form-note {
+      margin: 0 0 10px;
+      padding: 9px 10px;
+      border: 1px solid rgb(255 102 136 / 26%);
+      border-radius: 9px;
+      background: rgb(255 45 85 / 8%);
+      color: #FFC1D0;
+      font-size: 8px;
+      line-height: 1.5;
+    }
+    .form-note.success { border-color: rgb(183 243 74 / 25%); background: rgb(183 243 74 / 7%); color: #D8F3A4; }
+    .divider { display: flex; align-items: center; gap: 8px; margin: 14px 0 8px; color: #69717C; font-size: 7px; }
+    .divider::before, .divider::after { height: 1px; flex: 1; background: #272E37; content: ""; }
+    .center-link { display: block; margin-top: 12px; color: var(--pink); font-size: 8px; text-align: center; text-decoration: none; }
+
+    .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 15px; }
+    .choice {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 9px;
+      border: 1px solid #303944;
+      border-radius: 999px;
+      background: #131922;
+      color: #C6CBD3;
+      font-size: 8px;
+    }
+    .choice.selected { border-color: rgb(255 45 85 / 70%); background: rgb(255 45 85 / 14%); color: #FFF; }
+    .choice .check { color: var(--pink); }
+    .result-card {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 7px 0;
+      padding: 8px;
+      border: 1px solid #27313A;
+      border-radius: 11px;
+      background: #11161D;
+    }
+    .poster {
+      position: relative;
+      display: grid;
+      width: 42px;
+      height: 57px;
+      flex: 0 0 auto;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid rgb(255 255 255 / 12%);
+      border-radius: 6px;
+      background:
+        radial-gradient(circle at 72% 25%, rgb(255 102 136 / 60%), transparent 30%),
+        linear-gradient(145deg, #54263C, #182630 55%, #11141B);
+      color: rgb(255 255 255 / 80%);
+      font-size: 7px;
+      font-weight: 900;
+      letter-spacing: .05em;
+    }
+    .poster.cool { background: radial-gradient(circle at 28% 27%, #597D8D, transparent 33%), linear-gradient(140deg, #173744, #202439 58%, #10151D); }
+    .poster.gold { background: radial-gradient(circle at 70% 30%, #D7A55A, transparent 29%), linear-gradient(150deg, #53422A, #292536 60%, #11141A); }
+    .result-copy { min-width: 0; flex: 1; }
+    .result-copy strong { display: block; overflow: hidden; color: #F2F3F4; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    .result-copy span { display: block; margin-top: 3px; color: var(--muted); font-size: 7px; }
+    .result-add { display: grid; width: 23px; height: 23px; place-items: center; border: 1px solid #38424E; border-radius: 8px; color: var(--pink); font-size: 13px; }
+    .mini-section { margin: 14px 0 7px; color: #F1F2F4; font-size: 9px; font-weight: 800; }
+    .phone-divider { height: 1px; margin: 13px 0; background: #242B34; }
+    .soft-card { margin: 8px 0; padding: 11px; border: 1px solid #28323C; border-radius: 12px; background: #11161D; }
+    .soft-card strong { display: block; margin-bottom: 4px; font-size: 9px; }
+    .soft-card p { margin: 0; color: var(--muted); font-size: 8px; line-height: 1.5; }
+    .inline-metadata { display: flex; flex-wrap: wrap; gap: 6px; margin: 9px 0; }
+    .meta-chip { padding: 5px 7px; border-radius: 7px; background: #202832; color: #C3CAD2; font-size: 7px; }
+    .title-art {
+      position: relative;
+      display: flex;
+      min-height: 132px;
+      flex-direction: column;
+      justify-content: end;
+      overflow: hidden;
+      padding: 13px;
+      border: 1px solid #3A303B;
+      border-radius: 14px;
+      background:
+        linear-gradient(0deg, rgb(8 11 15 / 96%), transparent 70%),
+        radial-gradient(ellipse at 70% 25%, rgb(255 102 136 / 65%), transparent 30%),
+        radial-gradient(ellipse at 24% 62%, #284A5C, transparent 42%),
+        linear-gradient(140deg, #502C44, #17222E 65%, #10141B);
+    }
+    .title-art.series-art {
+      background:
+        linear-gradient(0deg, rgb(8 11 15 / 96%), transparent 70%),
+        radial-gradient(ellipse at 25% 35%, rgb(90 145 158 / 63%), transparent 33%),
+        radial-gradient(ellipse at 78% 70%, #5B354D, transparent 44%),
+        linear-gradient(140deg, #172F3A, #312331 65%, #10141B);
+    }
+    .title-art small { position: relative; z-index: 1; color: #F6C1D0; font-size: 7px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    .title-art strong { position: relative; z-index: 1; margin-top: 4px; font-size: 17px; letter-spacing: -.04em; }
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 0;
+      border-bottom: 1px solid #222A33;
+      color: #E1E3E7;
+      font-size: 8px;
+    }
+    .row small { display: block; margin-top: 3px; color: var(--muted); font-size: 7px; }
+    .toggle {
+      width: 29px;
+      height: 16px;
+      flex: 0 0 auto;
+      padding: 2px;
+      border-radius: 99px;
+      background: #353D47;
+    }
+    .toggle::after { display: block; width: 12px; height: 12px; border-radius: 50%; background: #A1A1AA; content: ""; }
+    .toggle.on { background: rgb(255 45 85 / 70%); }
+    .toggle.on::after { margin-left: 13px; background: #fff; }
+    .avatar {
+      display: grid;
+      width: 54px;
+      height: 54px;
+      place-items: center;
+      border: 1px solid rgb(255 102 136 / 38%);
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 22%, #684155, #202B37 67%);
+      color: #FFD5DF;
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .user-row { display: flex; align-items: center; gap: 11px; padding: 5px 0 13px; }
+    .user-row strong { display: block; font-size: 12px; }
+    .user-row span { display: block; margin-top: 3px; color: var(--muted); font-size: 8px; }
+    .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin: 10px 0; }
+    .stat-box { padding: 9px 6px; border: 1px solid #29323C; border-radius: 10px; background: #11161D; text-align: center; }
+    .stat-box strong { display: block; color: #E4E6E9; font-size: 10px; }
+    .stat-box span { display: block; margin-top: 3px; color: var(--muted); font-size: 6px; }
+    .tab-row { display: flex; gap: 13px; margin: 9px 0; border-bottom: 1px solid #262E38; }
+    .tab { padding: 8px 0; color: #858E99; font-size: 8px; }
+    .tab.active { border-bottom: 2px solid var(--brand); color: #FFF; }
+    .skeleton { height: 9px; margin: 7px 0; border-radius: 5px; background: linear-gradient(90deg, #1B222B, #2A333E, #1B222B); }
+    .skeleton.short { width: 58%; }
+    .error-card { padding: 10px; border: 1px solid rgb(255 45 85 / 36%); border-radius: 10px; background: rgb(255 45 85 / 8%); color: #FFC4D0; font-size: 8px; }
+    .empty-card { padding: 15px 10px; border: 1px dashed #34404B; border-radius: 11px; color: var(--muted); font-size: 8px; text-align: center; }
+
+    .state-banner {
+      position: absolute;
+      z-index: 5;
+      right: 12px;
+      bottom: 12px;
+      left: 12px;
+      padding: 9px 10px;
+      border: 1px solid rgb(255 102 136 / 35%);
+      border-radius: 10px;
+      background: rgb(16 20 27 / 96%);
+      box-shadow: 0 10px 25px rgb(0 0 0 / 35%);
+      color: #FFD9E2;
+      font-size: 8px;
+      line-height: 1.4;
+    }
+    .state-banner.success { border-color: rgb(183 243 74 / 30%); color: #E1F7BB; }
+    .state-banner.error { border-color: rgb(255 45 85 / 45%); color: #FFD0D9; }
+
+    .screen-info { padding: 13px; }
+    .info-block + .info-block { margin-top: 13px; padding-top: 12px; border-top: 1px solid rgb(255 255 255 / 7%); }
+    .info-label { margin: 0 0 7px; color: #757F8B; font-size: 8px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .info-block p { margin: 0; color: #D1D5DB; font-size: 10px; line-height: 1.55; }
+    .info-block ul { margin: 0; padding-left: 15px; color: #BEC4CC; font-size: 9px; }
+    .info-block li + li { margin-top: 4px; }
+    .status-stack { display: flex; flex-wrap: wrap; gap: 6px; }
+    .state-choice { padding: 6px 8px; border: 1px solid #303944; border-radius: 8px; background: #10151C; color: #AEB5BF; cursor: pointer; font-size: 8px; }
+    .state-choice[aria-pressed="true"] { border-color: rgb(255 102 136 / 58%); background: rgb(255 102 136 / 12%); color: #FFF; }
+    .state-note { margin: 8px 0 0 !important; color: #828B96 !important; font-size: 8px !important; }
+    .screen-info.collapsed .info-extra { display: none; }
+    .diff-key { display: flex; flex-wrap: wrap; gap: 7px; }
+    .diff-key .tag { border-radius: 7px; font-size: 8px; }
+    .tag.new { border-color: rgb(255 102 136 / 36%); background: rgb(255 102 136 / 10%); color: var(--pink); }
+    .tag.changed { border-color: rgb(251 191 36 / 32%); background: rgb(251 191 36 / 8%); color: var(--warning); }
+    .tag.kept { border-color: rgb(183 243 74 / 26%); background: rgb(183 243 74 / 7%); color: var(--success); }
+
+    .flow-section, .observations, .legend-section { margin-top: 34px; }
+    .section-card { padding: 20px; }
+    .flow-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .flow-card { padding: 15px; border-radius: 14px; box-shadow: none; }
+    .flow-card h3 { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 7px; font-size: 12px; }
+    .flow-card p { margin: 0 0 11px; color: var(--muted); font-size: 9px; }
+    .flow-nodes { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+    .flow-branch { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+    .flow-branch + .flow-branch { margin-top: 7px; padding-top: 7px; border-top: 1px solid rgb(255 255 255 / 6%); }
+    .flow-node {
+      padding: 7px 9px;
+      border: 1px solid #303944;
+      border-radius: 9px;
+      background: #10151C;
+      color: #E8E9EC;
+      cursor: pointer;
+      font-size: 8px;
+    }
+    .flow-node:hover { border-color: var(--pink); }
+    .flow-arrow { color: var(--pink); font-size: 11px; }
+    .flow-caption { margin: 10px 0 0 !important; color: #7F8995 !important; font-size: 8px !important; }
+    .observations-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .observation { padding: 14px; border-left: 3px solid var(--warning); border-radius: 12px; box-shadow: none; }
+    .observation strong { display: block; margin-bottom: 5px; font-size: 10px; }
+    .observation p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.55; }
+    .legend-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .legend-grid .status { padding: 8px 10px; }
+
+    .sources { margin: 23px 0 0; padding-top: 15px; border-top: 1px solid rgb(255 255 255 / 7%); color: #7E8792; font-size: 9px; }
+    .sources a { color: #FF8BA2; text-decoration: none; }
+    footer { padding: 17px 0 35px; color: #68727E; font-size: 9px; }
+    .hidden { display: none !important; }
+
+    @media (max-width: 1050px) {
+      .device-stage { grid-template-columns: minmax(0, 1fr); }
+      .screen-info { width: min(100%, 350px); margin: 0 auto; }
+    }
+    @media (max-width: 760px) {
+      .wrap { width: min(100% - 28px, 1440px); }
+      .topbar { align-items: flex-start; }
+      .brand-caption { display: none; }
+      .top-actions { flex-wrap: wrap; justify-content: end; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .module-nav { overflow-x: auto; }
+      .module-button { flex: 0 0 auto; }
+      .comparison { grid-template-columns: minmax(0, 1fr); }
+      .comparison.single { grid-template-columns: minmax(0, 1fr); }
+      .flow-grid, .observations-grid { grid-template-columns: 1fr; }
+      .screen-context { grid-template-columns: minmax(0, 1fr); }
+      .toolbar-spacer { display: none; }
+      .toolbar { align-items: stretch; }
+      .screen-select { width: 100%; }
+      .mode-group { width: 100%; }
+      .mode-button { flex: 1; }
+      .panel-content { padding: 10px; }
+      .device { width: min(100%, 350px); }
+      .section-heading { align-items: flex-start; flex-direction: column; }
+    }
+    @media (max-width: 380px) {
+      .brand-lockup img { width: 125px; }
+      .topbar { gap: 8px; }
+      .top-actions .pill { font-size: 9px; }
+      .device-screen, .not-built { min-height: 610px; }
+      .phone-content { padding-right: 14px; padding-left: 14px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="wrap">
+    <div class="topbar">
+      <div class="brand-lockup">
+        <img src="../../mobile/assets/brand/logos/logo-horizontal.svg" alt="Reelix — filmes, séries e amigos">
+        <span class="brand-caption">Produto · Mobile</span>
+      </div>
+      <div class="top-actions" aria-label="Estados comparados">
+        <span class="pill"><span class="status done">AS IS · verificado no código</span></span>
+        <span class="pill"><span class="status todo">TO BE · planos</span></span>
+      </div>
+    </div>
+    <section class="hero">
+      <p class="eyebrow">Product experience · 3 módulos</p>
+      <h1>Visual <span>Wireframes</span></h1>
+      <p class="hero-copy">
+        Comparação navegável entre as telas confirmadas no repositório e a experiência visual
+        prevista para autenticação, onboarding, perfil e consumo de catálogo. Cada status AS IS
+        foi confrontado com o código; o que não existe aparece como lacuna, nunca como tela entregue.
+      </p>
+      <div class="hero-meta">
+        <span class="status done">Autenticação mobile implementada</span>
+        <span class="status partial">Catálogo: API implementada, sem UI mobile</span>
+        <span class="status todo">Onboarding e perfil sem implementação encontrada</span>
+      </div>
+    </section>
+    <div class="summary-grid" aria-label="Resumo de implementação">
+      <article class="summary-card"><strong>01 · Authentication</strong><span>Login, cadastro, callback de confirmação/recuperação, redefinição, restauração e sessão autenticada já têm rotas/estados mobile.</span></article>
+      <article class="summary-card"><strong>02 · Onboarding &amp; Profile</strong><span>Planos e specs detalham fluxo retomável, preferências, dados pessoais, avatar e privacidade; app/API ainda não exibem esses módulos.</span></article>
+      <article class="summary-card"><strong>03 · Catalog</strong><span>API autenticada já pesquisa e consulta detalhes/temporadas; nenhuma interface de catálogo foi encontrada no mobile.</span></article>
+    </div>
+  </header>
+
+  <nav class="module-nav wrap" aria-label="Navegação por módulo" role="tablist">
+    <button class="module-button" role="tab" aria-selected="true" data-module="auth">Authentication <span class="nav-count">05</span></button>
+    <button class="module-button" role="tab" aria-selected="false" data-module="onboarding">Onboarding &amp; Profile <span class="nav-count">09</span></button>
+    <button class="module-button" role="tab" aria-selected="false" data-module="catalog">Catalog <span class="nav-count">05</span></button>
+  </nav>
+
+  <main class="wrap">
+    <section id="screen-section" aria-labelledby="screen-section-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Screen comparison</p>
+          <h2 id="screen-section-title">Selecione uma tela</h2>
+          <p>As molduras simulam proporções mobile. Os botões no wireframe navegam pelo protótipo, sem autenticação, API ou persistência real.</p>
+        </div>
+        <span class="tag">21 telas · 3 módulos</span>
+      </div>
+      <div class="toolbar">
+        <label class="toolbar-label" for="screen-select">Tela</label>
+        <select id="screen-select" class="screen-select" aria-label="Selecionar tela"></select>
+        <div class="toolbar-spacer"></div>
+        <span class="toolbar-label">Visualização</span>
+        <div class="mode-group" role="group" aria-label="Alternar visualização">
+          <button class="mode-button" aria-pressed="true" data-mode="compare">Comparar</button>
+          <button class="mode-button" aria-pressed="false" data-mode="asis">AS IS</button>
+          <button class="mode-button" aria-pressed="false" data-mode="tobe">TO BE</button>
+        </div>
+        <button id="details-toggle" class="utility-button" aria-pressed="true">Ocultar detalhes</button>
+      </div>
+      <div class="screen-context">
+        <div>
+          <h3 id="context-title"></h3>
+          <p id="context-description"></p>
+        </div>
+        <span id="context-scope" class="tag"></span>
+      </div>
+      <div id="comparison" class="comparison">
+        <article id="asis-panel" class="panel compare-panel" aria-label="Wireframe atual">
+          <div class="panel-head">
+            <div class="panel-title"><span class="panel-symbol">A</span><div><h3>AS IS</h3><small id="asis-caption">Implementação verificada no repositório</small></div></div>
+            <span id="asis-status" class="status"></span>
+          </div>
+          <div id="asis-content" class="panel-content"></div>
+        </article>
+        <article id="tobe-panel" class="panel compare-panel" aria-label="Wireframe planejado">
+          <div class="panel-head">
+            <div class="panel-title"><span class="panel-symbol future">B</span><div><h3>TO BE</h3><small>Projeção visual baseada nos planos e specs</small></div></div>
+            <span id="tobe-status" class="status todo">Planejado</span>
+          </div>
+          <div id="tobe-content" class="panel-content"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="flow-section" aria-labelledby="flow-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">User journeys</p>
+          <h2 id="flow-heading">Fluxos de navegação</h2>
+          <p>Selecione qualquer etapa para abrir sua comparação. Setas indicam os principais caminhos definidos nos planos; rotas futuras estão identificadas como planejadas.</p>
+        </div>
+      </div>
+      <div id="flow-grid" class="flow-grid"></div>
+    </section>
+
+    <section class="observations" aria-labelledby="observations-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Evidence &amp; scope</p>
+          <h2 id="observations-heading">Divergências e limites de confirmação</h2>
+          <p>Planos são a fonte do TO BE; arquivos e rotas existentes são a fonte do AS IS. Onde divergem, a diferença fica explícita.</p>
+        </div>
+      </div>
+      <div class="observations-grid">
+        <article class="observation">
+          <strong>Catálogo tem backend; a experiência mobile não está no plano</strong>
+          <p>O backend já registra TMDB e OMDb e expõe pesquisa paginada, detalhes e temporadas/episódios atrás de autorização. A especificação do catálogo coloca telas e navegação mobile fora do módulo. Por isso, as telas de busca/detalhes abaixo são apenas uma proposta de consumo, não um requisito aprovado nem uma implementação existente.</p>
+        </article>
+        <article class="observation">
+          <strong>Plano de onboarding &amp; perfil ainda aguardava aprovação</strong>
+          <p>O arquivo 02 registra “aguardando aprovação” e afirma que nenhum agente de implementação foi iniciado. Os wireframes TO BE são uma visualização do escopo proposto; os requisitos não confirmam contratos finais nem decisões de produto.</p>
+        </article>
+        <article class="observation">
+          <strong>Autenticação atual não é a Home de descoberta</strong>
+          <p>A rota autenticada existente exibe e-mail, consulta o endpoint de conta e oferece logout. Ela funciona como tela de conta autenticada / demonstração da integração; não há feed de filmes, recomendações ou navegação principal comprovados.</p>
+        </article>
+        <article class="observation">
+          <strong>Decisões do perfil permanecem abertas</strong>
+          <p>O plano não define exatamente os níveis/opções de privacidade, limites finais dos campos ou serviço de imagens. O upload do avatar está bloqueado até aprovação de armazenamento e segurança; estatísticas, conquistas e exclusão dependem de contratos/políticas ainda não encontrados.</p>
+        </article>
+        <article class="observation">
+          <strong>Dados visuais são estruturas, não metadados reais</strong>
+          <p>Cards e pôsteres abstratos servem apenas para mostrar hierarquia. Não representam títulos, sinopses, imagens, datas, gêneros nem resultados retornados por provedores. Campos indisponíveis continuam opcionais nos contratos.</p>
+        </article>
+        <article class="observation">
+          <strong>Onboarding opcional e retomável</strong>
+          <p>A sequência prevê gêneros, busca de filmes e busca de séries, com voltar/pular, salvamento e conclusão no servidor. As regras mínimas para conclusão e o comportamento exato de cada etapa ainda precisam de definição de contrato; não há bloqueio de autenticação até concluir.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="legend-section" aria-labelledby="legend-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Implementation legend</p><h2 id="legend-heading">Legenda de implementação</h2><p>O status se refere à superfície indicada (especialmente mobile), não à existência de um plano.</p></div>
+      </div>
+      <div class="section-card">
+        <div class="legend-grid">
+          <span class="status done">Implementado</span>
+          <span class="status partial">Parcialmente implementado</span>
+          <span class="status todo">Não implementado</span>
+          <span class="status unknown">Não verificado</span>
+        </div>
+        <p class="sources">
+          Fontes: <a href="../plans/01-authentication-development-plan.html">plano 01 · Authentication</a> ·
+          <a href="../plans/02-onboarding-profile-development-plan.html">plano 02 · Onboarding &amp; Profile</a> ·
+          <a href="../plans/03-catalog-development-plan.html">plano 03 · Catalog</a> ·
+          <a href="../specs/01-authentication.md">spec 01</a> · <a href="../specs/02-onboarding.md">spec 02</a> ·
+          <a href="../specs/03-catalog.md">spec 03</a> · <a href="../specs/06-profile.md">spec 06</a> ·
+          <a href="../architecture.md">architecture</a> · <a href="../../mobile/assets/brand/docs/design-tokens.json">design tokens</a>.
+          Nenhum serviço externo é usado para renderizar este documento.
+        </p>
+      </div>
+    </section>
+  </main>
+  <footer class="wrap">Reelix · Visual Wireframes · Documento estático e interativo · AS IS verificado no código do repositório; TO BE baseado nos planos.</footer>
+
+  <script>
+    const screens = [
+      {
+        id: "login", module: "auth", name: "Entrar", objective: "Acessar uma conta existente com e-mail e senha.", route: "index.tsx",
+        current: "done", tobe: "kept", currentCaption: "Tela implementada no app mobile",
+        currentNotes: ["Campo de e-mail e senha com validação", "Link para recuperação e cadastro", "Feedback de erro sem revelar se o e-mail existe", "Estado de envio/carregamento"],
+        currentStates: ["Validação", "Carregando", "Erro"],
+        states: ["Validação", "Carregando", "Erro"],
+        stateCopy: { "Validação": ["error", "Confira o formato do e-mail e informe uma senha válida."], "Carregando": ["", "Validando seus dados com segurança…"], "Erro": ["error", "E-mail ou senha inválidos. Confira os dados e tente novamente."] },
+        description: "Entrada do usuário; o fluxo autenticado não depende de concluir onboarding.",
+        scope: "01 · Authentication", flow: "Entrar → Conta autenticada → (onboarding, se pendente)",
+        changes: "Manter a tela de acesso existente; depois de autenticar, consultar estado de onboarding sem tornar sua conclusão requisito de autenticação.",
+        template: "login", next: "account", prev: "signup",
+      },
+      {
+        id: "signup", module: "auth", name: "Criar conta", objective: "Criar uma identidade Reelix usando o provedor Supabase Auth.", route: "sign-up.tsx",
+        current: "done", tobe: "kept", currentCaption: "Tela implementada no app mobile",
+        currentNotes: ["E-mail e senha (mínimo 8 caracteres)", "Validação no cliente", "Mensagem genérica de sucesso/confirmacão", "Link para voltar ao login"],
+        currentStates: ["Validação", "Carregando", "Sucesso", "Erro"],
+        states: ["Validação", "Carregando", "Sucesso", "Erro"],
+        stateCopy: { "Validação": ["error", "A senha deve ter ao menos 8 caracteres; revise os campos."], "Carregando": ["", "Criando sua conta…"], "Sucesso": ["success", "Se os dados puderem criar uma conta, enviaremos as instruções de confirmação para o e-mail informado."], "Erro": ["error", "Não foi possível concluir o cadastro agora. Tente novamente."] },
+        description: "Criar conta; confirmação de e-mail segue a configuração ativa do Supabase.",
+        scope: "01 · Authentication", flow: "Criar conta → Confirmação de e-mail (se habilitada) → Entrar",
+        changes: "Preservar cadastro e retorno genérico; confirmação depende da configuração do provedor, não de uma tela adicional obrigatória.",
+        template: "signup", next: "login", prev: "login",
+      },
+      {
+        id: "callback", module: "auth", name: "Callback / confirmação de e-mail", objective: "Validar com segurança o link recebido e encaminhar confirmação ou recuperação.", route: "auth/callback.tsx",
+        current: "done", tobe: "kept", currentCaption: "Rota implementada para deep links",
+        currentNotes: ["Aceita código, token hash/OTP ou par de tokens de sessão", "Confirmação/callback de e-mail conforme configuração do Supabase", "Link inválido/expirado mostra erro e retorno ao login", "Recovery encaminha à tela de nova senha"],
+        currentStates: ["Validando link", "Erro / expirado"],
+        states: ["Validando link", "Confirmação", "Recovery", "Erro / expirado"],
+        stateCopy: { "Validando link": ["", "Estamos validando o link com segurança…"], "Confirmação": ["success", "Link confirmado. O destino depende do tipo de fluxo e do estado da sessão."], "Recovery": ["success", "Link validado. Continue para definir uma nova senha."], "Erro / expirado": ["error", "Este link é inválido ou expirou. Solicite um novo link e tente novamente."] },
+        description: "Callback técnico visualizado como estado de carregamento/erro; a confirmação pode não ocorrer quando estiver desabilitada no provedor.",
+        scope: "01 · Authentication", flow: "Cadastro → E-mail → Callback → Login · Recuperação → Callback → Nova senha",
+        changes: "Manter tratamento de deep link e mensagens; configuração de confirmação é controlada pelo Supabase.",
+        template: "callback", next: "login", prev: "signup",
+      },
+      {
+        id: "forgot", module: "auth", name: "Recuperar acesso", objective: "Solicitar e-mail de recuperação sem enumerar contas.", route: "forgot-password.tsx",
+        current: "done", tobe: "kept", currentCaption: "Tela implementada no app mobile",
+        currentNotes: ["Campo de e-mail validado", "Enviar instruções via Supabase Auth", "Mensagem de sucesso genérica", "Estado de erro/carregamento"],
+        currentStates: ["Validação", "Carregando", "Sucesso", "Erro"],
+        states: ["Validação", "Carregando", "Sucesso", "Erro"],
+        stateCopy: { "Validação": ["error", "Informe um endereço de e-mail válido."], "Carregando": ["", "Enviando instruções…"], "Sucesso": ["success", "Se houver uma conta associada, enviaremos instruções para redefinir a senha."], "Erro": ["error", "Não foi possível solicitar a recuperação agora. Tente novamente."] },
+        description: "Solicitação protegida contra enumeração; o e-mail recebido direciona ao callback.",
+        scope: "01 · Authentication", flow: "Entrar → Recuperar → E-mail → Link de recuperação → Nova senha",
+        changes: "Manter formulário e mensagem genérica; fluxo de e-mail e link continua externo ao protótipo.",
+        template: "forgot", next: "reset", prev: "login",
+      },
+      {
+        id: "reset", module: "auth", name: "Nova senha", objective: "Atualizar a senha através de uma sessão/link de recuperação válido.", route: "auth/reset-password.tsx",
+        current: "done", tobe: "kept", currentCaption: "Tela implementada; protegida por sessão",
+        currentNotes: ["Nova senha e confirmação", "Validação de correspondência e tamanho", "Sucesso com ação para continuar", "Redireciona ao login se não houver sessão válida"],
+        currentStates: ["Validação", "Carregando", "Erro", "Sucesso"],
+        states: ["Validação", "Carregando", "Erro", "Sucesso"],
+        stateCopy: { "Validação": ["error", "As senhas devem corresponder e ter ao menos 8 caracteres."], "Carregando": ["", "Atualizando senha…"], "Erro": ["error", "Solicite um novo link e tente novamente."], "Sucesso": ["success", "Senha alterada. A sessão continua protegida."] },
+        description: "O link de recuperação estabelece sessão antes de permitir redefinir a senha.",
+        scope: "01 · Authentication", flow: "E-mail de recuperação → Callback → Nova senha → Conta",
+        changes: "Manter a tela de redefinição; o callback/deep link é parte existente da autenticação.",
+        template: "reset", next: "account", prev: "forgot",
+      },
+      {
+        id: "account", module: "auth", name: "Conta autenticada", objective: "Confirmar estado autenticado, consultar a conta Reelix e permitir logout.", route: "home.tsx",
+        current: "partial", tobe: "partial", currentCaption: "Tela real existente; escopo atual é limitado",
+        currentNotes: ["Exibe e-mail da sessão", "Consulta GET /api/v1/auth/me com loading/erro/retry", "Mostra ID interno Reelix", "Ação de logout e tratamento de falha"],
+        currentStates: ["Carregando conta", "Erro API", "Sessão autenticada"],
+        states: ["Carregando conta", "Erro API", "Sessão autenticada"],
+        stateCopy: { "Carregando conta": ["", "Consultando o estado básico da conta…"], "Erro API": ["error", "Não foi possível consultar a conta. Verifique a conexão e tente novamente."], "Sessão autenticada": ["success", "Sessão restaurada. A autenticação não exige concluir onboarding."] },
+        description: "Home autenticada atual é uma tela básica de conta, não uma home de descoberta.",
+        scope: "01 · Authentication", flow: "Login → Conta autenticada → Sair → Login",
+        changes: "Quando os módulos futuros forem integrados, esta saída autenticada pode encaminhar usuários novos/incompletos ao onboarding; login permanece independente de sua conclusão.",
+        template: "account", next: "welcome", prev: "login",
+      },
+      {
+        id: "session-init", module: "auth", name: "Inicialização / restauração de sessão", objective: "Restaurar a sessão ao abrir o app e encaminhar para rotas públicas/privadas adequadas.", route: "_layout.tsx + auth-provider.tsx",
+        current: "done", tobe: "kept", currentCaption: "Estados implementados no layout raiz",
+        currentNotes: ["getSession restaura a sessão válida e assina eventos de auth", "Indicador de carregamento durante inicialização", "Erro de restauração tem mensagem e ação para tentar de novo", "Rotas públicas/privadas são protegidas pelo Expo Router"],
+        currentStates: ["Restaurando sessão", "Falha ao restaurar", "Sem sessão", "Sessão válida"],
+        states: ["Restaurando sessão", "Falha ao restaurar", "Sem sessão", "Sessão válida"],
+        stateCopy: { "Restaurando sessão": ["", "Carregando sua sessão…"], "Falha ao restaurar": ["error", "Não foi possível restaurar sua sessão. Verifique a conexão ou o armazenamento seguro e tente novamente."], "Sem sessão": ["", "Sessão ausente: encaminhar para telas públicas."], "Sessão válida": ["success", "Sessão restaurada. A autenticação não exige concluir onboarding."] },
+        description: "Estado de inicialização transversal às telas; erro de rede/armazenamento tem retry explícito.",
+        scope: "01 · Authentication", flow: "Abrir app → Restaurar sessão → Público (sem sessão) ou Conta (sessão válida)",
+        changes: "Manter restauração e proteção de rotas; integrar consulta de onboarding depois, sem usá-la como autorização.",
+        template: "session-init", next: "login", prev: "account",
+      },
+      {
+        id: "welcome", module: "onboarding", name: "Boas-vindas / início", objective: "Iniciar ou retomar personalização após o primeiro acesso, consultando o estado persistido.", route: "Proposta mobile (sem rota atual)",
+        current: "todo", tobe: "new", currentCaption: "Nenhuma tela/rota de onboarding encontrada",
+        currentNotes: ["Não foi encontrada UI, rota ou contrato mobile para consultar o progresso.", "Não inferir redirecionamento automático com base apenas na autenticação."],
+        currentStates: ["Não implementado"],
+        states: ["Carregando estado", "Erro de comunicação", "Novo usuário", "Retomar"],
+        stateCopy: { "Carregando estado": ["", "Consultando seu progresso de onboarding…"], "Erro de comunicação": ["error", "Não foi possível consultar seu progresso. Tente novamente; não marcamos o fluxo como concluído."], "Novo usuário": ["", "Boas-vindas! Suas escolhas podem ser alteradas depois no perfil."], "Retomar": ["success", "Seu progresso anterior foi mantido. Continue de onde parou."] },
+        description: "A primeira etapa apresenta o fluxo; se já houver progresso salvo, retoma sem perder escolhas.",
+        scope: "02 · Onboarding", flow: "Conta autenticada → Início/retomada → Gêneros",
+        changes: "Criar a experiência e consultar estado do backend; autenticar não depende de conclusão.",
+        template: "welcome", next: "genres", prev: "account",
+      },
+      {
+        id: "genres", module: "onboarding", name: "Gêneros de interesse", objective: "Selecionar preferências de gêneros reutilizando gêneros do catálogo.", route: "Nova etapa mobile prevista",
+        current: "todo", tobe: "new", currentCaption: "Nenhuma UI ou preferência persistida encontrada",
+        currentNotes: ["Não há seleção de gêneros no mobile.", "Não há API de preferências/onboarding encontrada."],
+        currentStates: ["Não implementado"],
+        states: ["Carregando gêneros", "Erro catálogo", "Seleção", "Salvar"],
+        stateCopy: { "Carregando gêneros": ["", "Carregando gêneros disponíveis…"], "Erro catálogo": ["error", "Não foi possível carregar gêneros. Suas seleções não foram descartadas."], "Seleção": ["", "Escolha opcional; você pode voltar ou pular etapas opcionais."], "Salvar": ["success", "Preferências enviadas para salvar no backend."] },
+        description: "Seleção visual simples, com voltar e continuidade preservando estado.",
+        scope: "02 · Onboarding", flow: "Início → Gêneros → Filmes favoritos",
+        changes: "Criar seleção de gêneros a partir do catálogo; persistência/autorização é responsabilidade do backend.",
+        template: "genres", next: "fav-movies", prev: "welcome",
+      },
+      {
+        id: "fav-movies", module: "onboarding", name: "Filmes favoritos", objective: "Pesquisar e selecionar filmes existentes no catálogo para preferências iniciais.", route: "Nova etapa mobile prevista",
+        current: "todo", tobe: "new", currentCaption: "Nenhuma busca/seleção mobile encontrada",
+        currentNotes: ["API de catálogo existe; o app não apresenta telas consumidoras.", "Não há referências de filmes favoritas associadas a usuário."],
+        currentStates: ["Não implementado"],
+        states: ["Buscando", "Resultados", "Sem resultados", "Erro catálogo", "Salvando"],
+        stateCopy: { "Buscando": ["", "Buscando filmes no catálogo…"], "Resultados": ["", "Selecione títulos retornados; IDs devem ser referências internas válidas."], "Sem resultados": ["", "Nenhum filme encontrado. Tente outro termo ou pule esta etapa."], "Erro catálogo": ["error", "Catálogo indisponível. Tente novamente; não simulamos resultados."], "Salvando": ["success", "Seleção salva no backend para o usuário autenticado."] },
+        description: "Busca títulos existentes. Etapa pode ser pulada; referências inválidas devem ser rejeitadas pelo servidor.",
+        scope: "02 · Onboarding + 03 · Catalog", flow: "Gêneros → Buscar filmes → Séries favoritas",
+        changes: "Integrar busca/paginação da API, selecionar filmes e salvar IDs internos; sem duplicar dados do catálogo.",
+        template: "fav-movies", next: "fav-series", prev: "genres",
+      },
+      {
+        id: "fav-series", module: "onboarding", name: "Séries favoritas", objective: "Pesquisar e selecionar séries existentes, mantendo as escolhas ao avançar/voltar.", route: "Nova etapa mobile prevista",
+        current: "todo", tobe: "new", currentCaption: "Nenhuma busca/seleção de séries encontrada",
+        currentNotes: ["Não há tela de séries no mobile.", "Catálogo backend tem busca com filtro de tipo; onboarding não tem contrato."],
+        currentStates: ["Não implementado"],
+        states: ["Buscando", "Resultados", "Sem resultados", "Erro catálogo", "Salvando"],
+        stateCopy: { "Buscando": ["", "Buscando séries no catálogo…"], "Resultados": ["", "Selecione séries já identificadas pelo catálogo."], "Sem resultados": ["", "Nenhuma série encontrada. Tente outra busca ou pule esta etapa."], "Erro catálogo": ["error", "Não foi possível consultar o catálogo. Tente novamente."], "Salvando": ["success", "Preferências de séries salvas."] },
+        description: "Busca e seleção de séries. Etapa opcional com retomada e seleções preservadas.",
+        scope: "02 · Onboarding + 03 · Catalog", flow: "Filmes favoritos → Buscar séries → Salvar/concluir",
+        changes: "Criar etapa de séries e salvamento resiliente; manter campos opcionais quando o provedor não os fornece.",
+        template: "fav-series", next: "complete", prev: "fav-movies",
+      },
+      {
+        id: "complete", module: "onboarding", name: "Salvar / concluir onboarding", objective: "Persistir preferências e conclusão no servidor sem sucesso fictício.", route: "Estado de conclusão do fluxo",
+        current: "todo", tobe: "new", currentCaption: "Nenhuma persistência ou estado de conclusão encontrado",
+        currentNotes: ["Não foi localizada persistência de preferências/conclusão.", "Falha de comunicação não pode resultar em conclusão falsa."],
+        currentStates: ["Não implementado"],
+        states: ["Salvando", "Sucesso", "Falha ao salvar", "Retomar depois"],
+        stateCopy: { "Salvando": ["", "Salvando suas preferências…"], "Sucesso": ["success", "Onboarding concluído e registrado pelo servidor."], "Falha ao salvar": ["error", "Não foi possível salvar. Suas escolhas continuam disponíveis para tentar novamente."], "Retomar depois": ["", "Você pode sair agora e continuar o onboarding mais tarde."] },
+        description: "Conclusão registrada pelo backend. Preferências podem ser editadas depois no perfil.",
+        scope: "02 · Onboarding", flow: "Séries → Salvar → Conclusão → Perfil / Home & Discovery (dependência futura)",
+        changes: "Persistir conclusão e preferências associadas à identidade autenticada. Critérios mínimos de conclusão precisam ser definidos no contrato.",
+        template: "complete", next: "profile", prev: "fav-series",
+      },
+      {
+        id: "profile", module: "onboarding", name: "Perfil", objective: "Consultar identidade Reelix e dados de perfil autorizados do próprio usuário.", route: "Nova rota mobile prevista",
+        current: "todo", tobe: "new", currentCaption: "Nenhuma tela ou API de perfil encontrada",
+        currentNotes: ["O endpoint atual expõe somente conta autenticada básica.", "Não há perfil, bio, avatar ou privacidade implementados."],
+        currentStates: ["Não implementado"],
+        states: ["Carregando", "Erro", "Vazio / avatar padrão", "Perfil carregado"],
+        stateCopy: { "Carregando": ["", "Carregando seu perfil…"], "Erro": ["error", "Não foi possível carregar o perfil. Tente novamente."], "Vazio / avatar padrão": ["", "Sem avatar personalizado; o avatar padrão continua disponível."], "Perfil carregado": ["success", "Perfil próprio carregado com os campos permitidos."] },
+        description: "Perfil próprio separado da identidade de autenticação; estatísticas/conquistas só se houver contratos responsáveis.",
+        scope: "02 · Profile", flow: "Onboarding → Perfil → Editar / Preferências / Privacidade",
+        changes: "Criar leitura de nome de exibição, bio e avatar padrão; estatísticas e conquistas são dependências, não dados fabricados.",
+        template: "profile", next: "profile-edit", prev: "complete",
+      },
+      {
+        id: "profile-edit", module: "onboarding", name: "Editar perfil", objective: "Editar campos de perfil autorizados sem alterar e-mail/identidade do provedor.", route: "Nova rota mobile prevista",
+        current: "todo", tobe: "new", currentCaption: "Nenhum formulário de perfil encontrado",
+        currentNotes: ["Sem campos de perfil no app ou endpoints encontrados.", "Limites de campos estão pendentes de contrato."],
+        currentStates: ["Não implementado"],
+        states: ["Validação", "Salvando", "Sucesso", "Erro"],
+        stateCopy: { "Validação": ["error", "Revise os campos conforme os limites definidos pelo backend."], "Salvando": ["", "Salvando alterações…"], "Sucesso": ["success", "Perfil atualizado."], "Erro": ["error", "Não foi possível salvar o perfil. Tente novamente."] },
+        description: "Editar nome de exibição e biografia. A identidade Supabase não é editada aqui.",
+        scope: "02 · Profile", flow: "Perfil → Editar → Salvar → Perfil",
+        changes: "Construir formulário com limites a definir, validação server-side e estados de salvamento.",
+        template: "profile-edit", next: "profile", prev: "profile",
+      },
+      {
+        id: "preferences", module: "onboarding", name: "Preferências", objective: "Consultar e editar no perfil a mesma fonte canônica de gêneros e títulos do onboarding.", route: "Nova rota mobile prevista",
+        current: "todo", tobe: "new", currentCaption: "Nenhum contrato/tela de preferências encontrado",
+        currentNotes: ["Nenhuma preferência de usuário persistida encontrada.", "Não foi localizada integração mobile com busca do catálogo."],
+        currentStates: ["Não implementado"],
+        states: ["Carregando", "Vazio", "Editando", "Salvando", "Erro"],
+        stateCopy: { "Carregando": ["", "Carregando preferências…"], "Vazio": ["", "Nenhuma preferência escolhida. Você pode personalizar quando quiser."], "Editando": ["", "Esta é a mesma preferência canônica salva no onboarding."], "Salvando": ["", "Atualizando suas preferências…"], "Erro": ["error", "Não foi possível atualizar as preferências."] },
+        description: "Editar gêneros e títulos favoritos reaproveitando contrato do onboarding, sem criar segunda fonte.",
+        scope: "02 · Profile + Onboarding", flow: "Perfil → Preferências → Editar gêneros/filmes/séries → Salvar",
+        changes: "Criar entrada de edição que reutiliza as seleções do onboarding e IDs existentes no catálogo.",
+        template: "preferences", next: "genres", prev: "profile",
+      },
+      {
+        id: "privacy", module: "onboarding", name: "Privacidade", objective: "Controlar compartilhamento de informações e apresentar o que está visível.", route: "Nova rota mobile prevista",
+        current: "todo", tobe: "new", currentCaption: "Nenhuma configuração de privacidade encontrada",
+        currentNotes: ["Sem configuração de visibilidade em mobile/backend.", "Opções exatas e política de exclusão não estão definidas."],
+        currentStates: ["Não implementado"],
+        states: ["Carregando", "Salvando", "Erro", "Atualizado"],
+        stateCopy: { "Carregando": ["", "Carregando configurações de privacidade…"], "Salvando": ["", "Salvando suas escolhas de privacidade…"], "Erro": ["error", "Não foi possível salvar as configurações."], "Atualizado": ["success", "Preferências de privacidade atualizadas."] },
+        description: "Exibe controles e resumo de compartilhamento; escolhas específicas precisam de contrato e decisão de produto.",
+        scope: "02 · Profile", flow: "Perfil → Privacidade → Revisar compartilhamento → Salvar",
+        changes: "Criar superfície de privacidade sem assumir histórico público, estatísticas ou níveis de acesso ainda não definidos.",
+        template: "privacy", next: "profile", prev: "profile",
+      },
+      {
+        id: "search", module: "catalog", name: "Buscar títulos", objective: "Pesquisar filmes e séries na API Reelix autenticada, com paginação e filtro de tipo.", route: "Proposta de UI — API: GET /api/v1/catalog/search",
+        current: "partial", tobe: "unknown", currentCaption: "API implementada; tela mobile não encontrada",
+        currentNotes: ["Endpoint GET /api/v1/catalog/search exige autorização.", "Suporta query, type opcional (movie/series), provider (tmdb/omdb), page e language.", "Sem rota ou componente mobile de busca."],
+        currentStates: ["API funcional", "UI ausente"],
+        states: ["Carregando", "Resultados", "Vazio", "Erro / rate limit"],
+        stateCopy: { "Carregando": ["", "Consultando o catálogo autenticado…"], "Resultados": ["success", "Resultados paginados recebidos do provedor escolhido."], "Vazio": ["", "Nenhum título encontrado. Tente outra busca."], "Erro / rate limit": ["error", "Catálogo indisponível ou limite atingido. Apresente erro previsível e permita tentar novamente."] },
+        description: "Conceito de interface para contrato existente. UI não faz parte do escopo do plano de catálogo.",
+        scope: "03 · Catalog · proposta visual", flow: "Busca → Resultados paginados → Detalhes",
+        changes: "Representação de consumo proposta, não prometida pelo plano. Erros, rate limits e campos ausentes não geram títulos fictícios.",
+        template: "search", next: "results", prev: "season",
+      },
+      {
+        id: "results", module: "catalog", name: "Resultados de busca", objective: "Exibir resultados normalizados e navegação entre páginas quando suportada.", route: "Proposta de UI — resposta CatalogSearchPage",
+        current: "partial", tobe: "unknown", currentCaption: "Modelo/endpoint no backend; sem tela mobile",
+        currentNotes: ["Backend retorna página, totalPages, totalResults e provedor.", "Metadados de cada resultado são opcionais.", "Não há tela mobile para lista/resultados."],
+        currentStates: ["API funcional", "UI ausente"],
+        states: ["Carregando", "Lista", "Sem resultados", "Erro"],
+        stateCopy: { "Carregando": ["", "Carregando a próxima página…"], "Lista": ["success", "Resultados normalizados; campos ausentes permanecem opcionais."], "Sem resultados": ["", "Não encontramos títulos para essa busca."], "Erro": ["error", "Não foi possível carregar resultados. Tente novamente."] },
+        description: "Lista de resultados sem imagens reais nesta proposta; paginação reflete o contrato público.",
+        scope: "03 · Catalog · proposta visual", flow: "Busca → Resultados → Detalhe de filme ou série",
+        changes: "Proposta de tela consumidora. Disponibilidade/direitos de posters e campos dependem do provedor e não estão presumidos.",
+        template: "results", next: "movie", prev: "search",
+      },
+      {
+        id: "movie", module: "catalog", name: "Detalhes de filme", objective: "Consultar metadados normalizados e opcionais de um filme.", route: "Proposta de UI — GET /api/v1/catalog/{provider}/movie/{externalId}",
+        current: "partial", tobe: "unknown", currentCaption: "Detalhes disponíveis na API; UI mobile ausente",
+        currentNotes: ["Endpoint autenticado permite detalhes de filme.", "Título original, sinopse, gêneros, data, duração e imagens são opcionais conforme provedor.", "Tracking, ratings, listas e disponibilidade em streaming estão fora do módulo."],
+        currentStates: ["API funcional", "UI ausente"],
+        states: ["Carregando", "Detalhes", "Não encontrado", "Erro provedor"],
+        stateCopy: { "Carregando": ["", "Carregando detalhes do título…"], "Detalhes": ["success", "Exiba apenas os metadados que o provedor retornar."], "Não encontrado": ["", "Título não encontrado no provedor selecionado."], "Erro provedor": ["error", "Falha do provedor. Mostre estado recuperável sem título substituto."] },
+        description: "Visual de detalhes limitado aos metadados do catálogo. Ações de tracking/lista/avaliação não são incluídas.",
+        scope: "03 · Catalog · proposta visual", flow: "Resultados → Detalhes do filme → Voltar à busca",
+        changes: "UI é conceitual. Imagens e atribuição só após validação de direitos/termos; não inclui tracking, avaliações nem favoritos do produto.",
+        template: "movie", next: "search", prev: "results",
+      },
+      {
+        id: "series", module: "catalog", name: "Detalhes de série", objective: "Consultar metadados de série e oferecer caminho para temporadas suportadas.", route: "Proposta de UI — GET /api/v1/catalog/{provider}/series/{externalId}",
+        current: "partial", tobe: "unknown", currentCaption: "Detalhes disponíveis na API; UI mobile ausente",
+        currentNotes: ["Endpoint autenticado consulta detalhes de filme/série.", "O modelo mantém gêneros, datas, sinopse e imagens opcionais.", "Não há rota mobile de catálogo."],
+        currentStates: ["API funcional", "UI ausente"],
+        states: ["Carregando", "Detalhes", "Não encontrado", "Erro provedor"],
+        stateCopy: { "Carregando": ["", "Carregando dados da série…"], "Detalhes": ["success", "Temporadas e metadados aparecem apenas quando disponíveis."], "Não encontrado": ["", "Série não encontrada no provedor."], "Erro provedor": ["error", "Não foi possível consultar detalhes. Tente novamente."] },
+        description: "Exibe campos opcionais e entrada para temporadas sem inferir metadados ausentes.",
+        scope: "03 · Catalog · proposta visual", flow: "Resultados → Detalhes da série → Temporada → Episódios",
+        changes: "Representação conceitual; rotas futuras devem seguir contratos, autenticação e erros da API.",
+        template: "series", next: "season", prev: "results",
+      },
+      {
+        id: "season", module: "catalog", name: "Temporada e episódios", objective: "Consultar episódios retornados para uma temporada da série.", route: "Proposta de UI — GET /api/v1/catalog/{provider}/series/{externalId}/seasons/{seasonNumber}",
+        current: "partial", tobe: "unknown", currentCaption: "Consulta disponível na API; UI mobile ausente",
+        currentNotes: ["Backend possui endpoint autenticado para temporada e episódios disponíveis.", "Número, título, sinopse, data e duração podem ser opcionais.", "Não inferir episódios/datas que o provedor não fornece."],
+        currentStates: ["API funcional", "UI ausente"],
+        states: ["Carregando", "Episódios", "Temporada vazia", "Não encontrado", "Erro"],
+        stateCopy: { "Carregando": ["", "Consultando temporada e episódios…"], "Episódios": ["success", "Exiba somente episódios disponíveis na resposta."], "Temporada vazia": ["", "Nenhum episódio disponível para esta temporada."], "Não encontrado": ["", "Temporada não encontrada."], "Erro": ["error", "Falha na consulta. Tente novamente sem inventar resultados."] },
+        description: "Exemplo conceitual de listagem de episódios retornados pelo endpoint de temporada.",
+        scope: "03 · Catalog · proposta visual", flow: "Detalhe de série → Temporada → Episódios",
+        changes: "Não representa interface aprovada pelo plano, tracking de progresso nem reprodução de conteúdo.",
+        template: "season", next: "series", prev: "series",
+      },
+    ];
+
+    const modules = {
+      auth: { label: "Authentication", ids: ["login", "signup", "callback", "forgot", "reset", "account", "session-init"] },
+      onboarding: { label: "Onboarding & Profile", ids: ["welcome", "genres", "fav-movies", "fav-series", "complete", "profile", "profile-edit", "preferences", "privacy"] },
+      catalog: { label: "Catalog", ids: ["search", "results", "movie", "series", "season"] },
+    };
+
+    const currentScreen = { id: "login", mode: "compare", state: null, details: true };
+    const statusLabels = { done: "Implementado", partial: "Parcialmente implementado", todo: "Não implementado", unknown: "Não verificado" };
+    const statusClass = { done: "done", partial: "partial", todo: "todo", unknown: "unknown" };
+
+    const iconLogo = '<img class="phone-logo" src="../../mobile/assets/brand/logos/logo-horizontal.svg" alt="Reelix">';
+    const phoneTop = '<div class="phone-status"><span>9:41</span><span>● ▰ ▴</span></div>';
+    const formField = (label, placeholder, type = "") => `<div class="field"><label>${label}</label><div class="input ${type}">${placeholder}</div></div>`;
+    const choice = (label, selected = false) => `<span class="choice ${selected ? "selected" : ""}">${selected ? '<span class="check">✓</span>' : ""}${label}</span>`;
+    const resultCard = (title, meta, style = "") => `<div class="result-card"><div class="poster ${style}">POSTER</div><div class="result-copy"><strong>${title}</strong><span>${meta}</span></div><span class="result-add">+</span></div>`;
+    const chip = text => `<span class="meta-chip">${text}</span>`;
+    const goButton = (label, target, variant = "primary", full = false) => `<button class="action ${variant} ${full ? "full" : ""}" data-go="${target}">${label}</button>`;
+
+    function screenMarkup(screen, future) {
+      const { template, id } = screen;
+      let inner = "";
+      if (template === "login") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Suas histórias começam aqui.</p><p class="phone-subtitle">Entre para acompanhar tudo o que você assiste.</p>${formField("E-mail", "seu@email.com")}${formField("Senha", "••••••••") }<a class="text-link" href="#" data-go="forgot">Esqueci minha senha</a>${goButton("Entrar", "account", "primary", true)}<a class="center-link" href="#" data-go="signup">Ainda não tem conta? Criar conta</a></div>`;
+      if (template === "signup") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Crie sua conta.</p><p class="phone-subtitle">Um lugar para tudo o que você assiste.</p>${formField("E-mail", "seu@email.com")}${formField("Senha (mínimo 8 caracteres)", "••••••••")}${goButton("Criar conta", "login", "primary", true)}<div class="form-note success" style="margin-top:10px">Se os dados puderem ser usados para criar uma conta, enviaremos instruções para o e-mail.</div><a class="center-link" href="#" data-go="login">Já tem conta? Entrar</a></div>`;
+      if (template === "callback") inner = `${iconLogo}<div class="phone-content" style="text-align:center"><p class="phone-title">Confirmando seu acesso.</p><p class="phone-subtitle">Estamos validando o link com segurança.</p><div class="soft-card" style="padding:24px"><span style="display:inline-grid;width:34px;height:34px;place-items:center;border:2px solid #29323C;border-top-color:var(--brand);border-radius:50%;color:var(--pink)">◌</span><p style="margin-top:11px">Validando link de autenticação</p></div><div class="form-note">Confirmação de e-mail ocorre somente se estiver habilitada na configuração do provedor.</div>${goButton("Continuar para entrar","login","secondary",true)}<div style="margin-top:8px">${goButton("Fluxo de recuperação","reset","ghost",true)}</div></div>`;
+      if (template === "forgot") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Recupere seu acesso.</p><p class="phone-subtitle">Enviaremos as instruções para o e-mail informado.</p>${formField("E-mail", "seu@email.com")}<div class="form-note success">Se houver uma conta associada a esse endereço, enviaremos instruções para redefinir a senha.</div>${goButton("Enviar instruções", "reset", "primary", true)}<a class="center-link" href="#" data-go="login">Voltar para entrar</a></div>`;
+      if (template === "reset") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Escolha uma nova senha.</p><p class="phone-subtitle">Use uma senha nova para recuperar o acesso.</p>${formField("Nova senha (mínimo 8 caracteres)", "••••••••")}${formField("Confirme a nova senha", "••••••••")}${goButton("Atualizar senha", "account", "primary", true)}<div class="form-note success" style="margin-top:10px">Senha alterada com sucesso. Sua sessão continua protegida.</div></div>`;
+      if (template === "account") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Tudo pronto.</p><p class="phone-subtitle">Sua conta Reelix está autenticada.</p><div class="soft-card"><p class="phone-kicker">CONTA AUTENTICADA</p><strong>usuario@exemplo.com</strong><div class="skeleton short"></div><p>ID Reelix: ••••••••</p></div><div class="form-note">Exemplo visual dos campos existentes; valores reais não são exibidos no wireframe.</div>${goButton("Sair da conta", "login", "secondary", true)}<div class="phone-divider"></div>${future ? '<div class="soft-card"><strong>Próximo passo (planejado)</strong><p>Consultar estado de onboarding no servidor. Não é condição para autenticar.</p></div>' : '<div class="soft-card"><strong>Escopo atual</strong><p>Conta autenticada e integração da API; ainda não é uma Home de descoberta.</p></div>'}</div>`;
+      if (template === "session-init") inner = `${iconLogo}<div class="phone-content" style="text-align:center"><p class="phone-title">Iniciando Reelix</p><p class="phone-subtitle">Estamos verificando sua sessão salva.</p><div class="soft-card" style="padding:22px"><span style="display:inline-grid;width:34px;height:34px;place-items:center;border:2px solid #29323C;border-top-color:var(--brand);border-radius:50%;color:var(--pink)">◌</span><p style="margin-top:11px">Carregando sua sessão…</p></div><div class="form-note">Se a restauração falhar, o app apresenta erro e opção de tentar novamente.</div>${goButton("Sem sessão: ir ao login","login","primary",true)}<div style="margin-top:8px">${goButton("Sessão válida: conta","account","secondary",true)}</div></div>`;
+      if (template === "welcome") inner = `${phoneTop}<div class="phone-content"><div class="phone-logo-row">${iconLogo}<span class="step-mark">COMEÇAR</span></div><div class="title-art"><small>Seu próximo capítulo</small><strong>Descubra o seu Reelix</strong></div><p class="phone-title" style="margin-top:16px">O que você gosta de assistir?</p><p class="phone-subtitle">Conte um pouco sobre seus gostos. Você poderá mudar tudo depois no perfil.</p><div class="progress"><span style="width:16%"></span></div>${goButton("Vamos começar", "genres", "primary", true)}<div style="margin-top:8px">${goButton("Agora não", "account", "ghost", true)}</div></div>`;
+      if (template === "genres") inner = `${phoneTop}<div class="phone-content"><div class="phone-logo-row">${iconLogo}<span class="step-mark">1 / 3</span></div><div class="progress"><span style="width:34%"></span></div><p class="phone-kicker">SEUS GOSTOS</p><p class="phone-title">Quais gêneros chamam sua atenção?</p><p class="phone-subtitle">Escolha os que combinam com você. Pode pular e editar depois.</p><div class="chip-row">${choice("Ação",true)}${choice("Aventura")}${choice("Animação")}${choice("Comédia",true)}${choice("Documentário")}${choice("Drama")}${choice("Terror")}${choice("Romance")}${choice("Ficção científica")}</div><div class="phone-actions">${goButton("Voltar","welcome","secondary")}${goButton("Continuar","fav-movies","primary")}</div><a class="center-link" href="#" data-go="fav-movies">Pular esta etapa</a></div>`;
+      if (template === "fav-movies" || template === "fav-series") {
+        const isMovie = template === "fav-movies";
+        const title = isMovie ? "Filmes que você ama" : "Séries que você acompanha";
+        const itemType = isMovie ? "filme" : "série";
+        const pct = isMovie ? "58%" : "82%";
+        inner = `${phoneTop}<div class="phone-content"><div class="phone-logo-row">${iconLogo}<span class="step-mark">${isMovie ? "2" : "3"} / 3</span></div><div class="progress"><span style="width:${pct}"></span></div><p class="phone-kicker">PERSONALIZE SEU CATÁLOGO</p><p class="phone-title">${title}</p><p class="phone-subtitle">Pesquise no catálogo e selecione alguns favoritos. Etapa opcional.</p><div class="input search"><span>⌕ &nbsp; Buscar ${itemType}…</span><span class="icon">↵</span></div><p class="tiny" style="margin:7px 0">RESULTADOS DO CATÁLOGO · EXEMPLOS VISUAIS</p>${resultCard("Título do catálogo","Ano · Gêneros disponíveis")}${resultCard("Outro título","Data e metadados opcionais","cool")}<div class="chip-row">${choice("Selecionado",true)}</div><div class="phone-actions">${goButton("Voltar",isMovie ? "genres" : "fav-movies","secondary")}${goButton(isMovie ? "Continuar" : "Salvar","fav-series","primary")}</div><a class="center-link" href="#" data-go="${isMovie ? "fav-series" : "complete"}">Pular por agora</a></div>`;
+      }
+      if (template === "complete") inner = `${phoneTop}<div class="phone-content"><div class="phone-logo-row">${iconLogo}<span class="step-mark">FINALIZAR</span></div><div class="title-art series-art"><small>Preferências</small><strong>Seu perfil de gostos</strong></div><p class="phone-title" style="margin-top:15px">Pronto para salvar?</p><p class="phone-subtitle">Você pode concluir mesmo sem escolher títulos favoritos, conforme as regras mínimas do fluxo.</p><div class="soft-card"><strong>Escolhas salvas no servidor</strong><p>Gêneros e referências de catálogo vinculados à sua conta autenticada.</p></div>${goButton("Salvar e concluir","profile","primary",true)}<div style="margin-top:8px">${goButton("Continuar depois","account","secondary",true)}</div></div>`;
+      if (template === "profile") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Meu perfil</p><span class="tiny">⋯</span></div><div class="user-row"><div class="avatar">R</div><div><strong>Nome de exibição</strong><span>Bio não informada</span></div></div><div class="soft-card"><p>Avatar padrão · upload não disponível até decisão sobre armazenamento.</p></div><div class="stat-row"><div class="stat-box"><strong>—</strong><span>ESTATÍSTICAS</span></div><div class="stat-box"><strong>—</strong><span>CONQUISTAS</span></div><div class="stat-box"><strong>Privado</strong><span>COMPARTILHAMENTO</span></div></div><div class="tab-row"><span class="tab active">Perfil</span><span class="tab">Preferências</span><span class="tab">Privacidade</span></div>${goButton("Editar perfil","profile-edit","secondary",true)}<div class="phone-actions">${goButton("Preferências","preferences","secondary")}${goButton("Privacidade","privacy","secondary")}</div><p class="tiny" style="margin-top:12px">Estatísticas e conquistas dependem de módulos responsáveis; nenhum valor foi presumido.</p></div>`;
+      if (template === "profile-edit") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Editar perfil</p><span class="tiny">CANCELAR</span></div><div class="user-row"><div class="avatar">R</div><div><strong>Avatar padrão</strong><span>Imagem personalizada bloqueada</span></div></div>${formField("Nome de exibição","Como devemos chamar você?")}${formField("Biografia","Conte um pouco sobre você") }<p class="tiny">Limites de texto serão definidos no contrato e validados no servidor.</p><div class="soft-card"><strong>Avatar</strong><p>Remover avatar personalizado / manter avatar padrão. Upload depende de decisão de armazenamento e regras de segurança.</p></div>${goButton("Salvar alterações","profile","primary",true)}<a class="center-link" href="#" data-go="profile">Cancelar</a></div>`;
+      if (template === "preferences") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Minhas preferências</p><span class="tiny">EDITAR</span></div><p class="phone-subtitle">Uma fonte de verdade compartilhada com o onboarding.</p><p class="mini-section">GÊNEROS</p><div class="chip-row">${choice("Ação",true)}${choice("Comédia",true)}${choice("Drama")}</div><p class="mini-section">FILMES FAVORITOS</p>${resultCard("Referência de filme","ID interno do catálogo") }<p class="mini-section">SÉRIES FAVORITAS</p>${resultCard("Referência de série","ID interno do catálogo","cool")}${goButton("Editar preferências","genres","primary",true)}<p class="tiny" style="margin-top:9px">Não duplica títulos nem gêneros do catálogo.</p></div>`;
+      if (template === "privacy") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Privacidade</p><span class="tiny">SALVAR</span></div><p class="phone-subtitle">Revise o que é compartilhado. As opções finais dependem da política do produto.</p><div class="row"><span>Visibilidade do perfil<small>Opção a definir</small></span><span class="toggle"></span></div><div class="row"><span>Preferências pessoais<small>Privadas por padrão até decisão</small></span><span class="toggle on"></span></div><div class="row"><span>Histórico de atividade<small>Não tornar público automaticamente</small></span><span class="toggle on"></span></div><div class="soft-card"><strong>Compartilhamento atual</strong><p>Mostre ao usuário um resumo do que está visível para outras pessoas.</p></div><div class="form-note">Níveis, defaults e regras de consulta de terceiros ainda precisam de contrato.</div>${goButton("Salvar preferências","profile","primary",true)}<a class="center-link" href="#" data-go="profile">Voltar ao perfil</a></div>`;
+      if (template === "search") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Descobrir</p><span class="tiny">⌕</span></div><p class="phone-subtitle">Pesquise filmes e séries no catálogo disponível.</p><div class="input search"><span>⌕ &nbsp; Título, filme ou série</span><span class="icon">↵</span></div><div class="chip-row">${choice("Todos",true)}${choice("Filmes")}${choice("Séries")}</div><div class="soft-card"><strong>Busca autenticada</strong><p>Termo, tipo, página e idioma seguem o contrato Reelix; provedor disponível no backend.</p></div><div class="phone-actions">${goButton("Buscar","results","primary")}${goButton("Ver séries","series","secondary")}</div><p class="tiny" style="margin-top:13px">PROPOSTA DE INTERFACE · NÃO ESPECIFICADA PELO PLANO DE CATÁLOGO</p></div>`;
+      if (template === "results") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Resultados</p><span class="tiny">FILTRO</span></div><div class="input search"><span>⌕ &nbsp; Busca atual</span><span class="icon">×</span></div><div class="chip-row">${choice("Todos",true)}${choice("Filmes")}${choice("Séries")}</div><p class="tiny">RESULTADOS · PROVEDOR / PÁGINA DISPONÍVEIS</p>${resultCard("Resultado do catálogo","Filme · metadados disponíveis")}${resultCard("Resultado do catálogo","Série · metadados disponíveis","cool")}${resultCard("Resultado do catálogo","Filme · data opcional","gold")}<div class="phone-actions">${goButton("‹ Anterior","search","secondary")}${goButton("Próxima página","movie","primary")}</div><p class="tiny" style="margin-top:10px">Resultados ilustrativos, não retornados por API.</p></div>`;
+      if (template === "movie") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="results">‹ VOLTAR</span><span class="tiny">DETALHES</span></div><div class="title-art"><small>Filme · provedor de origem</small><strong>Título do catálogo</strong></div><div class="inline-metadata">${chip("Data opcional")}${chip("Duração opcional")}${chip("Idioma opcional")}</div><div class="chip-row">${choice("Gênero disponível")}${choice("Outro gênero")}</div><p class="mini-section">SINOPSE</p><p class="phone-subtitle">Sinopse fornecida pelo provedor, quando disponível. Este campo permanece opcional.</p><div class="soft-card"><strong>Origem identificável</strong><p>ID interno Reelix + provedor + ID externo.</p></div><div class="form-note">Sem ação de tracking, avaliação, lista, recomendação ou streaming: fora do plano de catálogo.</div>${goButton("Voltar aos resultados","results","secondary",true)}</div>`;
+      if (template === "series") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="results">‹ VOLTAR</span><span class="tiny">DETALHES</span></div><div class="title-art series-art"><small>Série · provedor de origem</small><strong>Título do catálogo</strong></div><div class="inline-metadata">${chip("Estreia opcional")}${chip("Idioma opcional")}</div><div class="chip-row">${choice("Gênero disponível")}${choice("Gênero disponível")}</div><p class="mini-section">SOBRE</p><p class="phone-subtitle">Sinopse e dados de estreia quando fornecidos pelo provedor.</p><p class="mini-section">TEMPORADAS DISPONÍVEIS</p><div class="row"><span>Temporada disponível<small>Consultar episódios no catálogo</small></span><span>›</span></div>${goButton("Ver temporada","season","primary",true)}<p class="tiny" style="margin-top:10px">A interface é conceitual; o contrato do catálogo fornece consulta de temporada.</p></div>`;
+      if (template === "season") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="series">‹ SÉRIE</span><span class="tiny">TEMPORADA</span></div><p class="phone-kicker">SÉRIE · TEMPORADA DISPONÍVEL</p><p class="phone-title">Temporada</p><p class="phone-subtitle">Episódios retornados pelo provedor. Dados ausentes não são inferidos.</p>${["Episódio disponível","Episódio disponível","Episódio disponível"].map((item, index) => `<div class="row"><span>${String(index + 1).padStart(2,"0")} · ${item}<small>Data / duração quando disponíveis</small></span><span>›</span></div>`).join("")}<div class="form-note">Consulta de catálogo não registra progresso de visualização.</div>${goButton("Voltar aos detalhes","series","secondary",true)}</div>`;
+
+      const auth = screen.module === "auth";
+      if (auth) return `<div class="device"><div class="device-screen auth-screen">${inner}${bannerMarkup(screen)}</div></div>`;
+      return `<div class="device"><div class="device-screen">${inner}${bannerMarkup(screen)}</div></div>`;
+    }
+
+    function bannerMarkup(screen) {
+      if (!currentScreen.state || !screen.stateCopy || !screen.stateCopy[currentScreen.state]) return "";
+      const [kind, copy] = screen.stateCopy[currentScreen.state];
+      return `<div class="state-banner ${kind}"><strong>${currentScreen.state}:</strong> ${copy}</div>`;
+    }
+
+    function notBuiltMarkup(screen) {
+      const catalogApi = screen.module === "catalog";
+      const explanation = catalogApi
+        ? "O endpoint de catálogo existe no backend, mas nenhuma tela mobile correspondente foi encontrada."
+        : "Nenhuma interface/rota atual correspondente foi encontrada no código. Este quadro não simula uma tela entregue.";
+      return `<div class="device"><div class="device-screen"><div class="phone-status"><span>9:41</span><span>● ▰ ▴</span></div><div class="not-built"><span class="empty-symbol">—</span><h4>${catalogApi ? "UI mobile não implementada" : "Tela não implementada"}</h4><p>${explanation}</p><span class="status ${catalogApi ? "partial" : "todo"}">${catalogApi ? "API parcial disponível" : "Não implementado"}</span></div></div></div>`;
+    }
+
+    function stageMarkup(screen, side) {
+      const isFuture = side === "tobe";
+      const currentStatus = screen.current;
+      const isNotBuilt = !isFuture && (currentStatus === "todo" || (screen.module === "catalog" && currentStatus === "partial"));
+      const phone = isNotBuilt ? notBuiltMarkup(screen) : screenMarkup(screen, isFuture);
+      const notes = isFuture ? screen.changes : screen.currentNotes.join(" · ");
+      const notesTitle = isFuture ? "Mudanças / requisitos planejados" : "Evidências atuais";
+      const status = isFuture ? "unknown" : currentStatus;
+      const statusBadge = `<span class="status ${statusClass[status]}">${isFuture ? (screen.tobe === "kept" ? "Manter" : screen.tobe === "unknown" ? "UI não definida no plano" : "Criar / planejar") : statusLabels[status]}</span>`;
+      const stateButtons = isFuture ? screen.states : screen.currentStates;
+      const stateControls = stateButtons.map(label => `<button class="state-choice" data-state="${label}" aria-pressed="${currentScreen.state === label ? "true" : "false"}">${label}</button>`).join("");
+      const diff = isFuture
+        ? `<div class="diff-key"><span class="tag ${screen.tobe === "kept" ? "kept" : screen.tobe === "partial" ? "changed" : "new"}">${screen.tobe === "kept" ? "Manter" : screen.tobe === "partial" ? "Completar / integrar" : screen.tobe === "unknown" ? "Fora do plano / proposta visual" : "Novo"}</span>${screen.module === "catalog" ? '<span class="tag changed">UI conceitual, não requisito do plano</span>' : ""}</div>`
+        : `<div class="diff-key">${statusBadge}${screen.module === "catalog" ? '<span class="tag changed">API ≠ interface mobile</span>' : ""}</div>`;
+      return `<div class="device-stage">
+        ${phone}
+        <aside class="screen-info ${currentScreen.details ? "" : "collapsed"}">
+          <div class="info-block"><p class="info-label">${notesTitle}</p><p>${notes}</p></div>
+          <div class="info-extra">
+            <div class="info-block"><p class="info-label">Estado de implementação</p>${diff}</div>
+            <div class="info-block"><p class="info-label">Estados e variações</p><div class="status-stack">${stateControls}</div><p class="state-note">Selecione um estado para visualizar o feedback na moldura. Estados são simulações do protótipo.</p></div>
+            <div class="info-block"><p class="info-label">Navegação relacionada</p><p>${screen.flow}</p><div class="phone-actions">${goButton("← Anterior",screen.prev,"secondary")}${goButton("Próxima →",screen.next,"primary")}</div></div>
+          </div>
+        </aside>
+      </div>`;
+    }
+
+    function render() {
+      const screen = screens.find(item => item.id === currentScreen.id);
+      if (!screen) return;
+      document.getElementById("context-title").textContent = `${screen.name} · ${modules[screen.module].label}`;
+      document.getElementById("context-description").textContent = screen.objective;
+      document.getElementById("context-scope").textContent = screen.scope;
+      document.getElementById("screen-select").value = screen.id;
+      document.getElementById("asis-status").className = `status ${statusClass[screen.current]}`;
+      document.getElementById("asis-status").textContent = statusLabels[screen.current];
+      document.getElementById("asis-caption").textContent = screen.currentCaption;
+      const futureStatus = screen.tobe === "unknown" ? "UI não definida no plano" : screen.tobe === "kept" ? "Manter / já implementado" : screen.tobe === "partial" ? "Completar" : "Novo · planejado";
+      document.getElementById("tobe-status").textContent = futureStatus;
+      document.getElementById("tobe-status").className = `status ${screen.tobe === "kept" ? "done" : screen.tobe === "partial" ? "partial" : screen.tobe === "unknown" ? "unknown" : "todo"}`;
+      document.getElementById("asis-content").innerHTML = stageMarkup(screen, "asis");
+      document.getElementById("tobe-content").innerHTML = stageMarkup(screen, "tobe");
+      const comparison = document.getElementById("comparison");
+      comparison.classList.toggle("single", currentScreen.mode !== "compare");
+      document.getElementById("asis-panel").classList.toggle("hidden", currentScreen.mode === "tobe");
+      document.getElementById("tobe-panel").classList.toggle("hidden", currentScreen.mode === "asis");
+      document.querySelectorAll(".mode-button").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.mode === currentScreen.mode)));
+      document.querySelectorAll(".module-button").forEach(button => button.setAttribute("aria-selected", String(button.dataset.module === screen.module)));
+      document.getElementById("details-toggle").textContent = currentScreen.details ? "Ocultar detalhes" : "Mostrar detalhes";
+      document.getElementById("details-toggle").setAttribute("aria-pressed", String(currentScreen.details));
+    }
+
+    function setScreen(id) {
+      if (!screens.some(screen => screen.id === id)) return;
+      currentScreen.id = id;
+      currentScreen.state = null;
+      render();
+      document.getElementById("screen-section").scrollIntoView({ block: "start", behavior: "smooth" });
+    }
+
+    function renderSelect(moduleKey) {
+      const select = document.getElementById("screen-select");
+      select.innerHTML = modules[moduleKey].ids.map(id => {
+        const screen = screens.find(item => item.id === id);
+        return `<option value="${screen.id}">${screen.name}</option>`;
+      }).join("");
+    }
+
+    function renderFlows() {
+      const flows = [
+        {
+          title: "Authentication", status: "done", caption: "Implementado no app; comportamento planejado mantém o login independente do onboarding.",
+          paths: [
+            [["Início / sessão","session-init"],["Entrar","login"],["Conta autenticada","account"],["Sair","login"]],
+            [["Criar conta","signup"],["Callback (se habilitado)","callback"],["Entrar","login"]],
+            [["Recuperar acesso","forgot"],["Callback","callback"],["Nova senha","reset"],["Conta","account"]],
+          ], label: "AS IS + continuidade planejada",
+        },
+        {
+          title: "Onboarding & Profile", status: "todo", caption: "Fluxo TO BE baseado no plano 02 e specs; nenhuma dessas telas foi encontrada no app.",
+          paths: [
+            [["Início / retomar","welcome"],["Gêneros","genres"],["Filmes (opcional)","fav-movies"],["Séries (opcional)","fav-series"],["Salvar/concluir","complete"]],
+            [["Conclusão","complete"],["Perfil","profile"],["Editar perfil","profile-edit"]],
+            [["Perfil","profile"],["Preferências","preferences"]],
+            [["Perfil","profile"],["Privacidade","privacy"]],
+          ], label: "TO BE · proposta aguardando aprovação",
+        },
+        {
+          title: "Catalog · API e consumo visual", status: "partial", caption: "API atual disponível; sequência mobile abaixo é apenas proposta, pois telas foram excluídas do escopo do plano.",
+          paths: [
+            [["Buscar","search"],["Resultados","results"],["Detalhes de filme","movie"]],
+            [["Resultados","results"],["Detalhes de série","series"],["Temporada / episódios","season"]],
+          ], label: "AS IS: API · TO BE: UI não especificada",
+        },
+      ];
+      document.getElementById("flow-grid").innerHTML = flows.map(flow => {
+        const branches = flow.paths.map(path => `<div class="flow-branch">${path.map((node, index) => `${index ? '<span class="flow-arrow" aria-hidden="true">→</span>' : ""}<button class="flow-node" data-go="${node[1]}">${node[0]}</button>`).join("")}</div>`).join("");
+        return `<article class="flow-card"><h3>${flow.title}<span class="status ${statusClass[flow.status]}">${flow.label}</span></h3><p>${flow.caption}</p><div class="flow-nodes">${branches}</div></article>`;
+      }).join("");
+    }
+
+    function handleAction(event) {
+      const go = event.target.closest("[data-go]");
+      if (go) {
+        event.preventDefault();
+        setScreen(go.dataset.go);
+        return;
+      }
+      const state = event.target.closest("[data-state]");
+      if (state) {
+        currentScreen.state = currentScreen.state === state.dataset.state ? null : state.dataset.state;
+        render();
+      }
+    }
+
+    document.querySelectorAll(".module-button").forEach(button => {
+      button.addEventListener("click", () => {
+        const moduleKey = button.dataset.module;
+        renderSelect(moduleKey);
+        setScreen(modules[moduleKey].ids[0]);
+      });
+    });
+    document.querySelectorAll(".mode-button").forEach(button => {
+      button.addEventListener("click", () => { currentScreen.mode = button.dataset.mode; render(); });
+    });
+    document.getElementById("screen-select").addEventListener("change", event => setScreen(event.target.value));
+    document.getElementById("details-toggle").addEventListener("click", () => { currentScreen.details = !currentScreen.details; render(); });
+    document.addEventListener("click", handleAction);
+    renderFlows();
+    renderSelect("auth");
+    render();
+  </script>
+</body>
+</html>
