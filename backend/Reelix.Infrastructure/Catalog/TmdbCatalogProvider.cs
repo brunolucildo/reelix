@@ -19,9 +19,31 @@ public sealed class TmdbCatalogOptions
 public sealed class TmdbCatalogProvider(
     HttpClient httpClient,
     IOptions<TmdbCatalogOptions> options,
-    ILogger<TmdbCatalogProvider> logger) : ICatalogProvider
+    ILogger<TmdbCatalogProvider> logger) : ICatalogProvider, ICatalogGenreProvider
 {
     public CatalogProvider Provider => CatalogProvider.Tmdb;
+
+    public async Task<IReadOnlyList<CatalogGenre>> GetGenresAsync(
+        CatalogContentType contentType,
+        string language,
+        CancellationToken cancellationToken)
+    {
+        var kind = contentType == CatalogContentType.Movie ? "movie" : "tv";
+        using var response = await SendAsync(
+            $"3/genre/{kind}/list?language={Uri.EscapeDataString(language)}",
+            cancellationToken);
+        response.EnsureSuccessStatusCodeOrThrow(Provider, logger);
+        var result = await CatalogProviderHttp.ReadJsonAsync<TmdbGenreListResponse>(
+            response,
+            Provider,
+            logger,
+            cancellationToken);
+
+        return result.Genres
+            .Where(genre => genre.Id > 0 && !string.IsNullOrWhiteSpace(genre.Name))
+            .Select(genre => new CatalogGenre(genre.Id, genre.Name!.Trim()))
+            .ToArray();
+    }
 
     public async Task<ProviderCatalogPage> SearchAsync(
         string query,
@@ -292,7 +314,14 @@ internal sealed class TmdbTitleResponse
 
 internal sealed class TmdbGenre
 {
+    public int Id { get; set; }
+
     public string? Name { get; set; }
+}
+
+internal sealed class TmdbGenreListResponse
+{
+    public List<TmdbGenre> Genres { get; set; } = [];
 }
 
 internal sealed class TmdbSeasonResponse

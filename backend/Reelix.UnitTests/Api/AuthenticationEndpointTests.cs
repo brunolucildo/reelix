@@ -1,6 +1,8 @@
+using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -13,6 +15,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using Reelix.Application.Catalog;
+using Reelix.Application.Authentication;
+using Reelix.Application.Users;
+using Reelix.Domain.Users;
 
 namespace Reelix.UnitTests.Api;
 
@@ -44,7 +49,203 @@ public sealed class AuthenticationEndpointTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var document = await response.Content.ReadAsStringAsync();
         Assert.Contains("/api/v1/catalog/search", document);
+        Assert.Contains("/api/v1/onboarding", document);
+        Assert.Contains("/api/v1/profile", document);
         Assert.Contains("Bearer", document);
+    }
+
+    [Theory]
+    [InlineData("/api/v1/onboarding")]
+    [InlineData("/api/v1/profile")]
+    [InlineData("/api/v1/catalog/genres?type=movie")]
+    public async Task UserEndpoints_RejectAnonymousRequests(string path)
+    {
+        using var response = await _client.GetAsync(path);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ProfileEndpoint_ReturnsPrivateDefaultsAndUpdatesOnlyProfileFields()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/profile");
+        request.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            _factory.CreateToken("valid", TestUserIds.Profile));
+
+        using var response = await _client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Null(document.RootElement.GetProperty("displayName").GetString());
+        Assert.False(document.RootElement.GetProperty("profileIsPublic").GetBoolean());
+        Assert.False(document.RootElement.GetProperty("favoritesArePublic").GetBoolean());
+        Assert.False(document.RootElement.GetProperty("watchHistoryIsPublic").GetBoolean());
+        Assert.False(document.RootElement.TryGetProperty("email", out _));
+
+        using var update = new HttpRequestMessage(HttpMethod.Put, "/api/v1/profile")
+        {
+            Content = JsonContent.Create(new
+            {
+                displayName = "  Cinefila  ",
+                biography = "Gosto de cinema.",
+                profileIsPublic = true,
+                favoritesArePublic = false,
+                watchHistoryIsPublic = false,
+            }),
+        };
+        update.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            _factory.CreateToken("valid", TestUserIds.Profile));
+
+        using var updateResponse = await _client.SendAsync(update);
+
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+        using var updated = JsonDocument.Parse(await updateResponse.Content.ReadAsStringAsync());
+        Assert.Equal("Cinefila", updated.RootElement.GetProperty("displayName").GetString());
+        Assert.True(updated.RootElement.GetProperty("profileIsPublic").GetBoolean());
+    }
+
+    [Fact]
+    public async Task ProfileEndpoint_RejectsDisplayNameAboveLimit()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Put, "/api/v1/profile")
+        {
+            Content = JsonContent.Create(new
+            {
+                displayName = new string('x', 51),
+                biography = (string?)null,
+                profileIsPublic = false,
+                favoritesArePublic = false,
+                watchHistoryIsPublic = false,
+            }),
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            _factory.CreateToken("valid", TestUserIds.Profile));
+
+        using var response = await _client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PublicProfileEndpoint_EnforcesProfileAndFavoriteVisibility()
+    {
+        using var preferencesRequest = new HttpRequestMessage(HttpMethod.Put, "/api/v1/onboarding/progress")
+        {
+            Content = JsonContent.Create(new
+            {
+                currentStep = "favoriteMovies",
+                movieGenreIds = Array.Empty<int>(),
+                seriesGenreIds = Array.Empty<int>(),
+                favoriteMovieIds = new[] { CatalogEndpointTestServices.TitleId },
+                favoriteSeriesIds = Array.Empty<Guid>(),
+            }),
+        };
+        preferencesRequest.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            _factory.CreateToken("valid", TestUserIds.PublicProfile));
+        using var preferencesResponse = await _client.SendAsync(preferencesRequest);
+        Assert.Equal(HttpStatusCode.OK, preferencesResponse.StatusCode);
+
+        var profilePath = $"/api/v1/profile/{_factory.GetAccountId(TestUserIds.PublicProfile)}";
+        using var privateRequest = new HttpRequestMessage(HttpMethod.Get, profilePath);
+        privateRequest.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            _factory.CreateToken("valid", TestUserIds.Onboarding));
+        using var privateResponse = await _client.SendAsync(privateRequest);
+        Assert.Equal(HttpStatusCode.NotFound, privateResponse.StatusCode);
+
+        await UpdateProfileAsync(profileIsPublic: true, favoritesArePublic: false);
+        using var publicRequest = new HttpRequestMessage(HttpMethod.Get, profilePath);
+        publicRequest.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            _factory.CreateToken("valid", TestUserIds.Onboarding));
+        using var publicResponse = await _client.SendAsync(publicRequest);
+        Assert.Equal(HttpStatusCode.OK, publicResponse.StatusCode);
+        using var publicProfile = JsonDocument.Parse(await publicResponse.Content.ReadAsStringAsync());
+        Assert.Empty(publicProfile.RootElement.GetProperty("favoriteMovieIds").EnumerateArray());
+        Assert.False(publicProfile.RootElement.TryGetProperty("email", out _));
+
+        await UpdateProfileAsync(profileIsPublic: true, favoritesArePublic: true);
+        using var favoritesRequest = new HttpRequestMessage(HttpMethod.Get, profilePath);
+        favoritesRequest.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            _factory.CreateToken("valid", TestUserIds.Onboarding));
+        using var favoritesResponse = await _client.SendAsync(favoritesRequest);
+        using var profileWithFavorites = JsonDocument.Parse(await favoritesResponse.Content.ReadAsStringAsync());
+        Assert.Equal(
+            CatalogEndpointTestServices.TitleId,
+            Assert.Single(profileWithFavorites.RootElement.GetProperty("favoriteMovieIds").EnumerateArray()).GetGuid());
+
+        async Task UpdateProfileAsync(bool profileIsPublic, bool favoritesArePublic)
+        {
+            using var update = new HttpRequestMessage(HttpMethod.Put, "/api/v1/profile")
+            {
+                Content = JsonContent.Create(new
+                {
+                    displayName = "Cinefila",
+                    biography = "Gosto de cinema.",
+                    profileIsPublic,
+                    favoritesArePublic,
+                    watchHistoryIsPublic = false,
+                }),
+            };
+            update.Headers.Authorization = new AuthenticationHeaderValue(
+                "Bearer",
+                _factory.CreateToken("valid", TestUserIds.PublicProfile));
+            using var response = await _client.SendAsync(update);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+    }
+
+    [Fact]
+    public async Task OnboardingEndpoint_PersistsCompletionForAuthenticatedAccount()
+    {
+        using var completeRequest = new HttpRequestMessage(HttpMethod.Post, "/api/v1/onboarding/complete");
+        completeRequest.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            _factory.CreateToken("valid", TestUserIds.Onboarding));
+
+        using var completeResponse = await _client.SendAsync(completeRequest);
+
+        Assert.Equal(HttpStatusCode.OK, completeResponse.StatusCode);
+        using var complete = JsonDocument.Parse(await completeResponse.Content.ReadAsStringAsync());
+        Assert.True(complete.RootElement.GetProperty("isComplete").GetBoolean());
+
+        using var getRequest = new HttpRequestMessage(HttpMethod.Get, "/api/v1/onboarding");
+        getRequest.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            _factory.CreateToken("valid", TestUserIds.Onboarding));
+        using var getResponse = await _client.SendAsync(getRequest);
+
+        using var saved = JsonDocument.Parse(await getResponse.Content.ReadAsStringAsync());
+        Assert.True(saved.RootElement.GetProperty("isComplete").GetBoolean());
+        Assert.Equal("completed", saved.RootElement.GetProperty("currentStep").GetString());
+    }
+
+    [Fact]
+    public async Task OnboardingEndpoint_RejectsFavoriteTitleMissingFromCatalog()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Put, "/api/v1/onboarding/progress")
+        {
+            Content = JsonContent.Create(new
+            {
+                currentStep = "favoriteMovies",
+                movieGenreIds = Array.Empty<int>(),
+                seriesGenreIds = Array.Empty<int>(),
+                favoriteMovieIds = new[] { Guid.NewGuid() },
+                favoriteSeriesIds = Array.Empty<Guid>(),
+            }),
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            _factory.CreateToken("valid", TestUserIds.Onboarding));
+
+        using var response = await _client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -173,10 +374,18 @@ public sealed class AuthenticationApiFactory : WebApplicationFactory<Program>
         builder.ConfigureTestServices(services =>
         {
             services.RemoveAll<ICatalogProvider>();
+            services.RemoveAll<ICatalogGenreProvider>();
             services.RemoveAll<IExternalCatalogReferenceRepository>();
+            services.RemoveAll<IUserAccountRepository>();
+            services.RemoveAll<IUserProfileRepository>();
+            services.RemoveAll<IUserPreferencesRepository>();
             services.AddSingleton<ICatalogProvider, CatalogEndpointTestServices.TmdbProvider>();
+            services.AddSingleton<ICatalogGenreProvider, CatalogEndpointTestServices.TmdbGenreProvider>();
             services.AddSingleton<IExternalCatalogReferenceRepository,
                 CatalogEndpointTestServices.ReferenceRepository>();
+            services.AddSingleton<IUserAccountRepository, TestUserAccountRepository>();
+            services.AddSingleton<IUserProfileRepository, TestUserProfileRepository>();
+            services.AddSingleton<IUserPreferencesRepository, TestUserPreferencesRepository>();
             services.PostConfigure<JwtBearerOptions>(
                 JwtBearerDefaults.AuthenticationScheme,
                 options =>
@@ -189,7 +398,7 @@ public sealed class AuthenticationApiFactory : WebApplicationFactory<Program>
         });
     }
 
-    public string CreateToken(string scenario)
+    public string CreateToken(string scenario, Guid? subject = null)
     {
         var issuer = scenario == "wrong-issuer"
             ? "https://untrusted.example/auth/v1"
@@ -208,13 +417,17 @@ public sealed class AuthenticationApiFactory : WebApplicationFactory<Program>
         var token = new JwtSecurityToken(
             issuer,
             audience,
-            [new Claim("sub", Guid.NewGuid().ToString())],
+            [new Claim("sub", (subject ?? Guid.NewGuid()).ToString())],
             notBefore,
             expires,
             credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+    public Guid GetAccountId(Guid supabaseUserId) =>
+        ((TestUserAccountRepository)Services.GetRequiredService<IUserAccountRepository>())
+            .GetAccountId(supabaseUserId);
 
     protected override void Dispose(bool disposing)
     {
@@ -223,6 +436,104 @@ public sealed class AuthenticationApiFactory : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("ConnectionStrings__Reelix", _previousConnectionString);
         Environment.SetEnvironmentVariable("Cors__AllowedOrigins__0", _previousCorsOrigin);
     }
+}
+
+internal static class TestUserIds
+{
+    public static readonly Guid Profile = Guid.Parse("e579f427-753f-4fb9-80cb-ea06479a0921");
+
+    public static readonly Guid Onboarding = Guid.Parse("f132b735-3f53-408f-8801-56e3dd894740");
+
+    public static readonly Guid PublicProfile = Guid.Parse("60c6547d-8193-47e0-8d55-83400cdac6ea");
+}
+
+internal sealed class TestUserAccountRepository : IUserAccountRepository
+{
+    private readonly ConcurrentDictionary<Guid, UserAccount> accounts = new();
+
+    public Task<UserAccount> GetOrCreateAsync(Guid supabaseUserId, CancellationToken cancellationToken) =>
+        Task.FromResult(accounts.GetOrAdd(supabaseUserId, UserAccount.Create));
+
+    public Guid GetAccountId(Guid supabaseUserId) =>
+        accounts.GetOrAdd(supabaseUserId, UserAccount.Create).Id;
+}
+
+internal sealed class TestUserProfileRepository : IUserProfileRepository
+{
+    private readonly ConcurrentDictionary<Guid, UserProfile> profiles = new();
+
+    public Task<UserProfile> GetOrCreateAsync(Guid accountId, CancellationToken cancellationToken) =>
+        Task.FromResult(profiles.GetOrAdd(accountId, UserProfile.Create));
+
+    public Task<UserProfile?> GetPublicAsync(Guid accountId, CancellationToken cancellationToken)
+    {
+        profiles.TryGetValue(accountId, out var profile);
+        return Task.FromResult(profile?.ProfileIsPublic == true ? profile : null);
+    }
+
+    public Task SaveAsync(UserProfile profile, CancellationToken cancellationToken)
+    {
+        profiles[profile.AccountId] = profile;
+        return Task.CompletedTask;
+    }
+}
+
+internal sealed class TestUserPreferencesRepository : IUserPreferencesRepository
+{
+    private readonly ConcurrentDictionary<Guid, OnboardingPreferences> preferences = new();
+
+    public Task<OnboardingPreferences?> GetExistingAsync(
+        Guid accountId,
+        CancellationToken cancellationToken)
+    {
+        preferences.TryGetValue(accountId, out var saved);
+        return Task.FromResult(saved);
+    }
+
+    public Task<OnboardingPreferences> GetOrCreateAsync(
+        Guid accountId,
+        CancellationToken cancellationToken) =>
+        Task.FromResult(preferences.GetOrAdd(accountId, _ => EmptyPreferences()));
+
+    public Task SaveProgressAsync(
+        Guid accountId,
+        SaveOnboardingProgress progress,
+        CancellationToken cancellationToken)
+    {
+        preferences[accountId] = new OnboardingPreferences(
+            false,
+            progress.CurrentStep,
+            progress.MovieGenreIds,
+            progress.SeriesGenreIds,
+            progress.FavoriteMovieIds,
+            progress.FavoriteSeriesIds);
+        return Task.CompletedTask;
+    }
+
+    public Task CompleteAsync(Guid accountId, CancellationToken cancellationToken)
+    {
+        var current = preferences.GetOrAdd(accountId, _ => EmptyPreferences());
+        preferences[accountId] = current with
+        {
+            IsComplete = true,
+            CurrentStep = OnboardingStep.Completed,
+        };
+        return Task.CompletedTask;
+    }
+
+    public Task<bool> CatalogTitlesExistAsync(
+        IReadOnlyCollection<Guid> titleIds,
+        CatalogContentType contentType,
+        CancellationToken cancellationToken) =>
+        Task.FromResult(titleIds.All(titleId => titleId == CatalogEndpointTestServices.TitleId));
+
+    private static OnboardingPreferences EmptyPreferences() => new(
+        false,
+        OnboardingStep.Welcome,
+        [],
+        [],
+        [],
+        []);
 }
 
 internal static class CatalogEndpointTestServices
@@ -271,6 +582,17 @@ internal static class CatalogEndpointTestServices
             string language,
             CancellationToken cancellationToken) =>
             Task.FromResult<ProviderCatalogSeason?>(null);
+    }
+
+    public sealed class TmdbGenreProvider : ICatalogGenreProvider
+    {
+        public CatalogProvider Provider => CatalogProvider.Tmdb;
+
+        public Task<IReadOnlyList<CatalogGenre>> GetGenresAsync(
+            CatalogContentType contentType,
+            string language,
+            CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<CatalogGenre>>([new CatalogGenre(28, "Ação")]);
     }
 
     public sealed class ReferenceRepository : IExternalCatalogReferenceRepository

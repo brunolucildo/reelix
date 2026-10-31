@@ -50,6 +50,8 @@ public sealed record CatalogTitle(
     string? PosterUrl,
     string? BackdropUrl);
 
+public sealed record CatalogGenre(int Id, string Name);
+
 public sealed record ProviderCatalogPage(
     IReadOnlyList<ProviderCatalogTitle> Items,
     int Page,
@@ -116,6 +118,16 @@ public interface ICatalogProvider
     Task<ProviderCatalogSeason?> GetSeasonAsync(
         string externalSeriesId,
         int seasonNumber,
+        string language,
+        CancellationToken cancellationToken);
+}
+
+public interface ICatalogGenreProvider
+{
+    CatalogProvider Provider { get; }
+
+    Task<IReadOnlyList<CatalogGenre>> GetGenresAsync(
+        CatalogContentType contentType,
         string language,
         CancellationToken cancellationToken);
 }

@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Reelix.Application;
 using Reelix.Application.Authentication;
 using Reelix.Api.Catalog;
+using Reelix.Api.Users;
 using Reelix.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +24,7 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "Reelix API",
         Version = "v1",
-        Description = "API do Reelix, incluindo pesquisa e detalhes de catálogo.",
+        Description = "API do Reelix, incluindo autenticação, catálogo, onboarding e perfil.",
     });
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.OpenApiSecurityScheme
     {
@@ -151,6 +152,8 @@ app.MapGet("/api/v1/auth/me", async (
     .WithTags("Authentication");
 
 app.MapCatalogEndpoints();
+app.MapOnboardingEndpoints();
+app.MapProfileEndpoints();
 
 app.Run();
 

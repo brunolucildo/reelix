@@ -12,6 +12,16 @@ public static class CatalogEndpoints
             .WithTags("Catalog")
             .RequireAuthorization();
 
+        group.MapGet("/genres", GetGenres)
+            .WithName("GetCatalogGenres")
+            .WithSummary("Get official movie or series genres.")
+            .Produces<IReadOnlyList<CatalogGenre>>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
+            .ProducesProblem(StatusCodes.Status502BadGateway)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
+            .ProducesProblem(StatusCodes.Status504GatewayTimeout);
+
         group.MapGet("/search", Search)
             .WithName("SearchCatalog")
             .WithSummary("Search movies and series in a catalog provider.")
@@ -47,6 +57,43 @@ public static class CatalogEndpoints
             .ProducesProblem(StatusCodes.Status504GatewayTimeout);
 
         return group;
+    }
+
+    private static async Task<IResult> GetGenres(
+        CatalogGenreService catalog,
+        string type = "movie",
+        string provider = "tmdb",
+        string language = "pt-BR",
+        CancellationToken cancellationToken = default)
+    {
+        if (!TryParseProvider(provider, out var parsedProvider) ||
+            !TryParseContentType(type, out var parsedType))
+        {
+            return InvalidParameter();
+        }
+
+        try
+        {
+            return Results.Ok(await catalog.GetGenresAsync(
+                parsedProvider,
+                parsedType,
+                language,
+                cancellationToken));
+        }
+        catch (CatalogProviderException exception)
+        {
+            return Results.Problem(
+                statusCode: exception.StatusCode,
+                title: exception.Message,
+                type: $"https://reelix.local/problems/{exception.Code}");
+        }
+        catch (ArgumentException exception)
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Invalid catalog request.",
+                detail: exception.Message);
+        }
     }
 
     private static async Task<IResult> Search(

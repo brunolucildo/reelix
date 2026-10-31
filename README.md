@@ -6,16 +6,19 @@ O repositório reúne o aplicativo mobile em React Native/Expo e uma API ASP.NET
 
 ## Etapas entregues
 
-O projeto já inclui autenticação e consulta de catálogo:
+O projeto já inclui autenticação, consulta de catálogo, onboarding e perfil:
 
 - Cadastro, login, confirmação de e-mail, recuperação de senha e logout pelo Supabase Auth.
 - Callback de autenticação por deep link, compatível com Expo.
 - API .NET que valida tokens JWT do Supabase e expõe `GET /api/v1/auth/me` e endpoints autenticados de pesquisa e detalhes de catálogo.
 - Integração com TMDB e OMDb, com referências externas persistidas no PostgreSQL.
+- Onboarding retomável com preferências de gêneros e títulos favoritos validados pelo catálogo.
+- Perfil próprio com nome, biografia e privacidade, além de consulta de perfil público conforme as permissões do usuário.
+- API autenticada para onboarding e perfil; veja [configuração e contratos](docs/onboarding-profile-setup.md).
 - Swagger para testar a API localmente e uma página exclusiva de desenvolvimento para obter um token de usuário diretamente pelo Supabase Auth.
-- Migrations e testes automatizados para autenticação, catálogo e configuração CORS de desenvolvimento web.
+- Migrations e testes automatizados para autenticação, catálogo, onboarding, perfil e configuração CORS de desenvolvimento web.
 
-Descoberta, acompanhamento de títulos e recursos sociais permanecem para etapas futuras.
+Home de descoberta, acompanhamento de títulos, avaliações, listas e recursos sociais permanecem para etapas futuras. A migration de onboarding/perfil está no repositório, mas precisa ser aplicada a um banco local/de desenvolvimento antes de usar esses recursos nesse ambiente.
 
 ## Tecnologias
 
@@ -83,7 +86,7 @@ Para criar ou atualizar as tabelas no banco configurado, aplique as migrations:
 dotnet ef database update --project backend\Reelix.Infrastructure\Reelix.Infrastructure.csproj --startup-project backend\Reelix.Api\Reelix.Api.csproj
 ```
 
-A tabela `public.user_accounts` tem RLS habilitado e não concede acesso direto aos papéis da API Data; o backend acessa o PostgreSQL com sua própria connection string. A migration do catálogo cria referências aos IDs externos dos títulos; veja [a documentação do catálogo](docs/catalog-setup.md#banco-local) para detalhes e configuração dos provedores.
+A tabela `public.user_accounts` e as tabelas de preferências/perfil têm RLS habilitado e não concedem acesso direto aos papéis da API Data; o backend acessa o PostgreSQL com sua própria connection string. Veja a [documentação de onboarding e perfil](docs/onboarding-profile-setup.md#banco-de-dados) antes de aplicar a nova migration.
 
 ## Verificações
 
@@ -104,6 +107,8 @@ npx expo lint
 
 - [Configuração de autenticação e ambiente local](docs/authentication-setup.md)
 - [Configuração do catálogo, provedores e teste no Swagger](docs/catalog-setup.md)
+- [Avaliação de tecnologias adicionais](docs/technology-stack-evaluation.md)
+- [Configuração e contratos de onboarding e perfil](docs/onboarding-profile-setup.md)
 - [Arquitetura](docs/architecture.md)
 - [Especificações do produto](docs/specs/)
 - [Identidade visual e Brand Assets](mobile/assets/brand/README.md)

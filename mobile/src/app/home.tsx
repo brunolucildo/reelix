@@ -1,19 +1,25 @@
 import { useQuery } from '@tanstack/react-query';
+import { Redirect, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { AuthScreen } from '@/components/auth/auth-screen';
 import { PrimaryButton } from '@/components/auth/primary-button';
-import { fetchAuthenticatedAccount } from '@/services/api-client';
+import { fetchAuthenticatedAccount, fetchOnboarding } from '@/services/api-client';
 import { useAuthSession } from '@/providers/auth-provider';
 import { colors, fontFamily, radii } from '@/theme/tokens';
 
 export default function AuthenticatedHomeScreen() {
+  const router = useRouter();
   const { session, signOut } = useAuthSession();
   const [signOutError, setSignOutError] = useState<string | null>(null);
   const account = useQuery({
     queryKey: ['auth', 'account'],
     queryFn: fetchAuthenticatedAccount,
+  });
+  const onboarding = useQuery({
+    queryKey: ['onboarding'],
+    queryFn: fetchOnboarding,
   });
 
   const handleSignOut = async () => {
@@ -24,6 +30,26 @@ export default function AuthenticatedHomeScreen() {
       setSignOutError('A sessão foi removida da interface, mas o armazenamento local não pôde ser confirmado. Feche o app e tente novamente.');
     }
   };
+
+  if (onboarding.isPending) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator color={colors.brand} size="large" />
+      </View>
+    );
+  }
+
+  if (onboarding.isError) {
+    return (
+      <AuthScreen title="Não foi possível abrir o Reelix." subtitle="Verifique sua conexão e tente novamente.">
+        <PrimaryButton label="Tentar novamente" onPress={() => void onboarding.refetch()} />
+      </AuthScreen>
+    );
+  }
+
+  if (!onboarding.data.isComplete) {
+    return <Redirect href="/onboarding" />;
+  }
 
   return (
     <AuthScreen
@@ -53,12 +79,24 @@ export default function AuthenticatedHomeScreen() {
           {signOutError}
         </Text>
       ) : null}
+      <PrimaryButton label="Meu perfil" onPress={() => router.push('/profile')} variant="secondary" />
+      <PrimaryButton
+        label="Editar preferências"
+        onPress={() => router.push({ pathname: '/onboarding', params: { edit: '1' } })}
+        variant="secondary"
+      />
       <PrimaryButton label="Sair da conta" onPress={() => void handleSignOut()} variant="secondary" />
     </AuthScreen>
   );
 }
 
 const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+  },
   accountCard: {
     width: '100%',
     gap: 12,
