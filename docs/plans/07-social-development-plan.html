@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#080b0f">
+    <meta name="description" content="Plano proposto para amizades e compartilhamento controlado de atividades do Reelix.">
+    <title>Plano 07 — Social | Reelix</title>
+    <style>
+      :root { color-scheme: dark; --brand: #ff2d55; --background: #080b0f; --surface: #10141b; --border: #202d36; --text: #fff; --muted: #a1a1aa; font-family: "Sora", "Segoe UI", sans-serif; }
+      * { box-sizing: border-box; } body { margin: 0; background: radial-gradient(ellipse at 8% 0%, rgb(255 45 85 / 18%), transparent 32rem), var(--background); color: var(--text); line-height: 1.65; }
+      a { color: #ff6688; text-underline-offset: 3px; } .page { width: min(1080px, calc(100% - 40px)); margin: auto; padding: 42px 0 72px; }
+      .brand { font-size: 1.3rem; font-weight: 800; margin-bottom: 28px; color: var(--brand); } .hero, .card { padding: 24px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); } .hero { padding: 30px; border-radius: 24px; }
+      .eyebrow { color: #ff6688; text-transform: uppercase; letter-spacing: .15em; font-size: .8rem; font-weight: 800; } h1 { font-size: clamp(2.2rem, 6vw, 4rem); line-height: 1.1; letter-spacing: -.055em; margin: 12px 0; } h1 span { color: var(--brand); }
+      h2 { font-size: 1.8rem; letter-spacing: -.04em; margin: 0 0 14px; } h3 { margin: 0 0 8px; font-size: 1.1rem; } p, li { color: var(--muted); } strong { color: var(--text); } li + li { margin-top: 7px; } ul, ol { padding-left: 22px; }
+      main { display: grid; gap: 38px; margin-top: 42px; } .columns, .phase-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } .status { display: inline-block; color: #fbbf24; border: 1px solid #806224; border-radius: 999px; padding: 6px 12px; font-size: .85rem; } .decision { border-color: #806224; } .callout { border-left: 3px solid var(--brand); padding: 16px; background: rgb(255 45 85 / 8%); }
+      footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); } @media (max-width: 720px) { .columns, .phase-grid { grid-template-columns: 1fr; } .page { width: calc(100% - 28px); } .hero { padding: 22px; } } @media print { :root { color-scheme: light; --background: white; --surface: #f5f5f7; --border: #d1d1d6; --text: #171719; --muted: #414147; } body { background: white; } .page { width: 100%; padding: 0; } .card { break-inside: avoid; } }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header><div class="brand">reelix</div><div class="hero">
+        <p class="eyebrow">Etapa 7 · especificação 09</p>
+        <h1>Amizades <span>com compartilhamento autorizado.</span></h1>
+        <p>Plano para solicitações, relações consistentes e um feed entre amigos que respeita a audiência de cada recurso. Amizade não concede acesso irrestrito ao histórico.</p>
+        <span class="status">Proposto em 01/11/2026 · aguardando aprovação</span>
+      </div></header>
+      <main>
+        <section aria-labelledby="baseline"><h2 id="baseline">Ponto de partida e dependências</h2><article class="card"><ul>
+          <li>Perfil próprio/público, favoritos, listas privadas e tracking já existem. Não há relação de amizade, pesquisa pública de contas ou feed persistido.</li>
+          <li>Depende da etapa 6 para atividades de avaliações publicadas. O núcleo de solicitações pode ser implementado sem aguardar notificações.</li>
+          <li>As flags atuais são booleanas para público/privado; o contrato público de perfil não representa acesso de amigos. Acrescentar autorização contextual sem mudar silenciosamente a visibilidade existente.</li>
+          <li>Tracking fornece IDs e datas, não cartões completos. Enriquecer atividades em lote pelo catálogo; não chamar o provedor uma vez por item do feed.</li>
+        </ul></article></section>
+        <section aria-labelledby="scope"><h2 id="scope">Escopo e decisões propostas</h2><div class="columns">
+          <article class="card"><h3>Incluído</h3><ul>
+            <li>Pesquisar por nome de exibição permitido, solicitar amizade, aceitar/recusar, cancelar, remover e listar amigos/pendências.</li>
+            <li>Feed paginado inicial de filmes/episódios assistidos e avaliações publicadas, somente com compartilhamento autorizado.</li>
+            <li>Perfil contextual de amigo, preferências explícitas de compartilhamento e eventos para a etapa de notificações.</li>
+            <li>Reutilizar favoritos compartilháveis conforme consentimento; listas privadas e watchlist não entram no feed.</li>
+          </ul></article>
+          <article class="card decision"><h3>Decisões antes do desenvolvimento</h3><ul>
+            <li><strong>Proposta:</strong> pesquisa encontra perfis públicos ou contas com descoberta explicitamente habilitada; nome/avatar/ID público somente. Contas privadas continuam não descobríveis por padrão.</li>
+            <li><strong>Proposta:</strong> acrescentar audiência “amigos” por tipo de atividade e consentimento para feed, desabilitado na migração. Perfil público não equivale a histórico compartilhado.</li>
+            <li><strong>Proposta:</strong> não importar todo o histórico no primeiro feed; começar após ativação do compartilhamento. Retirada de consentimento oculta também atividades já projetadas.</li>
+            <li>Bloqueio é opcional nesta etapa. Se aprovado, especificar quem bloqueia/desbloqueia e impedir pesquisa, solicitações, feed e notificações entre as contas, nos dois sentidos.</li>
+          </ul></article>
+        </div><p class="callout">Fora do escopo: seguidores públicos, chat, compartilhamento público irrestrito de listas e entrega push. Alterações nos módulos existentes ficam limitadas à autorização e emissão de atividades necessárias.</p></section>
+        <section aria-labelledby="contracts"><h2 id="contracts">Relações, audiência e contratos</h2><div class="columns">
+          <article class="card"><h3>Máquina de estados e banco</h3><ul>
+            <li>Uma relação por par canônico de contas, com remetente/destinatário e estado. CHECK impede autorrelação; FK e índice único do par impedem duplicatas e solicitações cruzadas simultâneas.</li>
+            <li>Transições: sem relação → pendente; destinatário aceita/recusa; remetente cancela; qualquer participante remove amizade aceita. Recusa/cancelamento permitem nova solicitação só após a política de frequência aprovada.</li>
+            <li>Solicitação inversa enquanto pendente não aceita amizade automaticamente: retornar estado existente/conflito e exigir ação explícita do destinatário.</li>
+            <li>Atualizações condicionais de estado/versionamento tratam aceitar versus cancelar/remover. Pedido repetido não cria eventos duplicados; operação sem autorização nunca vira sucesso aparente.</li>
+            <li>Migration EF Core com índices de participantes/estado e RLS, sem acesso direto por Data API. Remover relação não remove histórico, avaliações ou listas dos usuários.</li>
+          </ul></article>
+          <article class="card"><h3>API, feed e eventos</h3><ul>
+            <li>Contratos propostos: busca em <code>/api/v1/social/users</code>, solicitações e ações em <code>/api/v1/social/friend-requests</code>, amigos e feed em <code>/api/v1/social</code>.</li>
+            <li>Conta do ator vem do JWT. Limitar busca, tamanho de página e solicitações; não retornar e-mail, SupabaseUserId ou contagens privadas.</li>
+            <li>Paginação por cursor data/ID no feed; listas de amigos com ordenação estável e limite documentado. Índices seguem filtros de destinatário/ator/data; projeção em lote evita N+1.</li>
+            <li>Atividade mínima com ID de origem e revisão, ator, alvo e data; deduplicar origem/tipo/revisão. Não copiar comentário privado para uma projeção social.</li>
+            <li>Revalidar amizade, audiência do recurso, consentimento e eventual bloqueio em toda consulta e deep link. Exclusão/privatização da origem retira o item do feed; cache não pode manter acesso revogado.</li>
+            <li>Produzir eventos de solicitação e aceitação com ID, versão, ator, destinatário e data. Registro confiável junto da mutação; sem broker ou envio push nesta etapa. Contrato será consumido pela etapa 8.</li>
+          </ul></article>
+        </div></section>
+        <section aria-labelledby="phases"><h2 id="phases">Sequência de execução após aprovação</h2><div class="phase-grid">
+          <article class="card"><h3>01 · Matriz de privacidade</h3><p>Definir descoberta de contas, audiência por recurso, histórico retroativo e bloqueio. Documentar transições, compatibilidade das flags atuais e telas de busca, amigos, solicitações e feed. Saída: regras e wireframes aprovados.</p></article>
+          <article class="card"><h3>02 · Relações e endpoints</h3><p>Implementar domínio, migration, repositórios e API com unicidade concorrente, rate limit e autorização de participantes. Saída: solicitações completas e integração PostgreSQL verificadas.</p></article>
+          <article class="card"><h3>03 · Atividades e integração</h3><p>Conectar tracking e avaliações aprovadas; aplicar compartilhamento explícito, deduplicação e remoção de projeções. Acrescentar perfil contextual e eventos de relacionamento. Saída: feed autorizado sem N+1 e contrato para notificações.</p></article>
+          <article class="card"><h3>04 · Mobile e validação</h3><p>Criar serviços/schemas tipados e telas com estados vazios, erro, retentativa, confirmação de remoção e paginação. Invalidar amigos, solicitações, perfil e feed após mudanças; limpar cache privado na troca de conta. Saída: documentação e testes relevantes.</p></article>
+        </div></section>
+        <section aria-labelledby="acceptance"><h2 id="acceptance">Testes e critérios de conclusão</h2><article class="card"><ul>
+          <li>Testar autorrelação, pedido repetido/inverso, aceitação por terceiro, recusa/cancelamento e duas operações concorrentes; existe no máximo uma relação por par.</li>
+          <li>Conta C não altera relação A/B. Remover amizade preserva registros de ambos e corta leitura no feed e perfil contextual.</li>
+          <li>Validar matriz dono/amigo/não amigo para perfil, histórico, favoritos, avaliações públicas/privadas/amigos e consentimento desligado; privacidade muda também para atividades antigas.</li>
+          <li>Paginação não repete atividades; processamento duplicado não replica eventos. Conta excluída ou origem removida não permanece acessível.</li>
+          <li>Medir consultas por página com volume representativo para comprovar ausência de N+1; executar testes .NET Social/autorização e integração PostgreSQL, lint e typecheck mobile.</li>
+          <li>Validar busca sem dados privados, navegação ao perfil/detalhe e funcionamento sem serviço push; publicar documentação de transições e audiências.</li>
+        </ul></article></section>
+        <section aria-labelledby="approval"><h2 id="approval">Marco de aprovação</h2><article class="card decision"><p>Aprovar descoberta, consentimento e alcance do bloqueio antes de executar. Compartilhamento de listas além dos favoritos exige decisão adicional, não está implícito na amizade.</p></article></section>
+      </main>
+      <footer>Referências: <a href="../specs/09-social.md">especificação 09</a>, <a href="../architecture.md">arquitetura</a>, <a href="./04-tracking-and-lists-development-plan.html">tracking/listas</a>, <a href="./06-ratings-comments-development-plan.html">avaliações</a> e <a href="./08-notifications-development-plan.html">próxima etapa: notificações</a>.</footer>
+    </div>
+  </body>
+</html>

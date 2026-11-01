@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#080b0f">
+    <meta name="description" content="Plano proposto para avaliações, comentários e moderação de spoilers do Reelix.">
+    <title>Plano 06 — Avaliações e comentários | Reelix</title>
+    <style>
+      :root { color-scheme: dark; --brand: #ff2d55; --background: #080b0f; --surface: #10141b; --border: #202d36; --text: #fff; --muted: #a1a1aa; font-family: "Sora", "Segoe UI", sans-serif; }
+      * { box-sizing: border-box; } body { margin: 0; background: radial-gradient(ellipse at 8% 0%, rgb(255 45 85 / 18%), transparent 32rem), var(--background); color: var(--text); line-height: 1.65; }
+      a { color: #ff6688; text-underline-offset: 3px; } .page { width: min(1080px, calc(100% - 40px)); margin: auto; padding: 42px 0 72px; }
+      .brand { font-size: 1.3rem; font-weight: 800; margin-bottom: 28px; color: var(--brand); } .hero, .card { padding: 24px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); } .hero { padding: 30px; border-radius: 24px; }
+      .eyebrow { color: #ff6688; text-transform: uppercase; letter-spacing: .15em; font-size: .8rem; font-weight: 800; } h1 { font-size: clamp(2.2rem, 6vw, 4rem); line-height: 1.1; letter-spacing: -.055em; margin: 12px 0; } h1 span { color: var(--brand); }
+      h2 { font-size: 1.8rem; letter-spacing: -.04em; margin: 0 0 14px; } h3 { margin: 0 0 8px; font-size: 1.1rem; } p, li { color: var(--muted); } strong { color: var(--text); } li + li { margin-top: 7px; } ul, ol { padding-left: 22px; }
+      main { display: grid; gap: 38px; margin-top: 42px; } .columns, .phase-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } .status { display: inline-block; color: #fbbf24; border: 1px solid #806224; border-radius: 999px; padding: 6px 12px; font-size: .85rem; } .decision { border-color: #806224; } .callout { border-left: 3px solid var(--brand); padding: 16px; background: rgb(255 45 85 / 8%); }
+      footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); } @media (max-width: 720px) { .columns, .phase-grid { grid-template-columns: 1fr; } .page { width: calc(100% - 28px); } .hero { padding: 22px; } } @media print { :root { color-scheme: light; --background: white; --surface: #f5f5f7; --border: #d1d1d6; --text: #171719; --muted: #414147; } body { background: white; } .page { width: 100%; padding: 0; } .card { break-inside: avoid; } }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <div class="brand">reelix</div>
+        <div class="hero">
+          <p class="eyebrow">Etapa 6 · especificação 07</p>
+          <h1>Avaliações e comentários <span>sem revelar spoilers.</span></h1>
+          <p>Plano para notas independentes dos comentários, autorização por recurso e publicação com moderação explícita. A análise por IA será opcional e isolada das operações de avaliação.</p>
+          <span class="status">Proposto em 01/11/2026 · aguardando aprovação</span>
+        </div>
+      </header>
+      <main>
+        <section aria-labelledby="baseline">
+          <h2 id="baseline">Ponto de partida e dependências</h2>
+          <article class="card"><ul>
+            <li>Autenticação Supabase, conta interna Reelix, perfil, catálogo, tracking e listas já existem; avaliações e comentários ainda não têm persistência ou endpoints.</li>
+            <li>O catálogo distingue filme, série, temporada e episódio. Utilizar IDs internos e validar o tipo e a associação do episódio à série; não misturar IDs de provedores.</li>
+            <li>A navegação atual de detalhes é por provedor, tipo e ID externo de filme/série. Acrescentar acesso a temporadas/episódios para completar o alvo episódico, sem exigir a etapa social.</li>
+            <li>O perfil atual possui flags de perfil, favoritos e histórico públicos, mas não uma audiência de avaliações/comentários. Essa lacuna deve ser resolvida antes da publicação.</li>
+          </ul></article>
+        </section>
+        <section aria-labelledby="scope">
+          <h2 id="scope">Escopo e decisões propostas</h2>
+          <div class="columns">
+            <article class="card"><h3>Incluído</h3><ul>
+              <li>Criar, editar e excluir nota própria de filme, série ou episódio; uma nota por conta e alvo.</li>
+              <li>Comentários independentes, edição/exclusão próprias, autoria e data permitidas, paginação e revelação explícita de spoilers.</li>
+              <li>Estados de publicação/moderação, limites de escrita, erros de validação e adaptador opcional de classificação estruturada.</li>
+              <li>Média Reelix e quantidade de avaliações elegíveis, separadas das notas externas do catálogo.</li>
+            </ul></article>
+            <article class="card decision"><h3>Fechar antes de implementar</h3><ul>
+              <li><strong>Proposta:</strong> escala de 0 a 5 em passos de 0,5; zero é nota válida, ausência é nula. Comentários entre 1 e 2.000 caracteres após normalização definida.</li>
+              <li><strong>Proposta:</strong> audiência privada por padrão, com publicação explícita; nunca inferir autorização do perfil público. “Amigos” será acrescentado na etapa 7.</li>
+              <li><strong>Proposta:</strong> médias públicas usam somente avaliações públicas válidas, com contagem; sem votos, média nula. Alteração de visibilidade recalcula a elegibilidade.</li>
+              <li>Denúncias e revisão administrativa exigem responsável autorizado, critérios e fluxo de resolução. Se não aprovados, não anunciar moderação manual/denúncia como disponível.</li>
+            </ul></article>
+          </div>
+          <p class="callout">Fora do escopo: feed social, seguidores, mensagens privadas, comentários gerados por IA e banimento automático baseado apenas no classificador.</p>
+        </section>
+        <section aria-labelledby="contracts">
+          <h2 id="contracts">Contratos, persistência e moderação</h2>
+          <div class="columns">
+            <article class="card"><h3>Modelo e API propostos</h3><ul>
+              <li>Separar Rating, Comment e resultado de moderação. Nota decimal com CHECK do intervalo/passo, FK para conta e referência de catálogo, unicidade conta/alvo e validação do tipo no servidor.</li>
+              <li>Comentários guardam audiência, sinalização do autor, estado e versão. Edição invalida análise antiga; resultado atrasado só altera a versão correspondente.</li>
+              <li>Operações autenticadas sob <code>/api/v1/ratings</code> e <code>/api/v1/comments</code>, com consulta por alvo, atualização/exclusão próprias e operação específica de revelação.</li>
+              <li>Listagem de spoiler retorna metadados e <code>content: null</code>. Revelação revalida audiência e publicação antes de retornar texto; negar acesso não pode ser contornado por outro endpoint.</li>
+              <li>Reusar ProblemDetails/OpenAPI, Zod e TanStack Query. Resolver conta pelo JWT, nunca aceitar autoria enviada pelo cliente. Índices por alvo/data/ID para comentários e por alvo/audiência para agregação.</li>
+              <li>Migrations EF Core no fluxo existente, RLS e ausência de grants diretos aos papéis Data API nas tabelas privadas. A conta Reelix não é o mesmo ID do usuário Supabase.</li>
+            </ul></article>
+            <article class="card"><h3>Política conservadora proposta</h3><ul>
+              <li>Separar <strong>possível spoiler</strong> de <strong>conteúdo bloqueado</strong>. Sinalização manual sempre prevalece para ocultar texto; análise negativa não a remove.</li>
+              <li>Estados: pendente, publicado e bloqueado. Autor vê o próprio status; leitores não recebem conteúdo pendente/bloqueado. Transições manuais precisam de autorização de moderador independente de dados editáveis pelo usuário.</li>
+              <li>Com IA desligada, publicar sob sinalização manual e regras locais aprovadas. Com IA ligada, analisar fora da requisição principal; timeout mantém pendente ou publicado com ocultação conservadora conforme política aprovada, nunca “aprovado pela IA”.</li>
+              <li>Classificador no backend, chave somente no servidor, schema de <code>possible_spoiler</code>, <code>confidence</code> e <code>reason</code>; validar tipos, faixa e tamanho. Texto é entrada não confiável, não instrução para o modelo.</li>
+              <li>Definir consentimento, minimização e política de tratamento antes de qualquer envio externo; não enviar identidade, tokens ou dados privados desnecessários. Testes usam respostas simuladas.</li>
+              <li>Limitar tamanho, frequência, orçamento e timeout; deduplicar por comentário/versão/modelo. Falha externa tem diagnóstico sem texto sensível e não interrompe notas ou exclusões.</li>
+            </ul></article>
+          </div>
+        </section>
+        <section aria-labelledby="phases">
+          <h2 id="phases">Sequência de execução após aprovação</h2>
+          <div class="phase-grid">
+            <article class="card"><h3>01 · Regras e experiência</h3><p>Fechar escala, audiência, limites, política de IA e revisão. Atualizar wireframes de detalhes e episódios, editor, aviso de spoiler e estado pendente. Saída: contratos e matriz de visibilidade aprovados.</p></article>
+            <article class="card"><h3>02 · Domínio e persistência</h3><p>Implementar invariantes, configurações EF, migration e repositórios. Cobrir unicidade concorrente, exclusão e média elegível. Saída: testes de domínio e integração PostgreSQL passando.</p></article>
+            <article class="card"><h3>03 · API e moderação</h3><p>Implementar CRUD, consultas e revelação; adicionar processamento opcional com controle de versão, estados e retentativas limitadas. Preparar evento de publicação/alteração sem acoplar envio push. Saída: OpenAPI e testes de autorização/falhas externas.</p></article>
+            <article class="card"><h3>04 · Mobile e aceite</h3><p>Integrar estrelas acessíveis, editor, audiência, listagem e revelação por comentário/versão. Invalidar nota própria, média e comentários após mutações; limpar conteúdo revelado na troca de sessão. Saída: navegação completa, documentação e validações relevantes.</p></article>
+          </div>
+        </section>
+        <section aria-labelledby="acceptance">
+          <h2 id="acceptance">Testes e critérios de conclusão</h2>
+          <article class="card"><ul>
+            <li>Testar notas -0,5, 0, 0,5, 5, 5,5 e passo inválido; alvo inexistente/tipo incorreto; duas gravações simultâneas produzem uma única avaliação.</li>
+            <li>Editar/excluir nota altera média e contagem; nota zero participa da média e alvo sem votos retorna média nula. Audiências diferentes não vazam notas privadas.</li>
+            <li>Conta B não modifica recursos de A; spoiler não aparece na resposta inicial, acessibilidade, preview ou logs. Revelação não permite ler comentários privados, bloqueados ou pendentes.</li>
+            <li>Testar edição durante análise, resposta malformada, timeout, limite de requisições, IA desabilitada e bloqueio explícito; falhas não afetam CRUD de notas.</li>
+            <li>Executar testes .NET de Ratings/Comments e integração PostgreSQL, typecheck e lint mobile; validar manualmente filmes, séries e episódios e atualizar regras/configuração de moderação.</li>
+          </ul></article>
+        </section>
+        <section aria-labelledby="approval"><h2 id="approval">Marco de aprovação</h2><article class="card decision"><p>Aprovar as regras propostas e o alcance da revisão/IA antes de iniciar. Este documento planeja a implementação; não ativa chamadas externas, cria tabelas ou declara a etapa concluída.</p></article></section>
+      </main>
+      <footer>Referências: <a href="../specs/07-ratings-comments.md">especificação 07</a>, <a href="../architecture.md">arquitetura</a>, <a href="../wireframes/reelix-visual-wireframes.html">wireframes</a>, <a href="./03-catalog-development-plan.html">catálogo</a> e <a href="./07-social-development-plan.html">próxima etapa: social</a>.</footer>
+    </div>
+  </body>
+</html>

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { catalogTitleSchema } from '@/services/api-client';
 import { supabase } from '@/services/supabase';
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
@@ -16,16 +17,7 @@ if (
   throw new Error('EXPO_PUBLIC_API_URL must use HTTPS except for a local development server.');
 }
 
-const titleSchema = z.object({
-  id: z.string().uuid(),
-  provider: z.enum(['tmdb', 'omdb']),
-  externalId: z.string().min(1),
-  contentType: z.enum(['movie', 'series']),
-  title: z.string().min(1),
-  overview: z.string().nullable(),
-  releaseDate: z.string().nullable(),
-  posterUrl: z.string().url().nullable(),
-});
+const titleSchema = catalogTitleSchema;
 
 const titleReferenceSchema = z.object({
   titleId: z.string().uuid(),
@@ -127,8 +119,9 @@ function pageQuery(page: number, pageSize = 20) {
   return `page=${page}&pageSize=${pageSize}`;
 }
 
-export function fetchFavorites(page: number): Promise<PagedTitleList> {
-  return request(`/api/v1/favorites?${pageQuery(page)}`, pagedTitleListSchema);
+export function fetchFavorites(page: number, pageSize = 20): Promise<PagedTitleList> {
+  const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  return request(`/api/v1/favorites?${query}`, pagedTitleListSchema);
 }
 
 export function fetchWatchlist(page: number, oldestFirst: boolean): Promise<PagedTitleList> {
@@ -170,10 +163,14 @@ export function fetchTitleStatuses(titleIds: string[]): Promise<TitleRelationSta
   });
 }
 
-export function fetchTitleDetails(reference: TitleReference): Promise<CatalogTitle> {
+export function fetchTitleDetails(
+  reference: TitleReference,
+  signal?: AbortSignal,
+): Promise<CatalogTitle> {
   return request(
     `/api/v1/catalog/${reference.provider}/${reference.contentType}/${reference.externalId}?language=pt-BR`,
     titleSchema,
+    { signal },
   );
 }
 

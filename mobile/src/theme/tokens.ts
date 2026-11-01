@@ -41,6 +41,12 @@ export const radii = {
   pill: 999,
 } as const;
 
+export const dimensions = {
+  posterWidth: 120,
+  posterHeight: 180,
+  minimumTouchTarget: 44,
+} as const;
+
 export const fontFamily = {
   regular: 'Sora_400Regular',
   medium: 'Sora_500Medium',

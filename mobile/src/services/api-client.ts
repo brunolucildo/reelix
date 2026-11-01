@@ -43,16 +43,34 @@ const genreSchema = z.object({
   name: z.string().min(1),
 });
 
-const catalogTitleSchema = z.object({
+export const catalogTitleSchema = z.object({
   id: z.string().uuid(),
+  provider: z.enum(['tmdb', 'omdb']),
+  externalId: z.string().min(1),
+  contentType: z.enum(['movie', 'series']),
   title: z.string(),
+  originalTitle: z.string().nullable(),
   overview: z.string().nullable(),
+  genres: z.array(z.string()),
   releaseDate: z.string().nullable(),
+  originalLanguage: z.string().nullable(),
+  runtimeMinutes: z.number().int().positive().nullable(),
   posterUrl: z.string().url().nullable(),
+  backdropUrl: z.string().url().nullable(),
 });
 
 const catalogSearchSchema = z.object({
   items: z.array(catalogTitleSchema),
+});
+
+const catalogDiscoverySchema = z.object({
+  items: z.array(catalogTitleSchema),
+  page: z.number().int().positive(),
+  totalPages: z.number().int().positive(),
+  totalResults: z.number().int().nonnegative(),
+  provider: z.enum(['tmdb', 'omdb']),
+  contentType: z.enum(['movie', 'series']),
+  category: z.enum(['popular', 'upcoming']),
 });
 
 const profileSchema = z.object({
@@ -68,6 +86,8 @@ export type AuthenticatedAccount = z.infer<typeof accountSchema>;
 export type OnboardingPreferences = z.infer<typeof onboardingSchema>;
 export type CatalogGenre = z.infer<typeof genreSchema>;
 export type CatalogTitle = z.infer<typeof catalogTitleSchema>;
+export type CatalogDiscoveryPage = z.infer<typeof catalogDiscoverySchema>;
+export type CatalogDiscoveryCategory = CatalogDiscoveryPage['category'];
 export type ProfileData = z.infer<typeof profileSchema>;
 
 export type OnboardingProgress = Omit<OnboardingPreferences, 'isComplete' | 'currentStep'> & {
@@ -149,10 +169,44 @@ export async function fetchCatalogGenres(type: 'movie' | 'series'): Promise<Cata
 export async function searchCatalog(
   query: string,
   type: 'movie' | 'series',
+  signal?: AbortSignal,
 ): Promise<CatalogTitle[]> {
   const search = new URLSearchParams({ query, type, provider: 'tmdb', language: 'pt-BR' });
-  const result = await apiRequest(`/api/v1/catalog/search?${search}`, catalogSearchSchema);
+  const result = await apiRequest(`/api/v1/catalog/search?${search}`, catalogSearchSchema, { signal });
   return result.items;
+}
+
+export async function fetchCatalogDiscovery(
+  type: 'movie' | 'series',
+  category: CatalogDiscoveryCategory,
+  genreIds: number[],
+  page: number,
+  signal?: AbortSignal,
+): Promise<CatalogDiscoveryPage> {
+  const search = new URLSearchParams({
+    type,
+    section: category,
+    page: String(page),
+    provider: 'tmdb',
+    language: 'pt-BR',
+  });
+  for (const genreId of genreIds) {
+    search.append('genreIds', String(genreId));
+  }
+  return apiRequest(`/api/v1/catalog/discover?${search}`, catalogDiscoverySchema, { signal });
+}
+
+export async function fetchCatalogTitleDetails(
+  provider: CatalogTitle['provider'],
+  type: CatalogTitle['contentType'],
+  externalId: string,
+  signal?: AbortSignal,
+): Promise<CatalogTitle> {
+  return apiRequest(
+    `/api/v1/catalog/${provider}/${type}/${encodeURIComponent(externalId)}?language=pt-BR`,
+    catalogTitleSchema,
+    { signal },
+  );
 }
 
 export async function fetchProfile(): Promise<ProfileData> {

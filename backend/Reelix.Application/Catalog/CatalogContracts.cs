@@ -12,6 +12,12 @@ public enum CatalogContentType
     Series,
 }
 
+public enum CatalogDiscoveryCategory
+{
+    Popular,
+    Upcoming,
+}
+
 public enum CatalogReferenceType
 {
     Movie,
@@ -64,6 +70,15 @@ public sealed record CatalogSearchPage(
     int TotalPages,
     int TotalResults,
     CatalogProvider Provider);
+
+public sealed record CatalogDiscoveryPage(
+    IReadOnlyList<CatalogTitle> Items,
+    int Page,
+    int TotalPages,
+    int TotalResults,
+    CatalogProvider Provider,
+    CatalogContentType ContentType,
+    CatalogDiscoveryCategory Category);
 
 public sealed record ProviderCatalogEpisode(
     string ExternalId,
@@ -128,6 +143,19 @@ public interface ICatalogGenreProvider
 
     Task<IReadOnlyList<CatalogGenre>> GetGenresAsync(
         CatalogContentType contentType,
+        string language,
+        CancellationToken cancellationToken);
+}
+
+public interface ICatalogDiscoveryProvider
+{
+    CatalogProvider Provider { get; }
+
+    Task<ProviderCatalogPage> DiscoverAsync(
+        CatalogContentType contentType,
+        CatalogDiscoveryCategory category,
+        IReadOnlyCollection<int> genreIds,
+        int page,
         string language,
         CancellationToken cancellationToken);
 }
