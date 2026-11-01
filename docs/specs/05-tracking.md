@@ -112,3 +112,15 @@ Os métodos HTTP e os contratos definitivos deverão seguir as convenções REST
 ## Resultado
 
 Sistema de acompanhamento de visualização funcional, com histórico persistido, progresso de séries e dados disponíveis para outros módulos.
+
+## Decisões de implementação
+
+- O registro é único por conta e ID interno do item. `PUT` repetido é idempotente e corrige `watchedAt`; `DELETE` repetido permanece bem-sucedido. O cliente nunca envia o ID da conta.
+- O histórico usa `GET /api/v1/tracking/history?page=1&pageSize=20&type=movie|episode&sort=newest|oldest`; filmes e episódios são persistidos separadamente de favoritos e listas.
+- Episódios são identificados pelo GUID interno retornado pelo catálogo. O número do episódio pode ser nulo; progresso e pendências usam o GUID, inclusive para especiais e episódios sem numeração.
+- O catálogo atual fornece temporadas uma de cada vez. Progresso de temporada e pendências usam a lista retornada para aquela temporada. Episódios futuros são excluídos da contagem disponível; episódios sem data são incluídos se listados pelo catálogo. Datas de lançamento nunca marcam um item como assistido.
+- O progresso da série retorna a contagem assistida, mas total disponível, percentual e conclusão ficam nulos enquanto o catálogo não disponibilizar um inventário completo das temporadas. Não se estima conclusão da série a partir de uma temporada, nem se confunde conclusão de temporada com conclusão da série.
+- Falhas ou remoções no catálogo não apagam registros existentes. Consultas que dependem do catálogo podem falhar temporariamente; histórico e operações de marcar/desmarcar usam os IDs internos persistidos.
+- O acompanhamento mobile consulta histórico e séries de forma paginada, permite registrar filmes encontrados no catálogo, corrigir a data e remover registros do histórico. Nomes de títulos e totais da série não são inventados quando a API não os fornece.
+- A configuração EF, registro de endpoints e DI, migração, rotas autenticadas e wireframe foram integrados junto ao módulo de listas, mantendo recursos e relações independentes.
+- A tela mobile `tracking` apresenta histórico paginado e contagens assistidas de séries, sem inventar nomes ou percentuais indisponíveis no contrato. Permite buscar filmes e séries reais no catálogo, marcar filmes e episódios pendentes como assistidos, corrigir data/hora e desmarcar pelo histórico. Datas são editadas no horário local e enviadas como instante ISO 8601. A consulta de episódios usa seleção de série e número de temporada (0 para especiais), preservando os GUIDs internos e aceitando episódios sem numeração.

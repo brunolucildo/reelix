@@ -51,6 +51,9 @@ public sealed class AuthenticationEndpointTests
         Assert.Contains("/api/v1/catalog/search", document);
         Assert.Contains("/api/v1/onboarding", document);
         Assert.Contains("/api/v1/profile", document);
+        Assert.Contains("/api/v1/tracking/history", document);
+        Assert.Contains("/api/v1/favorites", document);
+        Assert.Contains("/api/v1/lists", document);
         Assert.Contains("Bearer", document);
     }
 
@@ -58,6 +61,10 @@ public sealed class AuthenticationEndpointTests
     [InlineData("/api/v1/onboarding")]
     [InlineData("/api/v1/profile")]
     [InlineData("/api/v1/catalog/genres?type=movie")]
+    [InlineData("/api/v1/tracking/history")]
+    [InlineData("/api/v1/favorites")]
+    [InlineData("/api/v1/watchlist")]
+    [InlineData("/api/v1/lists")]
     public async Task UserEndpoints_RejectAnonymousRequests(string path)
     {
         using var response = await _client.GetAsync(path);

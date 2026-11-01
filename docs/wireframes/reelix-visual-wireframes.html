@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#080B0F">
-  <meta name="description" content="Wireframes visuais AS IS e TO BE do Reelix, baseados nos planos de autenticação, onboarding, perfil e catálogo.">
+  <meta name="description" content="Wireframes visuais AS IS e TO BE do Reelix, baseados nas specs de autenticação, onboarding, catálogo, tracking e listas.">
   <title>Visual Wireframes | Reelix</title>
   <style>
     :root {
@@ -612,19 +612,22 @@
       <h1>Visual <span>Wireframes</span></h1>
       <p class="hero-copy">
         Comparação navegável entre as telas confirmadas no repositório e a experiência visual
-        prevista para autenticação, onboarding, perfil e consumo de catálogo. Cada status AS IS
+        prevista para autenticação, onboarding, perfil, catálogo, tracking e listas. Cada status AS IS
         foi confrontado com o código; o que não existe aparece como lacuna, nunca como tela entregue.
       </p>
       <div class="hero-meta">
         <span class="status done">Autenticação mobile implementada</span>
         <span class="status partial">Catálogo: API implementada, sem UI mobile</span>
         <span class="status done">Onboarding e perfil implementados (API + mobile)</span>
+        <span class="status done">Tracking e listas implementados (API + mobile)</span>
       </div>
     </section>
     <div class="summary-grid" aria-label="Resumo de implementação">
       <article class="summary-card"><strong>01 · Authentication</strong><span>Login, cadastro, callback, recuperação, redefinição e sessão implementados, com visualização de senha e erros em toast.</span></article>
       <article class="summary-card"><strong>02 · Onboarding &amp; Profile</strong><span>Fluxo retomável em 5 etapas, edição de preferências e perfil com nome, biografia e privacidade. Upload de avatar, estatísticas e conquistas continuam fora do escopo.</span></article>
       <article class="summary-card"><strong>03 · Catalog</strong><span>A API autenticada pesquisa e consulta detalhes/temporadas; no mobile, a busca só é usada no onboarding. Não há telas de catálogo.</span></article>
+      <article class="summary-card"><strong>05 · Tracking</strong><span>Histórico paginado, filmes assistidos, episódios acompanhados e progresso sem estimar totais ausentes do catálogo.</span></article>
+      <article class="summary-card"><strong>08 · Favoritos e listas</strong><span>Favoritos, watchlist e listas personalizadas privadas, com paginação e estado persistido.</span></article>
     </div>
   </header>
 
@@ -632,6 +635,8 @@
     <button class="module-button" role="tab" aria-selected="true" data-module="auth">Authentication <span class="nav-count">05</span></button>
     <button class="module-button" role="tab" aria-selected="false" data-module="onboarding">Onboarding &amp; Profile <span class="nav-count">09</span></button>
     <button class="module-button" role="tab" aria-selected="false" data-module="catalog">Catalog <span class="nav-count">05</span></button>
+    <button class="module-button" role="tab" aria-selected="false" data-module="tracking">Tracking <span class="nav-count">01</span></button>
+    <button class="module-button" role="tab" aria-selected="false" data-module="lists">Favoritos e listas <span class="nav-count">01</span></button>
   </nav>
 
   <main class="wrap">
@@ -642,7 +647,7 @@
           <h2 id="screen-section-title">Selecione uma tela</h2>
           <p>As molduras simulam proporções mobile. Os botões no wireframe navegam pelo protótipo, sem autenticação, API ou persistência real.</p>
         </div>
-        <span class="tag">21 telas · 3 módulos</span>
+        <span class="tag">23 telas · 5 módulos</span>
       </div>
       <div class="toolbar">
         <label class="toolbar-label" for="screen-select">Tela</label>
@@ -710,6 +715,14 @@
           <p>As telas AS IS refletem <code>onboarding.tsx</code> e <code>profile.tsx</code>. Perfil, edição e privacidade são seções de uma única tela; editar preferências reutiliza o onboarding com <code>?edit=1</code>. Favoritos são validados no servidor por ID interno e tipo (<code>movie</code>/<code>series</code>, em minúsculas).</p>
         </article>
         <article class="observation">
+          <strong>Tracking e listas são relações independentes</strong>
+          <p>O histórico e o progresso usam IDs internos estáveis e pertencem à conta autenticada. Favoritos existentes do onboarding são reutilizados; watchlist e listas privadas são recursos distintos. Uma alteração em qualquer relação não altera as outras nem remove itens do catálogo.</p>
+        </article>
+        <article class="observation">
+          <strong>Progresso respeita os dados disponíveis</strong>
+          <p>O catálogo atual consulta uma temporada por vez. Quando não há inventário completo da série, totais, percentual e conclusão da série não são estimados; episódios sem número convencional continuam identificados por GUID interno.</p>
+        </article>
+        <article class="observation">
           <strong>Home atual não é a Home de descoberta</strong>
           <p>A rota autenticada mostra e-mail, status da conta, contagens reais de preferências e atalhos para preferências, perfil e logout. Não há feed, recomendações nem navegação principal; esses itens dependem da spec 04.</p>
         </article>
@@ -745,6 +758,7 @@
           <a href="../plans/03-catalog-development-plan.html">plano 03 · Catalog</a> ·
           <a href="../specs/01-authentication.md">spec 01</a> · <a href="../specs/02-onboarding.md">spec 02</a> ·
           <a href="../specs/03-catalog.md">spec 03</a> · <a href="../specs/06-profile.md">spec 06</a> ·
+          <a href="../specs/05-tracking.md">spec 05</a> · <a href="../specs/08-lists-favorites.md">spec 08</a> ·
           <a href="../architecture.md">architecture</a> · <a href="../../mobile/assets/brand/docs/design-tokens.json">design tokens</a>.
           Nenhum serviço externo é usado para renderizar este documento.
         </p>
@@ -1097,12 +1111,38 @@
         changes: "Não representa interface aprovada pelo plano, tracking de progresso nem reprodução de conteúdo.",
         template: "season", next: "series", prev: "series",
       },
+      {
+        id: "tracking", module: "tracking", name: "Acompanhamento", objective: "Consultar histórico paginado e séries acompanhadas, com progresso baseado nos episódios disponíveis no catálogo.", route: "tracking.tsx · /api/v1/tracking",
+        current: "done", tobe: "kept", currentCaption: "Tela implementada no app mobile",
+        currentNotes: ["Histórico autenticado com paginação e ordenação cronológica.", "Lista as séries acompanhadas e a quantidade real de episódios assistidos.", "Percentual/conclusão só aparecem quando o inventário completo da série é conhecido.", "Erros de API aparecem em toast; estado vazio e nova tentativa permanecem na tela."],
+        currentStates: ["Histórico", "Séries", "Sem registros", "Carregando", "Erro"],
+        states: ["Histórico", "Séries", "Sem registros", "Carregando", "Erro"],
+        stateCopy: { "Histórico": ["success", "Itens e datas vêm do histórico autenticado e paginado."], "Séries": ["success", "A contagem informa episódios assistidos; não estima o total da série."], "Sem registros": ["", "Seu acompanhamento ainda não tem registros."], "Carregando": ["", "Carregando seu histórico…"], "Erro": ["error", "Não foi possível carregar seu acompanhamento. Tente novamente."] },
+        description: "Resumo do acompanhamento sem presumir títulos ou estatísticas; estados ilustrativos do wireframe.",
+        scope: "05 · Tracking", flow: "Home → Acompanhamento → Histórico / Séries",
+        changes: "Manter dados reais, autenticação no servidor e paginação; não confundir conclusão de temporada com conclusão da série.",
+        template: "tracking", next: "lists", prev: "account",
+      },
+      {
+        id: "lists", module: "lists", name: "Favoritos e listas", objective: "Gerenciar favoritos, watchlist e listas privadas independentes, reutilizando os favoritos do onboarding.", route: "lists.tsx · /api/v1/favorites, /watchlist e /lists",
+        current: "done", tobe: "kept", currentCaption: "Tela implementada no app mobile",
+        currentNotes: ["Abas separadas para favoritos, watchlist e listas próprias.", "Busca títulos no catálogo e exibe estados de favorito/watchlist.", "Listas personalizadas começam privadas; edição é restrita ao proprietário no servidor.", "Estados de vazio, carregamento, erro/retentativa e sucesso são cobertos."],
+        currentStates: ["Favoritos", "Watchlist", "Listas privadas", "Sem títulos", "Erro"],
+        states: ["Favoritos", "Watchlist", "Listas privadas", "Sem títulos", "Erro"],
+        stateCopy: { "Favoritos": ["success", "Favoritos usam a relação já mantida pelo onboarding."], "Watchlist": ["success", "Watchlist é independente do histórico de visualização."], "Listas privadas": ["success", "Só a conta proprietária pode consultar e alterar estas listas."], "Sem títulos": ["", "Ainda não há títulos nesta seção."], "Erro": ["error", "Não foi possível carregar suas listas. Tente novamente."] },
+        description: "Gestão das relações do usuário com títulos; o protótipo não representa dados reais.",
+        scope: "08 · Favoritos e listas", flow: "Home → Favoritos e listas → Favoritos / Watchlist / Listas privadas",
+        changes: "Manter privacidade owner-only, paginação, catálogo como fonte dos metadados e independência entre recursos.",
+        template: "lists", next: "tracking", prev: "account",
+      },
     ];
 
     const modules = {
       auth: { label: "Authentication", ids: ["login", "signup", "callback", "forgot", "reset", "account", "session-init"] },
       onboarding: { label: "Onboarding & Profile", ids: ["welcome", "genres", "fav-movies", "fav-series", "complete", "profile", "profile-edit", "preferences", "privacy"] },
       catalog: { label: "Catalog", ids: ["search", "results", "movie", "series", "season"] },
+      tracking: { label: "Tracking", ids: ["tracking"] },
+      lists: { label: "Favoritos e listas", ids: ["lists"] },
     };
 
     const currentScreen = { id: "login", mode: "compare", state: null, details: true };
@@ -1125,7 +1165,7 @@
       if (template === "callback") inner = `${iconLogo}<div class="phone-content" style="text-align:center"><p class="phone-title">${currentScreen.state === "Erro / expirado" ? "Link indisponível." : "Confirmando seu acesso."}</p><p class="phone-subtitle">${currentScreen.state === "Erro / expirado" ? "Solicite um novo link para continuar com segurança." : "Estamos validando o link com segurança."}</p><div class="soft-card" style="padding:24px"><span style="display:inline-grid;width:34px;height:34px;place-items:center;border:2px solid #29323C;border-top-color:var(--brand);border-radius:50%;color:var(--pink)">◌</span><p style="margin-top:11px">Validando link de autenticação</p></div><div class="form-note">Confirmação de e-mail ocorre somente se estiver habilitada no provedor. Link inválido ou expirado aparece em toast.</div>${goButton("Voltar para entrar","login","secondary",true)}<div style="margin-top:8px">${goButton("Fluxo de recuperação","reset","ghost",true)}</div></div>`;
       if (template === "forgot") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Recupere seu acesso.</p><p class="phone-subtitle">Enviaremos as instruções para o e-mail informado.</p><div class="soft-card">${formField("E-mail", "voce@exemplo.com")}${goButton("Enviar instruções", "reset", "primary", true)}</div><div class="form-note success">Se houver uma conta associada a esse endereço, enviaremos instruções para redefinir a senha.</div><a class="center-link" href="#" data-go="login">Voltar para entrar</a></div>`;
       if (template === "reset") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Escolha uma nova senha.</p><p class="phone-subtitle">Use uma senha nova para recuperar o acesso.</p><div class="soft-card">${formField("Nova senha (mínimo 8 caracteres)", "Nova senha", "", true)}${formField("Confirme a nova senha", "Repita a nova senha", "", true)}${goButton("Atualizar senha", "account", "primary", true)}</div><div class="form-note success" style="margin-top:10px">Senha alterada com sucesso.</div></div>`;
-      if (template === "account") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Seu próximo capítulo começa aqui.</p><p class="phone-subtitle">Seu espaço está pronto. Suas escolhas podem mudar quando quiser.</p><div class="soft-card"><p class="phone-kicker">SEU REELIX</p><strong>usuario@exemplo.com</strong><p>Conta conectada</p><div class="stat-row"><div class="stat-box"><strong>—</strong><span>GÊNEROS</span></div><div class="stat-box"><strong>—</strong><span>FILMES</span></div><div class="stat-box"><strong>—</strong><span>SÉRIES</span></div></div></div><div class="form-note">As contagens reais vêm de GET /api/v1/onboarding; o wireframe não exibe valores reais.</div>${goButton("Editar preferências", "preferences", "primary", true)}<div style="margin-top:8px">${goButton("Meu perfil", "profile", "secondary", true)}</div><div style="margin-top:8px">${goButton("Sair da conta", "login", "ghost", true)}</div>${future ? '<div class="soft-card"><strong>Próxima dependência</strong><p>Home &amp; Discovery substituirá esta tela quando o módulo for especificado e implementado.</p></div>' : ""}</div>`;
+      if (template === "account") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Seu próximo capítulo começa aqui.</p><p class="phone-subtitle">Seu espaço está pronto. Suas escolhas podem mudar quando quiser.</p><div class="soft-card"><p class="phone-kicker">SEU REELIX</p><strong>usuario@exemplo.com</strong><p>Conta conectada</p><div class="stat-row"><div class="stat-box"><strong>—</strong><span>GÊNEROS</span></div><div class="stat-box"><strong>—</strong><span>FILMES</span></div><div class="stat-box"><strong>—</strong><span>SÉRIES</span></div></div></div><div class="form-note">As contagens reais vêm de GET /api/v1/onboarding; o wireframe não exibe valores reais.</div>${goButton("Editar preferências", "preferences", "primary", true)}<div style="margin-top:8px">${goButton("Acompanhamento", "tracking", "secondary", true)}</div><div style="margin-top:8px">${goButton("Favoritos e listas", "lists", "secondary", true)}</div><div style="margin-top:8px">${goButton("Meu perfil", "profile", "secondary", true)}</div><div style="margin-top:8px">${goButton("Sair da conta", "login", "ghost", true)}</div>${future ? '<div class="soft-card"><strong>Próxima dependência</strong><p>Home &amp; Discovery substituirá esta tela quando o módulo for especificado e implementado.</p></div>' : ""}</div>`;
       if (template === "session-init") inner = `${iconLogo}<div class="phone-content" style="text-align:center"><p class="phone-title">Iniciando Reelix</p><p class="phone-subtitle">Estamos verificando sua sessão salva.</p><div class="soft-card" style="padding:22px"><span style="display:inline-grid;width:34px;height:34px;place-items:center;border:2px solid #29323C;border-top-color:var(--brand);border-radius:50%;color:var(--pink)">◌</span><p style="margin-top:11px">Carregando sua sessão…</p></div><div class="form-note">Se a restauração falhar, o app apresenta erro e opção de tentar novamente.</div>${goButton("Sem sessão: ir ao login","login","primary",true)}<div style="margin-top:8px">${goButton("Sessão válida: conta","account","secondary",true)}</div></div>`;
       if (template === "welcome") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span></span><span class="step-mark">ETAPA 1 DE 5</span></div><div class="progress"><span style="width:20%"></span></div><p class="phone-kicker">SEU REELIX</p><p class="phone-title">Vamos encontrar seu próximo favorito.</p><p class="phone-subtitle">Escolha alguns gêneros e títulos para personalizar seu espaço.</p><div class="progress" style="width:42px"><span style="width:100%"></span></div>${goButton("Começar", "genres", "primary", true)}</div>`;
       if (template === "genres") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="welcome">‹ VOLTAR</span><span class="step-mark">ETAPA 2 DE 5</span></div><div class="progress"><span style="width:40%"></span></div><p class="phone-kicker">PREFERÊNCIAS</p><p class="phone-title">Que tipo de história te prende?</p><div class="tab-row"><span class="tab active">Filmes</span><span class="tab">Séries</span></div><p class="tiny">2 de 20 gêneros selecionados</p><div class="chip-row">${choice("Ação",true)}${choice("Aventura")}${choice("Animação")}${choice("Comédia",true)}${choice("Documentário")}${choice("Drama")}${choice("Terror")}${choice("Romance")}${choice("Ficção científica")}</div>${goButton("Continuar","fav-movies","primary",true)}<a class="center-link" href="#" data-go="fav-movies">Pular esta etapa</a></div>`;
@@ -1143,6 +1183,8 @@
       if (template === "movie") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="results">‹ VOLTAR</span><span class="tiny">DETALHES</span></div><div class="title-art"><small>Filme · provedor de origem</small><strong>Título do catálogo</strong></div><div class="inline-metadata">${chip("Data opcional")}${chip("Duração opcional")}${chip("Idioma opcional")}</div><div class="chip-row">${choice("Gênero disponível")}${choice("Outro gênero")}</div><p class="mini-section">SINOPSE</p><p class="phone-subtitle">Sinopse fornecida pelo provedor, quando disponível. Este campo permanece opcional.</p><div class="soft-card"><strong>Origem identificável</strong><p>ID interno Reelix + provedor + ID externo.</p></div><div class="form-note">Sem ação de tracking, avaliação, lista, recomendação ou streaming: fora do plano de catálogo.</div>${goButton("Voltar aos resultados","results","secondary",true)}</div>`;
       if (template === "series") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="results">‹ VOLTAR</span><span class="tiny">DETALHES</span></div><div class="title-art series-art"><small>Série · provedor de origem</small><strong>Título do catálogo</strong></div><div class="inline-metadata">${chip("Estreia opcional")}${chip("Idioma opcional")}</div><div class="chip-row">${choice("Gênero disponível")}${choice("Gênero disponível")}</div><p class="mini-section">SOBRE</p><p class="phone-subtitle">Sinopse e dados de estreia quando fornecidos pelo provedor.</p><p class="mini-section">TEMPORADAS DISPONÍVEIS</p><div class="row"><span>Temporada disponível<small>Consultar episódios no catálogo</small></span><span>›</span></div>${goButton("Ver temporada","season","primary",true)}<p class="tiny" style="margin-top:10px">A interface é conceitual; o contrato do catálogo fornece consulta de temporada.</p></div>`;
       if (template === "season") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="series">‹ SÉRIE</span><span class="tiny">TEMPORADA</span></div><p class="phone-kicker">SÉRIE · TEMPORADA DISPONÍVEL</p><p class="phone-title">Temporada</p><p class="phone-subtitle">Episódios retornados pelo provedor. Dados ausentes não são inferidos.</p>${["Episódio disponível","Episódio disponível","Episódio disponível"].map((item, index) => `<div class="row"><span>${String(index + 1).padStart(2,"0")} · ${item}<small>Data / duração quando disponíveis</small></span><span>›</span></div>`).join("")}<div class="form-note">Consulta de catálogo não registra progresso de visualização.</div>${goButton("Voltar aos detalhes","series","secondary",true)}</div>`;
+      if (template === "tracking") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Acompanhamento</p><span class="tiny">HISTÓRICO</span></div><div class="tab-row"><span class="tab active">Histórico</span><span class="tab">Séries</span></div><p class="mini-section">SEU HISTÓRICO · PÁGINA 1</p><div class="row"><span>Registro do seu histórico<small>Data de visualização · filme ou episódio</small></span><span>✓</span></div><div class="row"><span>Série acompanhada<small>Contagem real de episódios assistidos</small></span><span>›</span></div><div class="form-note">Total, percentual e conclusão ficam indisponíveis se o inventário completo da série não for fornecido pelo catálogo.</div><div class="phone-actions">${goButton("Página anterior","account","secondary")}${goButton("Próxima página","lists","primary")}</div><p class="tiny">Wireframe conceitual; conteúdo vem da API autenticada e paginada.</p></div>`;
+      if (template === "lists") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Seus títulos e listas</p><span class="tiny">PRIVADO</span></div><div class="tab-row"><span class="tab active">Favoritos</span><span class="tab">Watchlist</span><span class="tab">Minhas listas</span></div><div class="input search"><span>Buscar filmes e séries no catálogo</span><span class="icon">⌕</span></div><div class="row"><span>Título salvo<small>Dados carregados do catálogo</small></span>${goButton("Remover","tracking","secondary")}</div><div class="soft-card"><strong>Lista privada</strong><p>Acesso owner-only · quantidade real de títulos · ordem editável</p>${goButton("Criar ou editar lista","tracking","primary",true)}</div><div class="form-note">Favoritos, watchlist, listas e histórico são relações independentes. Conteúdo ilustrativo, sem dados reais.</div></div>`;
 
       const auth = screen.module === "auth";
       if (auth) return `<div class="device"><div class="device-screen auth-screen">${inner}${bannerMarkup(screen)}</div></div>`;
@@ -1257,6 +1299,20 @@
             [["Buscar","search"],["Resultados","results"],["Detalhes de filme","movie"]],
             [["Resultados","results"],["Detalhes de série","series"],["Temporada / episódios","season"]],
           ], label: "AS IS: API · TO BE: UI não especificada",
+        },
+        {
+          title: "Tracking", status: "done", caption: "Histórico e progresso autenticados, com paginação e sem estimar episódios indisponíveis.",
+          paths: [
+            [["Home autenticada","account"],["Acompanhamento","tracking"],["Histórico paginado","tracking"]],
+            [["Acompanhamento","tracking"],["Séries acompanhadas","tracking"]],
+          ], label: "AS IS · implementado",
+        },
+        {
+          title: "Favoritos e listas", status: "done", caption: "Favoritos, watchlist e coleções privadas mantêm relações separadas.",
+          paths: [
+            [["Home autenticada","account"],["Favoritos e listas","lists"],["Favoritos","lists"]],
+            [["Favoritos e listas","lists"],["Watchlist","lists"],["Listas privadas","lists"]],
+          ], label: "AS IS · implementado",
         },
       ];
       document.getElementById("flow-grid").innerHTML = flows.map(flow => {

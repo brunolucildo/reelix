@@ -60,6 +60,64 @@ namespace Reelix.Infrastructure.Persistence.Migrations
                     b.ToTable("catalog_external_references", (string)null);
                 });
 
+            modelBuilder.Entity("Reelix.Domain.Tracking.TrackingRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("ItemType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("item_type");
+
+                    b.Property<Guid?>("SeriesId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("series_id");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_id");
+
+                    b.Property<DateTimeOffset>("WatchedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("watched_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeriesId");
+
+                    b.HasIndex("TargetId");
+
+                    b.HasIndex("AccountId", "TargetId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_tracking_records_account_target");
+
+                    b.HasIndex("AccountId", "SeriesId", "TargetId")
+                        .HasDatabaseName("IX_tracking_records_account_series_target");
+
+                    b.HasIndex("AccountId", "WatchedAt", "Id")
+                        .HasDatabaseName("IX_tracking_records_account_watched_at");
+
+                    b.HasIndex("AccountId", "ItemType", "WatchedAt", "Id")
+                        .HasDatabaseName("IX_tracking_records_account_type_watched_at");
+
+                    b.ToTable("tracking_records", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_tracking_records_target_type", "(item_type = 'movie' AND series_id IS NULL) OR (item_type = 'episode' AND series_id IS NOT NULL)");
+                        });
+                });
+
             modelBuilder.Entity("Reelix.Domain.Users.UserAccount", b =>
                 {
                     b.Property<Guid>("Id")
@@ -82,6 +140,78 @@ namespace Reelix.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_user_accounts_supabase_user_id");
 
                     b.ToTable("user_accounts", (string)null);
+                });
+
+            modelBuilder.Entity("Reelix.Domain.Users.UserCustomList", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId", "UpdatedAt")
+                        .HasDatabaseName("IX_user_custom_lists_account_updated_at");
+
+                    b.ToTable("user_custom_lists", (string)null);
+                });
+
+            modelBuilder.Entity("Reelix.Domain.Users.UserCustomListTitle", b =>
+                {
+                    b.Property<Guid>("ListId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("list_id");
+
+                    b.Property<Guid>("TitleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("title_id");
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("content_type");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.HasKey("ListId", "TitleId");
+
+                    b.HasIndex("TitleId");
+
+                    b.HasIndex("ListId", "Position")
+                        .HasDatabaseName("IX_user_custom_list_titles_list_position");
+
+                    b.ToTable("user_custom_list_titles", (string)null);
                 });
 
             modelBuilder.Entity("Reelix.Domain.Users.UserFavoriteTitle", b =>
@@ -187,6 +317,80 @@ namespace Reelix.Infrastructure.Persistence.Migrations
                     b.ToTable("user_profiles", (string)null);
                 });
 
+            modelBuilder.Entity("Reelix.Domain.Users.UserWatchlistTitle", b =>
+                {
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_id");
+
+                    b.Property<Guid>("TitleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("title_id");
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("content_type");
+
+                    b.HasKey("AccountId", "TitleId");
+
+                    b.HasIndex("TitleId");
+
+                    b.HasIndex("AccountId", "AddedAt")
+                        .HasDatabaseName("IX_user_watchlist_titles_account_added_at");
+
+                    b.ToTable("user_watchlist_titles", (string)null);
+                });
+
+            modelBuilder.Entity("Reelix.Domain.Tracking.TrackingRecord", b =>
+                {
+                    b.HasOne("Reelix.Domain.Users.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Reelix.Domain.Catalog.ExternalCatalogReference", null)
+                        .WithMany()
+                        .HasForeignKey("SeriesId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Reelix.Domain.Catalog.ExternalCatalogReference", null)
+                        .WithMany()
+                        .HasForeignKey("TargetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Reelix.Domain.Users.UserCustomList", b =>
+                {
+                    b.HasOne("Reelix.Domain.Users.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Reelix.Domain.Users.UserCustomListTitle", b =>
+                {
+                    b.HasOne("Reelix.Domain.Users.UserCustomList", null)
+                        .WithMany()
+                        .HasForeignKey("ListId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Reelix.Domain.Catalog.ExternalCatalogReference", null)
+                        .WithMany()
+                        .HasForeignKey("TitleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Reelix.Domain.Users.UserFavoriteTitle", b =>
                 {
                     b.HasOne("Reelix.Domain.Users.UserPreferences", null)
@@ -226,6 +430,21 @@ namespace Reelix.Infrastructure.Persistence.Migrations
                         .WithOne()
                         .HasForeignKey("Reelix.Domain.Users.UserProfile", "AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Reelix.Domain.Users.UserWatchlistTitle", b =>
+                {
+                    b.HasOne("Reelix.Domain.Users.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Reelix.Domain.Catalog.ExternalCatalogReference", null)
+                        .WithMany()
+                        .HasForeignKey("TitleId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
