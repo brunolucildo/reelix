@@ -3,9 +3,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Reelix.Application.Authentication;
 using Reelix.Application.Catalog;
+using Reelix.Application.Lists;
+using Reelix.Application.Tracking;
 using Reelix.Application.Users;
 using Reelix.Infrastructure.Catalog;
 using Reelix.Infrastructure.Persistence.Catalog;
+using Reelix.Infrastructure.Persistence.Tracking;
 using Reelix.Infrastructure.Persistence;
 using Reelix.Infrastructure.Persistence.Users;
 
@@ -30,6 +33,8 @@ public static class DependencyInjection
         services.AddScoped<IUserProfileRepository, UserProfileRepository>();
         services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository>();
         services.AddScoped<IExternalCatalogReferenceRepository, ExternalCatalogReferenceRepository>();
+        services.AddTrackingInfrastructure();
+        services.AddListsInfrastructure();
         services.Configure<TmdbCatalogOptions>(
             configuration.GetSection(TmdbCatalogOptions.SectionName));
         services.Configure<OmdbCatalogOptions>(

@@ -88,6 +88,8 @@ export default function AuthenticatedHomeScreen() {
         label="Editar preferências"
         onPress={() => router.push({ pathname: '/onboarding', params: { edit: '1' } })}
       />
+      <PrimaryButton label="Acompanhamento" onPress={() => router.push('/tracking')} variant="secondary" />
+      <PrimaryButton label="Favoritos e listas" onPress={() => router.push('/lists')} variant="secondary" />
       <PrimaryButton label="Meu perfil" onPress={() => router.push('/profile')} variant="secondary" />
       <PrimaryButton label="Sair da conta" onPress={() => void handleSignOut()} variant="quiet" />
     </AuthScreen>

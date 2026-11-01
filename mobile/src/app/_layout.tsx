@@ -62,6 +62,8 @@ function RootNavigator() {
         <Stack.Screen name="home" />
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="profile" />
+        <Stack.Screen name="lists" />
+        <Stack.Screen name="tracking" />
         <Stack.Screen name="auth/reset-password" />
       </Stack.Protected>
       <Stack.Screen name="auth/callback" />

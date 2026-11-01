@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Reelix.Domain.Catalog;
+using Reelix.Domain.Tracking;
 using Reelix.Domain.Users;
+using Reelix.Infrastructure.Persistence.Lists;
+using Reelix.Infrastructure.Persistence.Tracking;
 
 namespace Reelix.Infrastructure.Persistence;
 
@@ -17,11 +20,22 @@ public sealed class ReelixDbContext(DbContextOptions<ReelixDbContext> options)
 
     public DbSet<UserFavoriteTitle> UserFavoriteTitles => Set<UserFavoriteTitle>();
 
+    public DbSet<TrackingRecord> TrackingRecords => Set<TrackingRecord>();
+
+    public DbSet<UserWatchlistTitle> UserWatchlistTitles => Set<UserWatchlistTitle>();
+
+    public DbSet<UserCustomList> UserCustomLists => Set<UserCustomList>();
+
+    public DbSet<UserCustomListTitle> UserCustomListTitles => Set<UserCustomListTitle>();
+
     public DbSet<ExternalCatalogReference> ExternalCatalogReferences =>
         Set<ExternalCatalogReference>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.ApplyConfiguration(new TrackingRecordConfiguration());
+        ListsPersistenceConfiguration.Apply(modelBuilder);
+
         modelBuilder.Entity<UserAccount>(entity =>
         {
             entity.ToTable("user_accounts");

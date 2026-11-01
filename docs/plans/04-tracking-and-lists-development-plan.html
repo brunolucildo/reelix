@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#080B0F">
+    <meta
+      name="description"
+      content="Plano proposto para o desenvolvimento coordenado de tracking, favoritos e listas do Reelix."
+    >
+    <title>Plano de desenvolvimento — Tracking e listas | Reelix</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --brand: #FF2D55;
+        --pink: #FF6688;
+        --background: #080B0F;
+        --surface: #1A1A1E;
+        --raised: #2A2A2E;
+        --text: #FFFFFF;
+        --muted: #B8B8BD;
+        --success: #9ADDAA;
+        --warning: #FBBF24;
+        font-family: "Sora", "Segoe UI", sans-serif;
+        background: var(--background);
+        color: var(--text);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        background:
+          radial-gradient(ellipse at 8% 0%, rgb(255 45 85 / 16%), transparent 32rem),
+          var(--background);
+        line-height: 1.65;
+      }
+
+      a { color: var(--pink); text-underline-offset: 3px; }
+
+      .page { width: min(1080px, calc(100% - 40px)); margin: 0 auto; padding: 42px 0 72px; }
+      .eyebrow { color: var(--pink); font-size: .76rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+      h1 { max-width: 850px; margin: 10px 0 16px; font-size: clamp(2.2rem, 6vw, 4.5rem); line-height: 1.05; letter-spacing: -.055em; }
+      h1 span { color: var(--brand); }
+      h2 { margin: 0 0 12px; font-size: 1.65rem; letter-spacing: -.035em; }
+      h3 { margin: 0 0 10px; font-size: 1.05rem; }
+      p { color: var(--muted); }
+      ul, ol { margin: 0; padding-left: 1.25rem; color: var(--muted); }
+      li + li { margin-top: 8px; }
+      header { padding: 34px 0 48px; }
+      header > p { max-width: 760px; font-size: 1.1rem; }
+      .status { display: inline-flex; gap: 8px; align-items: center; border: 1px solid rgb(251 191 36 / 40%); border-radius: 999px; padding: 6px 12px; color: var(--warning); font-size: .82rem; font-weight: 700; }
+      .metrics, .columns, .phases { display: grid; gap: 16px; }
+      .metrics { grid-template-columns: repeat(3, 1fr); margin-top: 28px; }
+      .columns { grid-template-columns: repeat(2, 1fr); }
+      .phases { grid-template-columns: repeat(2, 1fr); }
+      .metric, .card { border: 1px solid var(--raised); border-radius: 14px; background: rgb(26 26 30 / 88%); }
+      .metric { padding: 16px; }
+      .metric strong, .metric span { display: block; }
+      .metric span { color: var(--muted); font-size: .9rem; }
+      .card { padding: 22px; }
+      section { margin-top: 52px; }
+      .section-lead { max-width: 780px; margin: 0 0 20px; }
+      .phase-number { display: inline-block; margin-bottom: 10px; color: var(--brand); font-weight: 800; letter-spacing: .12em; }
+      .callout { border-left: 3px solid var(--brand); padding: 14px 18px; background: rgb(255 45 85 / 8%); color: var(--muted); }
+      .callout strong { color: var(--text); }
+      .approval { border-color: rgb(251 191 36 / 40%); }
+      .approval h3 { color: var(--warning); }
+      footer { margin-top: 48px; border-top: 1px solid var(--raised); padding-top: 20px; color: var(--muted); font-size: .88rem; }
+
+      @media (max-width: 720px) {
+        .metrics, .columns, .phases { grid-template-columns: 1fr; }
+        .page { width: min(100% - 28px, 1080px); padding-top: 24px; }
+        header { padding-top: 20px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <p class="eyebrow">Plano proposto · execução condicionada à aprovação</p>
+        <h1>Tracking e listas <span>com contratos alinhados.</span></h1>
+        <p>
+          Desenvolver as specs de tracking e de favoritos/listas em paralelo controlado:
+          dois agentes, um por spec, com contratos compartilhados definidos antes da
+          implementação e integração final coordenada.
+        </p>
+        <span class="status">Aprovado — implementação coordenada</span>
+        <div class="metrics" aria-label="Resumo do plano">
+          <div class="metric"><strong>2 agentes</strong><span>Um responsável por cada spec</span></div>
+          <div class="metric"><strong>1 contrato</strong><span>IDs estáveis, autenticação e API</span></div>
+          <div class="metric"><strong>1 integração</strong><span>Persistência, rotas e cliente revisados em conjunto</span></div>
+        </div>
+      </header>
+
+      <main>
+        <section aria-labelledby="objective">
+          <h2 id="objective">Objetivo e limites</h2>
+          <p class="section-lead">
+            Entregar os dois módulos de ponta a ponta sem confundir histórico de
+            visualização com favoritos, watchlist ou coleções; manter a arquitetura
+            modular monolítica e reutilizar autenticação e catálogo existentes.
+          </p>
+          <div class="columns">
+            <article class="card">
+              <h3>Tracking · agente A</h3>
+              <ul>
+                <li>Registrar, corrigir e remover visualizações de filmes e episódios.</li>
+                <li>Consultar histórico paginado, progresso por série e episódios pendentes.</li>
+                <li>Manter únicos os registros do usuário e representar datas opcionais sem inferir visualizações.</li>
+                <li>Contabilizar episódios disponíveis somente com dados válidos do catálogo, preservando registros se o catálogo falhar.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Favoritos e listas · agente B</h3>
+              <ul>
+                <li>Completar operações de favoritos e watchlist e criar/editar/excluir listas próprias.</li>
+                <li>Impedir duplicações, suportar paginação e ordenação definida para itens.</li>
+                <li>Aplicar autorização do proprietário e a política inicial de privacidade aprovada.</li>
+                <li>Reutilizar os favoritos já coletados no onboarding; não criar uma segunda fonte de favoritos.</li>
+              </ul>
+            </article>
+          </div>
+          <p class="callout">
+            <strong>Fora do escopo:</strong> ratings/comentários, compartilhamento social avançado,
+            recomendações, marcação automática de episódios e mudanças em provedores ou
+            infraestrutura sem necessidade demonstrada.
+          </p>
+        </section>
+
+        <section aria-labelledby="coordination">
+          <h2 id="coordination">Contrato e coordenação dos agentes</h2>
+          <p class="section-lead">
+            O orquestrador congela os contratos abaixo com os agentes antes de liberar
+            implementação paralela. Divergências voltam para revisão conjunta; nenhum agente
+            altera silenciosamente um contrato compartilhado.
+          </p>
+          <article class="card">
+            <ul>
+              <li><strong>Identidade:</strong> endpoints usam a conta autenticada resolvida no backend; nunca aceitam ID de proprietário enviado pelo cliente.</li>
+              <li><strong>IDs de catálogo:</strong> usar os GUIDs internos Reelix de títulos e episódios, não IDs de provedor como identidade do domínio. IDs e tipo de conteúdo seguem o catálogo e referências externas já existentes.</li>
+              <li><strong>Separação de conceitos:</strong> tracking, favoritos, watchlist e itens de listas são relações independentes; remover de um recurso não altera os demais nem apaga o catálogo.</li>
+              <li><strong>REST e erros:</strong> rotas sob <code>/api/v1</code>, autenticação/autorização no servidor, paginação explícita, ProblemDetails e documentação OpenAPI nas convenções existentes.</li>
+              <li><strong>Persistência:</strong> validar unicidade também no PostgreSQL; coordenar alterações no DbContext, DI, snapshot e migração EF Core em uma integração serial.</li>
+              <li><strong>Cliente:</strong> esquemas de resposta tipados/validados, estado remoto em TanStack Query e invalidação após mutações para refletir o estado persistido.</li>
+            </ul>
+          </article>
+          <p class="callout">
+            <strong>Superfícies compartilhadas:</strong> os agentes ficam responsáveis pelos
+            arquivos e testes específicos de seus módulos. O orquestrador integra alterações
+            sobre DbContext/migrações, registro de endpoints/DI, cliente de API e wireframe,
+            evitando conflito de edição e garantindo um único contrato final.
+          </p>
+        </section>
+
+        <section aria-labelledby="phases">
+          <h2 id="phases">Etapas após aprovação</h2>
+          <div class="phases">
+            <article class="card">
+              <span class="phase-number">01 · Contratos</span>
+              <h3>Alinhar antes de codificar</h3>
+              <ul>
+                <li>Reconfirmar catálogo, identidade autenticada, paginação, respostas/erros e nomes de recursos.</li>
+                <li>Definir a identidade de episódio com o contrato de temporada/episódio existente e regras para especiais.</li>
+                <li>Confirmar a política de privacidade das listas com o usuário antes de abrir leituras a terceiros.</li>
+                <li>Registrar os contratos acordados em documentação/OpenAPI compartilhada.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">02 · Trabalho paralelo</span>
+              <h3>Um agente por spec</h3>
+              <ul>
+                <li>Agente A entrega vertical slice de tracking: regras, persistência, API, cliente/telas necessários e testes.</li>
+                <li>Agente B entrega vertical slice de favoritos/listas: regras, persistência, API, cliente/telas necessários e testes.</li>
+                <li>Cada agente respeita o contrato comum, evita arquivos de integração reservados e reporta mudanças incompatíveis antes de avançar.</li>
+                <li>Revisões curtas do orquestrador verificam contratos e limites durante a implementação, não apenas no final.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">03 · Integração coordenada</span>
+              <h3>Unificar os pontos compartilhados</h3>
+              <ul>
+                <li>Integrar modelos no DbContext e produzir migração coerente, sem duplicar tabela ou identidade já existente.</li>
+                <li>Registrar serviços e endpoints; revisar rotas, autorização, OpenAPI e tipos Zod/TypeScript lado a lado.</li>
+                <li>Verificar que marcar como assistido não remove da watchlist e que remover da watchlist não afeta tracking ou favoritos.</li>
+                <li>Atualizar wireframes para cada tela/fluxo alterado, registrando estados atuais, destino, erro, vazio e carregamento.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="phase-number">04 · Verificação final</span>
+              <h3>Testar comportamento e regressões</h3>
+              <ul>
+                <li>Executar testes backend existentes e novos, incluindo regras, persistência, unicidade concorrente e isolamento entre usuários.</li>
+                <li>Validar paginação, autorização, catálogo indisponível e respostas OpenAPI/contrato mobile.</li>
+                <li>Executar lint e typecheck mobile; verificar mutações, estados vazios e retentativa em falhas.</li>
+                <li>Revisar a solução, documentação e migração final antes de considerar as duas specs concluídas.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section aria-labelledby="privacy">
+          <h2 id="privacy">Privacidade, marca e experiência mobile</h2>
+          <div class="columns">
+            <article class="card">
+              <h3>Política proposta para aprovação</h3>
+              <ul>
+                <li>Listas personalizadas começam privadas; apenas o proprietário pode listar, ler, editar ou excluir seus recursos.</li>
+                <li>Não haverá compartilhamento público de listas neste escopo. A visibilidade de favoritos e histórico respeita as preferências existentes do perfil, sem ampliar exposição.</li>
+                <li>O backend é a autoridade de autorização. A interface não é tratada como controle de acesso.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Regras obrigatórias de UI</h3>
+              <ul>
+                <li>Usar os ativos e tokens oficiais em <code>mobile/assets/brand/</code> e <code>mobile/src/theme/tokens.ts</code>; sem cores, tipografia ou espaçamento inventados na tela.</li>
+                <li>Manter linguagem pt-BR, alvos de toque de pelo menos 44 px e rótulos acessíveis para controles de ícone/toggle.</li>
+                <li>Erros de API/rede e falhas ao salvar usam o toast existente; validação e confirmações ficam junto ao controle.</li>
+                <li>Não usar dados fictícios; mostrar estados de carregamento, vazio, bloqueio e retentativa conforme os padrões de UX da arquitetura.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section aria-labelledby="acceptance">
+          <h2 id="acceptance">Critérios de conclusão</h2>
+          <article class="card">
+            <ul>
+              <li>Os critérios de aceitação das duas specs passam, inclusive propriedade do histórico/listas e ausência de duplicações.</li>
+              <li>Operações repetidas/concorrentes não criam duplicatas; progresso distingue episódios assistidos de episódios disponíveis.</li>
+              <li>Falha ou remoção de metadados no catálogo não apaga dados do usuário nem corrompe relações.</li>
+              <li>Favoritos do onboarding e operações de favoritos permanecem consistentes; watchlist e tracking seguem independentes.</li>
+              <li>Contratos documentados, telas alinhadas à arquitetura/brand, wireframes atualizados e verificações relevantes aprovadas.</li>
+            </ul>
+          </article>
+        </section>
+
+        <section aria-labelledby="approval">
+          <h2 id="approval">Aprovação registrada</h2>
+          <article class="card approval">
+            <h3>Plano aprovado; execução iniciada.</h3>
+            <p>
+              A aprovação confirma a política de listas privadas por padrão e sem
+              compartilhamento público nesta entrega. As implementações dos dois módulos
+              foram delegadas separadamente e integradas pelo orquestrador.
+            </p>
+          </article>
+        </section>
+      </main>
+
+      <footer>
+        Referências: <a href="../architecture.md">arquitetura</a>,
+        <a href="../specs/05-tracking.md">spec de tracking</a>,
+        <a href="../specs/08-lists-favorites.md">spec de listas e favoritos</a> e
+        <a href="../wireframes/reelix-visual-wireframes.html">wireframes</a>.
+      </footer>
+    </div>
+  </body>
+</html>

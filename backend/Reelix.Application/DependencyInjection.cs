@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using Reelix.Application.Lists;
+using Reelix.Application.Tracking;
 
 namespace Reelix.Application;
 
@@ -11,6 +13,8 @@ public static class DependencyInjection
         services.AddScoped<Catalog.CatalogGenreService>();
         services.AddScoped<Users.OnboardingService>();
         services.AddScoped<Users.UserProfileService>();
+        services.AddTrackingApplication();
+        services.AddListsApplication();
         return services;
     }
 }

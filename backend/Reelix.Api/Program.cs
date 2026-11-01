@@ -6,6 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using Reelix.Application;
 using Reelix.Application.Authentication;
 using Reelix.Api.Catalog;
+using Reelix.Api.Lists;
+using Reelix.Api.Tracking;
 using Reelix.Api.Users;
 using Reelix.Infrastructure;
 
@@ -154,6 +156,8 @@ app.MapGet("/api/v1/auth/me", async (
 app.MapCatalogEndpoints();
 app.MapOnboardingEndpoints();
 app.MapProfileEndpoints();
+app.MapTrackingEndpoints();
+app.MapListsEndpoints();
 
 app.Run();
 
