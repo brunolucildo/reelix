@@ -67,7 +67,7 @@ public sealed class CatalogService(
         ValidateLanguage(language);
         if (seasonNumber < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(seasonNumber), "Season number cannot be negative.");
+            throw new ArgumentOutOfRangeException(nameof(seasonNumber), "O número da temporada não pode ser negativo.");
         }
 
         var result = await GetProvider(provider).GetSeasonAsync(
@@ -118,7 +118,7 @@ public sealed class CatalogService(
         providers.SingleOrDefault(candidate => candidate.Provider == provider)
         ?? throw new CatalogProviderException(
             "catalog_provider_not_supported",
-            $"The {provider} catalog provider is not available.",
+            $"O provedor de catálogo {provider} não está disponível.",
             (int)HttpStatusCode.BadRequest);
 
     private async Task<IReadOnlyDictionary<CatalogReferenceKey, Guid>> ResolveIdsAsync(
@@ -168,12 +168,12 @@ public sealed class CatalogService(
     {
         if (string.IsNullOrWhiteSpace(query) || query.Trim().Length > 200)
         {
-            throw new ArgumentException("Query must contain between 1 and 200 characters.", nameof(query));
+            throw new ArgumentException("A busca deve ter entre 1 e 200 caracteres.", nameof(query));
         }
 
         if (page is < 1 or > 100)
         {
-            throw new ArgumentOutOfRangeException(nameof(page), "Page must be between 1 and 100.");
+            throw new ArgumentOutOfRangeException(nameof(page), "A página deve estar entre 1 e 100.");
         }
 
         ValidateLanguage(language);
@@ -183,7 +183,7 @@ public sealed class CatalogService(
     {
         if (string.IsNullOrWhiteSpace(externalId) || externalId.Length > 64)
         {
-            throw new ArgumentException("A valid external identifier is required.", nameof(externalId));
+            throw new ArgumentException("Informe um identificador externo válido.", nameof(externalId));
         }
     }
 
@@ -191,7 +191,7 @@ public sealed class CatalogService(
     {
         if (string.IsNullOrWhiteSpace(language) || language.Length > 16)
         {
-            throw new ArgumentException("A valid language code is required.", nameof(language));
+            throw new ArgumentException("Informe um código de idioma válido.", nameof(language));
         }
     }
 }

@@ -485,6 +485,27 @@
     }
     .state-banner.success { border-color: rgb(183 243 74 / 30%); color: #E1F7BB; }
     .state-banner.error { border-color: rgb(255 45 85 / 45%); color: #FFD0D9; }
+    .toast-preview {
+      position: absolute;
+      z-index: 6;
+      top: 34px;
+      right: 12px;
+      left: 12px;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      padding: 10px;
+      border: 1px solid var(--brand);
+      border-radius: 12px;
+      background: #2A2A2E;
+      box-shadow: 0 12px 28px rgb(0 0 0 / 45%);
+    }
+    .toast-preview::before { width: 3px; align-self: stretch; border-radius: 99px; background: var(--brand); content: ""; }
+    .toast-preview div { flex: 1; }
+    .toast-preview strong { display: block; margin-bottom: 3px; color: var(--pink); font-size: 8px; }
+    .toast-preview p { margin: 0; color: #FFFFFF; font-size: 8px; line-height: 1.45; }
+    .toast-preview span { color: var(--muted); font-size: 12px; line-height: 1; }
+    .input .reveal { color: var(--pink); font-size: 8px; font-weight: 700; }
 
     .screen-info { padding: 13px; }
     .info-block + .info-block { margin-top: 13px; padding-top: 12px; border-top: 1px solid rgb(255 255 255 / 7%); }
@@ -597,13 +618,13 @@
       <div class="hero-meta">
         <span class="status done">Autenticação mobile implementada</span>
         <span class="status partial">Catálogo: API implementada, sem UI mobile</span>
-        <span class="status todo">Onboarding e perfil sem implementação encontrada</span>
+        <span class="status done">Onboarding e perfil implementados (API + mobile)</span>
       </div>
     </section>
     <div class="summary-grid" aria-label="Resumo de implementação">
-      <article class="summary-card"><strong>01 · Authentication</strong><span>Login, cadastro, callback de confirmação/recuperação, redefinição, restauração e sessão autenticada já têm rotas/estados mobile.</span></article>
-      <article class="summary-card"><strong>02 · Onboarding &amp; Profile</strong><span>Planos e specs detalham fluxo retomável, preferências, dados pessoais, avatar e privacidade; app/API ainda não exibem esses módulos.</span></article>
-      <article class="summary-card"><strong>03 · Catalog</strong><span>API autenticada já pesquisa e consulta detalhes/temporadas; nenhuma interface de catálogo foi encontrada no mobile.</span></article>
+      <article class="summary-card"><strong>01 · Authentication</strong><span>Login, cadastro, callback, recuperação, redefinição e sessão implementados, com visualização de senha e erros em toast.</span></article>
+      <article class="summary-card"><strong>02 · Onboarding &amp; Profile</strong><span>Fluxo retomável em 5 etapas, edição de preferências e perfil com nome, biografia e privacidade. Upload de avatar, estatísticas e conquistas continuam fora do escopo.</span></article>
+      <article class="summary-card"><strong>03 · Catalog</strong><span>A API autenticada pesquisa e consulta detalhes/temporadas; no mobile, a busca só é usada no onboarding. Não há telas de catálogo.</span></article>
     </div>
   </header>
 
@@ -685,24 +706,24 @@
           <p>O backend já registra TMDB e OMDb e expõe pesquisa paginada, detalhes e temporadas/episódios atrás de autorização. A especificação do catálogo coloca telas e navegação mobile fora do módulo. Por isso, as telas de busca/detalhes abaixo são apenas uma proposta de consumo, não um requisito aprovado nem uma implementação existente.</p>
         </article>
         <article class="observation">
-          <strong>Plano de onboarding &amp; perfil ainda aguardava aprovação</strong>
-          <p>O arquivo 02 registra “aguardando aprovação” e afirma que nenhum agente de implementação foi iniciado. Os wireframes TO BE são uma visualização do escopo proposto; os requisitos não confirmam contratos finais nem decisões de produto.</p>
+          <strong>Onboarding &amp; perfil implementados</strong>
+          <p>As telas AS IS refletem <code>onboarding.tsx</code> e <code>profile.tsx</code>. Perfil, edição e privacidade são seções de uma única tela; editar preferências reutiliza o onboarding com <code>?edit=1</code>. Favoritos são validados no servidor por ID interno e tipo (<code>movie</code>/<code>series</code>, em minúsculas).</p>
         </article>
         <article class="observation">
-          <strong>Autenticação atual não é a Home de descoberta</strong>
-          <p>A rota autenticada existente exibe e-mail, consulta o endpoint de conta e oferece logout. Ela funciona como tela de conta autenticada / demonstração da integração; não há feed de filmes, recomendações ou navegação principal comprovados.</p>
+          <strong>Home atual não é a Home de descoberta</strong>
+          <p>A rota autenticada mostra e-mail, status da conta, contagens reais de preferências e atalhos para preferências, perfil e logout. Não há feed, recomendações nem navegação principal; esses itens dependem da spec 04.</p>
         </article>
         <article class="observation">
-          <strong>Decisões do perfil permanecem abertas</strong>
-          <p>O plano não define exatamente os níveis/opções de privacidade, limites finais dos campos ou serviço de imagens. O upload do avatar está bloqueado até aprovação de armazenamento e segurança; estatísticas, conquistas e exclusão dependem de contratos/políticas ainda não encontrados.</p>
+          <strong>Feedback padronizado: erros em toast</strong>
+          <p>Falhas de API, autenticação, carregamento e salvamento aparecem em um toast no topo, com fechamento automático em 5 s e botão “Fechar aviso”. Validação por campo e limites de seleção continuam inline, junto ao controle; mensagens de sucesso também. Selecione um estado de erro para ver o toast na moldura.</p>
         </article>
         <article class="observation">
           <strong>Dados visuais são estruturas, não metadados reais</strong>
           <p>Cards e pôsteres abstratos servem apenas para mostrar hierarquia. Não representam títulos, sinopses, imagens, datas, gêneros nem resultados retornados por provedores. Campos indisponíveis continuam opcionais nos contratos.</p>
         </article>
         <article class="observation">
-          <strong>Onboarding opcional e retomável</strong>
-          <p>A sequência prevê gêneros, busca de filmes e busca de séries, com voltar/pular, salvamento e conclusão no servidor. As regras mínimas para conclusão e o comportamento exato de cada etapa ainda precisam de definição de contrato; não há bloqueio de autenticação até concluir.</p>
+          <strong>Design system aplicado</strong>
+          <p>Tema escuro com fundo <code>#080B0F</code>, superfícies <code>#1A1A1E</code>/<code>#2A2A2E</code>, vermelho <code>#FF2D55</code>, rosa <code>#FF6688</code>, tipografia Sora e tokens de espaçamento/tipografia em <code>mobile/src/theme/tokens.ts</code>. O texto do botão primário usa o fundo escuro (contraste 5,41:1). Campos de senha têm Mostrar/Ocultar com área de toque de 44 px.</p>
         </article>
       </div>
     </section>
@@ -737,19 +758,19 @@
       {
         id: "login", module: "auth", name: "Entrar", objective: "Acessar uma conta existente com e-mail e senha.", route: "index.tsx",
         current: "done", tobe: "kept", currentCaption: "Tela implementada no app mobile",
-        currentNotes: ["Campo de e-mail e senha com validação", "Link para recuperação e cadastro", "Feedback de erro sem revelar se o e-mail existe", "Estado de envio/carregamento"],
+        currentNotes: ["E-mail e senha com validação inline por campo", "Botão Mostrar/Ocultar senha com área de toque de 44 px", "Erros do Supabase Auth em toast, sem revelar se o e-mail existe", "Links para recuperação (alinhado à direita) e cadastro", "Estado de envio/carregamento no botão"],
         currentStates: ["Validação", "Carregando", "Erro"],
         states: ["Validação", "Carregando", "Erro"],
         stateCopy: { "Validação": ["error", "Confira o formato do e-mail e informe uma senha válida."], "Carregando": ["", "Validando seus dados com segurança…"], "Erro": ["error", "E-mail ou senha inválidos. Confira os dados e tente novamente."] },
         description: "Entrada do usuário; o fluxo autenticado não depende de concluir onboarding.",
-        scope: "01 · Authentication", flow: "Entrar → Conta autenticada → (onboarding, se pendente)",
+        scope: "01 · Authentication", flow: "Entrar → Home autenticada → (onboarding, se pendente)",
         changes: "Manter a tela de acesso existente; depois de autenticar, consultar estado de onboarding sem tornar sua conclusão requisito de autenticação.",
         template: "login", next: "account", prev: "signup",
       },
       {
         id: "signup", module: "auth", name: "Criar conta", objective: "Criar uma identidade Reelix usando o provedor Supabase Auth.", route: "sign-up.tsx",
         current: "done", tobe: "kept", currentCaption: "Tela implementada no app mobile",
-        currentNotes: ["E-mail e senha (mínimo 8 caracteres)", "Validação no cliente", "Mensagem genérica de sucesso/confirmacão", "Link para voltar ao login"],
+        currentNotes: ["E-mail e senha (mínimo 8 caracteres)", "Botão Mostrar/Ocultar senha", "Validação por campo inline; falhas da API em toast", "Mensagem genérica de sucesso inline", "Link para voltar ao login"],
         currentStates: ["Validação", "Carregando", "Sucesso", "Erro"],
         states: ["Validação", "Carregando", "Sucesso", "Erro"],
         stateCopy: { "Validação": ["error", "A senha deve ter ao menos 8 caracteres; revise os campos."], "Carregando": ["", "Criando sua conta…"], "Sucesso": ["success", "Se os dados puderem criar uma conta, enviaremos as instruções de confirmação para o e-mail informado."], "Erro": ["error", "Não foi possível concluir o cadastro agora. Tente novamente."] },
@@ -761,7 +782,7 @@
       {
         id: "callback", module: "auth", name: "Callback / confirmação de e-mail", objective: "Validar com segurança o link recebido e encaminhar confirmação ou recuperação.", route: "auth/callback.tsx",
         current: "done", tobe: "kept", currentCaption: "Rota implementada para deep links",
-        currentNotes: ["Aceita código, token hash/OTP ou par de tokens de sessão", "Confirmação/callback de e-mail conforme configuração do Supabase", "Link inválido/expirado mostra erro e retorno ao login", "Recovery encaminha à tela de nova senha"],
+        currentNotes: ["Aceita código, token hash/OTP ou par de tokens de sessão", "Confirmação/callback de e-mail conforme configuração do Supabase", "Link inválido/expirado: título “Link indisponível.”, toast de erro e retorno ao login", "Recovery encaminha à tela de nova senha"],
         currentStates: ["Validando link", "Erro / expirado"],
         states: ["Validando link", "Confirmação", "Recovery", "Erro / expirado"],
         stateCopy: { "Validando link": ["", "Estamos validando o link com segurança…"], "Confirmação": ["success", "Link confirmado. O destino depende do tipo de fluxo e do estado da sessão."], "Recovery": ["success", "Link validado. Continue para definir uma nova senha."], "Erro / expirado": ["error", "Este link é inválido ou expirou. Solicite um novo link e tente novamente."] },
@@ -773,7 +794,7 @@
       {
         id: "forgot", module: "auth", name: "Recuperar acesso", objective: "Solicitar e-mail de recuperação sem enumerar contas.", route: "forgot-password.tsx",
         current: "done", tobe: "kept", currentCaption: "Tela implementada no app mobile",
-        currentNotes: ["Campo de e-mail validado", "Enviar instruções via Supabase Auth", "Mensagem de sucesso genérica", "Estado de erro/carregamento"],
+        currentNotes: ["Campo de e-mail validado", "Envio de instruções via Supabase Auth", "Mensagem de sucesso genérica inline", "Falhas de envio em toast"],
         currentStates: ["Validação", "Carregando", "Sucesso", "Erro"],
         states: ["Validação", "Carregando", "Sucesso", "Erro"],
         stateCopy: { "Validação": ["error", "Informe um endereço de e-mail válido."], "Carregando": ["", "Enviando instruções…"], "Sucesso": ["success", "Se houver uma conta associada, enviaremos instruções para redefinir a senha."], "Erro": ["error", "Não foi possível solicitar a recuperação agora. Tente novamente."] },
@@ -785,7 +806,7 @@
       {
         id: "reset", module: "auth", name: "Nova senha", objective: "Atualizar a senha através de uma sessão/link de recuperação válido.", route: "auth/reset-password.tsx",
         current: "done", tobe: "kept", currentCaption: "Tela implementada; protegida por sessão",
-        currentNotes: ["Nova senha e confirmação", "Validação de correspondência e tamanho", "Sucesso com ação para continuar", "Redireciona ao login se não houver sessão válida"],
+        currentNotes: ["Nova senha e confirmação, ambas com Mostrar/Ocultar", "Validação de correspondência e tamanho inline", "Falha ao atualizar em toast", "Sucesso com ação Continuar"],
         currentStates: ["Validação", "Carregando", "Erro", "Sucesso"],
         states: ["Validação", "Carregando", "Erro", "Sucesso"],
         stateCopy: { "Validação": ["error", "As senhas devem corresponder e ter ao menos 8 caracteres."], "Carregando": ["", "Atualizando senha…"], "Erro": ["error", "Solicite um novo link e tente novamente."], "Sucesso": ["success", "Senha alterada. A sessão continua protegida."] },
@@ -795,16 +816,25 @@
         template: "reset", next: "account", prev: "forgot",
       },
       {
-        id: "account", module: "auth", name: "Conta autenticada", objective: "Confirmar estado autenticado, consultar a conta Reelix e permitir logout.", route: "home.tsx",
-        current: "partial", tobe: "partial", currentCaption: "Tela real existente; escopo atual é limitado",
-        currentNotes: ["Exibe e-mail da sessão", "Consulta GET /api/v1/auth/me com loading/erro/retry", "Mostra ID interno Reelix", "Ação de logout e tratamento de falha"],
+        id: "account",
+        module: "auth",
+        name: "Home autenticada",
+        objective: "Resumir a conta autenticada, mostrar contagens reais de preferências e dar acesso a preferências, perfil e logout.",
+        route: "home.tsx",
+        current: "done",
+        tobe: "partial",
+        currentCaption: "Tela implementada; ainda não é a Home de descoberta",
+        currentNotes: ["Consulta GET /api/v1/onboarding e redireciona contas incompletas ao onboarding", "Card SEU REELIX com e-mail, status da conta (GET /api/v1/auth/me) e contagens de gêneros, filmes e séries", "Ações: Editar preferências (primária), Meu perfil (secundária), Sair da conta (discreta)", "Erros de conta, preferências e logout em toast; Tentar novamente continua na tela", "O ID técnico da conta não é exibido"],
         currentStates: ["Carregando conta", "Erro API", "Sessão autenticada"],
         states: ["Carregando conta", "Erro API", "Sessão autenticada"],
-        stateCopy: { "Carregando conta": ["", "Consultando o estado básico da conta…"], "Erro API": ["error", "Não foi possível consultar a conta. Verifique a conexão e tente novamente."], "Sessão autenticada": ["success", "Sessão restaurada. A autenticação não exige concluir onboarding."] },
-        description: "Home autenticada atual é uma tela básica de conta, não uma home de descoberta.",
-        scope: "01 · Authentication", flow: "Login → Conta autenticada → Sair → Login",
-        changes: "Quando os módulos futuros forem integrados, esta saída autenticada pode encaminhar usuários novos/incompletos ao onboarding; login permanece independente de sua conclusão.",
-        template: "account", next: "welcome", prev: "login",
+        stateCopy: {"Carregando conta": ["", "Conferindo sua conta…"], "Erro API": ["error", "Não foi possível consultar sua conta. Verifique a conexão e tente novamente."], "Sessão autenticada": ["success", "Conta conectada."]},
+        description: "Home autenticada atual: resumo da conta e atalhos. Descoberta, feed e recomendações ainda não existem.",
+        scope: "01 · Authentication + 02 · Onboarding",
+        flow: "Login → Home (ou Onboarding, se pendente) → Preferências / Perfil / Sair",
+        changes: "Manter enquanto Home & Discovery não for implementada; a futura home de descoberta deve seguir a spec 04 sem simular conteúdo.",
+        template: "account",
+        next: "profile",
+        prev: "login",
       },
       {
         id: "session-init", module: "auth", name: "Inicialização / restauração de sessão", objective: "Restaurar a sessão ao abrir o app e encaminhar para rotas públicas/privadas adequadas.", route: "_layout.tsx + auth-provider.tsx",
@@ -819,112 +849,193 @@
         template: "session-init", next: "login", prev: "account",
       },
       {
-        id: "welcome", module: "onboarding", name: "Boas-vindas / início", objective: "Iniciar ou retomar personalização após o primeiro acesso, consultando o estado persistido.", route: "Proposta mobile (sem rota atual)",
-        current: "todo", tobe: "new", currentCaption: "Nenhuma tela/rota de onboarding encontrada",
-        currentNotes: ["Não foi encontrada UI, rota ou contrato mobile para consultar o progresso.", "Não inferir redirecionamento automático com base apenas na autenticação."],
-        currentStates: ["Não implementado"],
-        states: ["Carregando estado", "Erro de comunicação", "Novo usuário", "Retomar"],
-        stateCopy: { "Carregando estado": ["", "Consultando seu progresso de onboarding…"], "Erro de comunicação": ["error", "Não foi possível consultar seu progresso. Tente novamente; não marcamos o fluxo como concluído."], "Novo usuário": ["", "Boas-vindas! Suas escolhas podem ser alteradas depois no perfil."], "Retomar": ["success", "Seu progresso anterior foi mantido. Continue de onde parou."] },
-        description: "A primeira etapa apresenta o fluxo; se já houver progresso salvo, retoma sem perder escolhas.",
-        scope: "02 · Onboarding", flow: "Conta autenticada → Início/retomada → Gêneros",
-        changes: "Criar a experiência e consultar estado do backend; autenticar não depende de conclusão.",
-        template: "welcome", next: "genres", prev: "account",
+        id: "welcome",
+        module: "onboarding",
+        name: "Boas-vindas",
+        objective: "Iniciar ou retomar o onboarding a partir da etapa persistida no servidor.",
+        route: "onboarding.tsx · etapa welcome",
+        current: "done",
+        tobe: "kept",
+        currentCaption: "Etapa implementada no app mobile",
+        currentNotes: ["GET /api/v1/onboarding define a etapa inicial; contas incompletas retomam de onde pararam", "Rótulo ETAPA 1 DE 5 e barra de progresso", "Sem botão Voltar na primeira etapa fora do modo de edição", "Erro ao carregar preferências: toast e tela com Tentar novamente"],
+        currentStates: ["Carregando estado", "Erro de comunicação", "Novo usuário"],
+        states: ["Carregando estado", "Erro de comunicação", "Novo usuário"],
+        stateCopy: {"Carregando estado": ["", "Preparando seu perfil…"], "Erro de comunicação": ["error", "Não foi possível carregar suas preferências. Verifique sua conexão e tente novamente."], "Novo usuário": ["", "Escolha alguns gêneros e títulos para personalizar seu espaço."]},
+        description: "Primeira das cinco etapas; a autenticação não depende da conclusão.",
+        scope: "02 · Onboarding",
+        flow: "Home → Boas-vindas → Gêneros",
+        changes: "Manter. Novas etapas só com contrato e decisão de produto.",
+        template: "welcome",
+        next: "genres",
+        prev: "account",
       },
       {
-        id: "genres", module: "onboarding", name: "Gêneros de interesse", objective: "Selecionar preferências de gêneros reutilizando gêneros do catálogo.", route: "Nova etapa mobile prevista",
-        current: "todo", tobe: "new", currentCaption: "Nenhuma UI ou preferência persistida encontrada",
-        currentNotes: ["Não há seleção de gêneros no mobile.", "Não há API de preferências/onboarding encontrada."],
-        currentStates: ["Não implementado"],
-        states: ["Carregando gêneros", "Erro catálogo", "Seleção", "Salvar"],
-        stateCopy: { "Carregando gêneros": ["", "Carregando gêneros disponíveis…"], "Erro catálogo": ["error", "Não foi possível carregar gêneros. Suas seleções não foram descartadas."], "Seleção": ["", "Escolha opcional; você pode voltar ou pular etapas opcionais."], "Salvar": ["success", "Preferências enviadas para salvar no backend."] },
-        description: "Seleção visual simples, com voltar e continuidade preservando estado.",
-        scope: "02 · Onboarding", flow: "Início → Gêneros → Filmes favoritos",
-        changes: "Criar seleção de gêneros a partir do catálogo; persistência/autorização é responsabilidade do backend.",
-        template: "genres", next: "fav-movies", prev: "welcome",
+        id: "genres",
+        module: "onboarding",
+        name: "Gêneros de interesse",
+        objective: "Selecionar gêneros oficiais TMDB de filmes e séries.",
+        route: "onboarding.tsx · etapa genres",
+        current: "done",
+        tobe: "kept",
+        currentCaption: "Etapa implementada no app mobile",
+        currentNotes: ["Abas Filmes/Séries alimentadas por GET /api/v1/catalog/genres", "Contador “X de 20 gêneros selecionados” por categoria", "Aviso inline ao atingir o limite de 20", "Falha ao carregar gêneros: toast e Tentar novamente", "Continuar e Pular esta etapa salvam o progresso"],
+        currentStates: ["Carregando gêneros", "Erro catálogo", "Seleção", "Falha ao salvar"],
+        states: ["Carregando gêneros", "Erro catálogo", "Seleção", "Falha ao salvar"],
+        stateCopy: {"Carregando gêneros": ["", "Carregando gêneros disponíveis…"], "Erro catálogo": ["error", "Não foi possível carregar os gêneros. Tente novamente."], "Seleção": ["", "2 de 20 gêneros selecionados."], "Falha ao salvar": ["error", "Não foi possível salvar suas escolhas."]},
+        description: "Seleção por chips com estados pressionado e selecionado.",
+        scope: "02 · Onboarding",
+        flow: "Boas-vindas → Gêneros → Filmes favoritos",
+        changes: "Manter.",
+        template: "genres",
+        next: "fav-movies",
+        prev: "welcome",
       },
       {
-        id: "fav-movies", module: "onboarding", name: "Filmes favoritos", objective: "Pesquisar e selecionar filmes existentes no catálogo para preferências iniciais.", route: "Nova etapa mobile prevista",
-        current: "todo", tobe: "new", currentCaption: "Nenhuma busca/seleção mobile encontrada",
-        currentNotes: ["API de catálogo existe; o app não apresenta telas consumidoras.", "Não há referências de filmes favoritas associadas a usuário."],
-        currentStates: ["Não implementado"],
-        states: ["Buscando", "Resultados", "Sem resultados", "Erro catálogo", "Salvando"],
-        stateCopy: { "Buscando": ["", "Buscando filmes no catálogo…"], "Resultados": ["", "Selecione títulos retornados; IDs devem ser referências internas válidas."], "Sem resultados": ["", "Nenhum filme encontrado. Tente outro termo ou pule esta etapa."], "Erro catálogo": ["error", "Catálogo indisponível. Tente novamente; não simulamos resultados."], "Salvando": ["success", "Seleção salva no backend para o usuário autenticado."] },
-        description: "Busca títulos existentes. Etapa pode ser pulada; referências inválidas devem ser rejeitadas pelo servidor.",
-        scope: "02 · Onboarding + 03 · Catalog", flow: "Gêneros → Buscar filmes → Séries favoritas",
-        changes: "Integrar busca/paginação da API, selecionar filmes e salvar IDs internos; sem duplicar dados do catálogo.",
-        template: "fav-movies", next: "fav-series", prev: "genres",
+        id: "fav-movies",
+        module: "onboarding",
+        name: "Filmes favoritos",
+        objective: "Buscar e selecionar até 10 filmes existentes no catálogo.",
+        route: "onboarding.tsx · etapa favoriteMovies",
+        current: "done",
+        tobe: "kept",
+        currentCaption: "Etapa implementada no app mobile",
+        currentNotes: ["Busca GET /api/v1/catalog/search filtrada pelo tipo da etapa (movie)", "A busca exige ao menos 2 caracteres; o botão fica desabilitado durante a busca", "Contador “X de 10 selecionados”, aviso inline no limite e ação Remover seleções desta etapa", "Erros de busca e de salvamento em toast", "O servidor valida IDs internos e o tipo (movie/series, em minúsculas) em catalog_external_references"],
+        currentStates: ["Buscando", "Resultados", "Sem resultados", "Erro catálogo", "Falha ao salvar"],
+        states: ["Buscando", "Resultados", "Sem resultados", "Erro catálogo", "Falha ao salvar"],
+        stateCopy: {"Buscando": ["", "Buscando no catálogo…"], "Resultados": ["", "Toque para selecionar ou remover um título."], "Sem resultados": ["", "Nenhum título encontrado."], "Erro catálogo": ["error", "Não foi possível buscar no catálogo."], "Falha ao salvar": ["error", "Não foi possível salvar suas escolhas."]},
+        description: "Etapa opcional; as seleções são preservadas ao voltar e avançar.",
+        scope: "02 · Onboarding + 03 · Catalog",
+        flow: "Gêneros → Filmes → Séries",
+        changes: "Manter. As mensagens de validação da API (ProblemDetails) chegam em português e aparecem no toast.",
+        template: "fav-movies",
+        next: "fav-series",
+        prev: "genres",
       },
       {
-        id: "fav-series", module: "onboarding", name: "Séries favoritas", objective: "Pesquisar e selecionar séries existentes, mantendo as escolhas ao avançar/voltar.", route: "Nova etapa mobile prevista",
-        current: "todo", tobe: "new", currentCaption: "Nenhuma busca/seleção de séries encontrada",
-        currentNotes: ["Não há tela de séries no mobile.", "Catálogo backend tem busca com filtro de tipo; onboarding não tem contrato."],
-        currentStates: ["Não implementado"],
-        states: ["Buscando", "Resultados", "Sem resultados", "Erro catálogo", "Salvando"],
-        stateCopy: { "Buscando": ["", "Buscando séries no catálogo…"], "Resultados": ["", "Selecione séries já identificadas pelo catálogo."], "Sem resultados": ["", "Nenhuma série encontrada. Tente outra busca ou pule esta etapa."], "Erro catálogo": ["error", "Não foi possível consultar o catálogo. Tente novamente."], "Salvando": ["success", "Preferências de séries salvas."] },
-        description: "Busca e seleção de séries. Etapa opcional com retomada e seleções preservadas.",
-        scope: "02 · Onboarding + 03 · Catalog", flow: "Filmes favoritos → Buscar séries → Salvar/concluir",
-        changes: "Criar etapa de séries e salvamento resiliente; manter campos opcionais quando o provedor não os fornece.",
-        template: "fav-series", next: "complete", prev: "fav-movies",
+        id: "fav-series",
+        module: "onboarding",
+        name: "Séries favoritas",
+        objective: "Buscar e selecionar até 10 séries existentes no catálogo.",
+        route: "onboarding.tsx · etapa favoriteSeries",
+        current: "done",
+        tobe: "kept",
+        currentCaption: "Etapa implementada no app mobile",
+        currentNotes: ["Busca GET /api/v1/catalog/search filtrada pelo tipo da etapa (series)", "A busca exige ao menos 2 caracteres; o botão fica desabilitado durante a busca", "Contador “X de 10 selecionados”, aviso inline no limite e ação Remover seleções desta etapa", "Erros de busca e de salvamento em toast", "O servidor valida IDs internos e o tipo (movie/series, em minúsculas) em catalog_external_references"],
+        currentStates: ["Buscando", "Resultados", "Sem resultados", "Erro catálogo", "Falha ao salvar"],
+        states: ["Buscando", "Resultados", "Sem resultados", "Erro catálogo", "Falha ao salvar"],
+        stateCopy: {"Buscando": ["", "Buscando no catálogo…"], "Resultados": ["", "Toque para selecionar ou remover um título."], "Sem resultados": ["", "Nenhum título encontrado."], "Erro catálogo": ["error", "Não foi possível buscar no catálogo."], "Falha ao salvar": ["error", "Não foi possível salvar suas escolhas."]},
+        description: "Etapa opcional; as seleções são preservadas ao voltar e avançar.",
+        scope: "02 · Onboarding + 03 · Catalog",
+        flow: "Filmes → Séries → Revisão",
+        changes: "Manter. As mensagens de validação da API (ProblemDetails) chegam em português e aparecem no toast.",
+        template: "fav-series",
+        next: "complete",
+        prev: "fav-movies",
       },
       {
-        id: "complete", module: "onboarding", name: "Salvar / concluir onboarding", objective: "Persistir preferências e conclusão no servidor sem sucesso fictício.", route: "Estado de conclusão do fluxo",
-        current: "todo", tobe: "new", currentCaption: "Nenhuma persistência ou estado de conclusão encontrado",
-        currentNotes: ["Não foi localizada persistência de preferências/conclusão.", "Falha de comunicação não pode resultar em conclusão falsa."],
-        currentStates: ["Não implementado"],
-        states: ["Salvando", "Sucesso", "Falha ao salvar", "Retomar depois"],
-        stateCopy: { "Salvando": ["", "Salvando suas preferências…"], "Sucesso": ["success", "Onboarding concluído e registrado pelo servidor."], "Falha ao salvar": ["error", "Não foi possível salvar. Suas escolhas continuam disponíveis para tentar novamente."], "Retomar depois": ["", "Você pode sair agora e continuar o onboarding mais tarde."] },
-        description: "Conclusão registrada pelo backend. Preferências podem ser editadas depois no perfil.",
-        scope: "02 · Onboarding", flow: "Séries → Salvar → Conclusão → Perfil / Home & Discovery (dependência futura)",
-        changes: "Persistir conclusão e preferências associadas à identidade autenticada. Critérios mínimos de conclusão precisam ser definidos no contrato.",
-        template: "complete", next: "profile", prev: "fav-series",
+        id: "complete",
+        module: "onboarding",
+        name: "Revisão e conclusão",
+        objective: "Revisar as escolhas e registrar a conclusão no servidor.",
+        route: "onboarding.tsx · etapa review",
+        current: "done",
+        tobe: "kept",
+        currentCaption: "Etapa implementada no app mobile",
+        currentNotes: ["Resumo de gêneros, filmes e séries favoritos", "Concluir salva o progresso e chama POST /api/v1/onboarding/complete", "No modo de edição, a ação vira Salvar preferências e volta ao perfil", "Falhas em toast; nada é marcado como concluído sem resposta da API"],
+        currentStates: ["Salvando", "Falha ao salvar"],
+        states: ["Salvando", "Sucesso", "Falha ao salvar"],
+        stateCopy: {"Salvando": ["", "Salvando suas preferências…"], "Sucesso": ["success", "Onboarding concluído; redirecionando para a Home."], "Falha ao salvar": ["error", "Não foi possível concluir o onboarding."]},
+        description: "Conclusão registrada pelo backend; as escolhas podem ser editadas depois.",
+        scope: "02 · Onboarding",
+        flow: "Séries → Revisão → Home",
+        changes: "Manter.",
+        template: "complete",
+        next: "account",
+        prev: "fav-series",
       },
       {
-        id: "profile", module: "onboarding", name: "Perfil", objective: "Consultar identidade Reelix e dados de perfil autorizados do próprio usuário.", route: "Nova rota mobile prevista",
-        current: "todo", tobe: "new", currentCaption: "Nenhuma tela ou API de perfil encontrada",
-        currentNotes: ["O endpoint atual expõe somente conta autenticada básica.", "Não há perfil, bio, avatar ou privacidade implementados."],
-        currentStates: ["Não implementado"],
-        states: ["Carregando", "Erro", "Vazio / avatar padrão", "Perfil carregado"],
-        stateCopy: { "Carregando": ["", "Carregando seu perfil…"], "Erro": ["error", "Não foi possível carregar o perfil. Tente novamente."], "Vazio / avatar padrão": ["", "Sem avatar personalizado; o avatar padrão continua disponível."], "Perfil carregado": ["success", "Perfil próprio carregado com os campos permitidos."] },
-        description: "Perfil próprio separado da identidade de autenticação; estatísticas/conquistas só se houver contratos responsáveis.",
-        scope: "02 · Profile", flow: "Onboarding → Perfil → Editar / Preferências / Privacidade",
-        changes: "Criar leitura de nome de exibição, bio e avatar padrão; estatísticas e conquistas são dependências, não dados fabricados.",
-        template: "profile", next: "profile-edit", prev: "complete",
+        id: "profile",
+        module: "onboarding",
+        name: "Perfil",
+        objective: "Consultar e editar o perfil próprio em uma única tela.",
+        route: "profile.tsx",
+        current: "done",
+        tobe: "partial",
+        currentCaption: "Tela implementada no app mobile",
+        currentNotes: ["Avatar padrão com a inicial do nome", "Seções Informações, Privacidade, Preferências e Créditos (TMDB)", "Erro ao carregar: toast e Tentar novamente", "Sucesso ao salvar inline; falhas em toast"],
+        currentStates: ["Carregando", "Erro", "Perfil carregado"],
+        states: ["Carregando", "Erro", "Perfil carregado"],
+        stateCopy: {"Carregando": ["", "Carregando perfil…"], "Erro": ["error", "Não foi possível carregar o perfil. Verifique sua conexão e tente novamente."], "Perfil carregado": ["success", "Perfil próprio carregado com os campos permitidos."]},
+        description: "Perfil próprio separado da identidade de autenticação; o e-mail não é exibido nem editado aqui.",
+        scope: "02 · Profile",
+        flow: "Home → Perfil → Editar / Privacidade / Preferências",
+        changes: "Upload de avatar, estatísticas e conquistas dependem de decisões e módulos ainda não implementados; não exibir valores fictícios.",
+        template: "profile",
+        next: "profile-edit",
+        prev: "account",
       },
       {
-        id: "profile-edit", module: "onboarding", name: "Editar perfil", objective: "Editar campos de perfil autorizados sem alterar e-mail/identidade do provedor.", route: "Nova rota mobile prevista",
-        current: "todo", tobe: "new", currentCaption: "Nenhum formulário de perfil encontrado",
-        currentNotes: ["Sem campos de perfil no app ou endpoints encontrados.", "Limites de campos estão pendentes de contrato."],
-        currentStates: ["Não implementado"],
-        states: ["Validação", "Salvando", "Sucesso", "Erro"],
-        stateCopy: { "Validação": ["error", "Revise os campos conforme os limites definidos pelo backend."], "Salvando": ["", "Salvando alterações…"], "Sucesso": ["success", "Perfil atualizado."], "Erro": ["error", "Não foi possível salvar o perfil. Tente novamente."] },
-        description: "Editar nome de exibição e biografia. A identidade Supabase não é editada aqui.",
-        scope: "02 · Profile", flow: "Perfil → Editar → Salvar → Perfil",
-        changes: "Construir formulário com limites a definir, validação server-side e estados de salvamento.",
-        template: "profile-edit", next: "profile", prev: "profile",
+        id: "profile-edit",
+        module: "onboarding",
+        name: "Editar perfil",
+        objective: "Editar nome de exibição e biografia.",
+        route: "profile.tsx · seção Informações",
+        current: "done",
+        tobe: "kept",
+        currentCaption: "Edição inline na tela de perfil",
+        currentNotes: ["Nome de exibição até 50 e biografia até 280 caracteres, com contadores", "Borda rosa no campo em foco", "PUT /api/v1/profile; o servidor também valida os limites", "Falha ao salvar em toast; “Perfil atualizado.” inline"],
+        currentStates: ["Salvando", "Sucesso", "Erro"],
+        states: ["Salvando", "Sucesso", "Erro"],
+        stateCopy: {"Salvando": ["", "Salvando alterações…"], "Sucesso": ["success", "Perfil atualizado."], "Erro": ["error", "Não foi possível salvar o perfil."]},
+        description: "Não há tela separada: a edição acontece na própria tela de perfil.",
+        scope: "02 · Profile",
+        flow: "Perfil → Editar campos → Salvar alterações",
+        changes: "Manter.",
+        template: "profile-edit",
+        next: "privacy",
+        prev: "profile",
       },
       {
-        id: "preferences", module: "onboarding", name: "Preferências", objective: "Consultar e editar no perfil a mesma fonte canônica de gêneros e títulos do onboarding.", route: "Nova rota mobile prevista",
-        current: "todo", tobe: "new", currentCaption: "Nenhum contrato/tela de preferências encontrado",
-        currentNotes: ["Nenhuma preferência de usuário persistida encontrada.", "Não foi localizada integração mobile com busca do catálogo."],
-        currentStates: ["Não implementado"],
-        states: ["Carregando", "Vazio", "Editando", "Salvando", "Erro"],
-        stateCopy: { "Carregando": ["", "Carregando preferências…"], "Vazio": ["", "Nenhuma preferência escolhida. Você pode personalizar quando quiser."], "Editando": ["", "Esta é a mesma preferência canônica salva no onboarding."], "Salvando": ["", "Atualizando suas preferências…"], "Erro": ["error", "Não foi possível atualizar as preferências."] },
-        description: "Editar gêneros e títulos favoritos reaproveitando contrato do onboarding, sem criar segunda fonte.",
-        scope: "02 · Profile + Onboarding", flow: "Perfil → Preferências → Editar gêneros/filmes/séries → Salvar",
-        changes: "Criar entrada de edição que reutiliza as seleções do onboarding e IDs existentes no catálogo.",
-        template: "preferences", next: "genres", prev: "profile",
+        id: "preferences",
+        module: "onboarding",
+        name: "Editar preferências",
+        objective: "Editar gêneros e favoritos reutilizando o fluxo do onboarding.",
+        route: "onboarding.tsx?edit=1",
+        current: "done",
+        tobe: "kept",
+        currentCaption: "Fluxo de onboarding em modo de edição",
+        currentNotes: ["Aberto pela Home (Editar preferências) ou pelo Perfil (Gêneros e títulos favoritos)", "Rótulo EDITANDO PREFERÊNCIAS, início em Gêneros e ação Cancelar edição", "Mesma fonte canônica (PUT /api/v1/onboarding/progress)", "A revisão termina com Salvar preferências; falhas em toast"],
+        currentStates: ["Editando", "Salvando", "Erro"],
+        states: ["Editando", "Salvando", "Erro"],
+        stateCopy: {"Editando": ["", "Mesmas preferências salvas no onboarding."], "Salvando": ["", "Atualizando suas preferências…"], "Erro": ["error", "Não foi possível salvar suas escolhas."]},
+        description: "Sem segunda fonte de dados: reaproveita o contrato do onboarding.",
+        scope: "02 · Profile + Onboarding",
+        flow: "Home/Perfil → Gêneros → Filmes → Séries → Salvar preferências",
+        changes: "Manter.",
+        template: "preferences",
+        next: "genres",
+        prev: "profile",
       },
       {
-        id: "privacy", module: "onboarding", name: "Privacidade", objective: "Controlar compartilhamento de informações e apresentar o que está visível.", route: "Nova rota mobile prevista",
-        current: "todo", tobe: "new", currentCaption: "Nenhuma configuração de privacidade encontrada",
-        currentNotes: ["Sem configuração de visibilidade em mobile/backend.", "Opções exatas e política de exclusão não estão definidas."],
-        currentStates: ["Não implementado"],
-        states: ["Carregando", "Salvando", "Erro", "Atualizado"],
-        stateCopy: { "Carregando": ["", "Carregando configurações de privacidade…"], "Salvando": ["", "Salvando suas escolhas de privacidade…"], "Erro": ["error", "Não foi possível salvar as configurações."], "Atualizado": ["success", "Preferências de privacidade atualizadas."] },
-        description: "Exibe controles e resumo de compartilhamento; escolhas específicas precisam de contrato e decisão de produto.",
-        scope: "02 · Profile", flow: "Perfil → Privacidade → Revisar compartilhamento → Salvar",
-        changes: "Criar superfície de privacidade sem assumir histórico público, estatísticas ou níveis de acesso ainda não definidos.",
-        template: "privacy", next: "profile", prev: "profile",
+        id: "privacy",
+        module: "onboarding",
+        name: "Privacidade",
+        objective: "Controlar a visibilidade do perfil, dos favoritos e do histórico.",
+        route: "profile.tsx · seção Privacidade",
+        current: "done",
+        tobe: "kept",
+        currentCaption: "Seção implementada na tela de perfil",
+        currentNotes: ["Perfil visível, Favoritos visíveis e Histórico visível, todos desligados por padrão", "Cada opção descreve seu efeito", "O histórico é salvo, mas não é exposto enquanto Tracking não existir", "Salvo com o perfil; falhas em toast"],
+        currentStates: ["Salvando", "Erro", "Atualizado"],
+        states: ["Salvando", "Erro", "Atualizado"],
+        stateCopy: {"Salvando": ["", "Salvando alterações…"], "Erro": ["error", "Não foi possível salvar o perfil."], "Atualizado": ["success", "Perfil atualizado."]},
+        description: "A rota pública de perfil não retorna e-mail; favoritos só aparecem quando liberados.",
+        scope: "02 · Profile",
+        flow: "Perfil → Privacidade → Salvar alterações",
+        changes: "Manter.",
+        template: "privacy",
+        next: "profile",
+        prev: "profile-edit",
       },
       {
         id: "search", module: "catalog", name: "Buscar títulos", objective: "Pesquisar filmes e séries na API Reelix autenticada, com paginação e filtro de tipo.", route: "Proposta de UI — API: GET /api/v1/catalog/search",
@@ -1000,7 +1111,7 @@
 
     const iconLogo = '<img class="phone-logo" src="../../mobile/assets/brand/logos/logo-horizontal.svg" alt="Reelix">';
     const phoneTop = '<div class="phone-status"><span>9:41</span><span>● ▰ ▴</span></div>';
-    const formField = (label, placeholder, type = "") => `<div class="field"><label>${label}</label><div class="input ${type}">${placeholder}</div></div>`;
+    const formField = (label, placeholder, type = "", reveal = false) => `<div class="field"><label>${label}</label><div class="input ${type}"><span>${placeholder}</span>${reveal ? '<span class="reveal">Mostrar</span>' : ""}</div></div>`;
     const choice = (label, selected = false) => `<span class="choice ${selected ? "selected" : ""}">${selected ? '<span class="check">✓</span>' : ""}${label}</span>`;
     const resultCard = (title, meta, style = "") => `<div class="result-card"><div class="poster ${style}">POSTER</div><div class="result-copy"><strong>${title}</strong><span>${meta}</span></div><span class="result-add">+</span></div>`;
     const chip = text => `<span class="meta-chip">${text}</span>`;
@@ -1009,27 +1120,24 @@
     function screenMarkup(screen, future) {
       const { template, id } = screen;
       let inner = "";
-      if (template === "login") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Suas histórias começam aqui.</p><p class="phone-subtitle">Entre para acompanhar tudo o que você assiste.</p>${formField("E-mail", "seu@email.com")}${formField("Senha", "••••••••") }<a class="text-link" href="#" data-go="forgot">Esqueci minha senha</a>${goButton("Entrar", "account", "primary", true)}<a class="center-link" href="#" data-go="signup">Ainda não tem conta? Criar conta</a></div>`;
-      if (template === "signup") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Crie sua conta.</p><p class="phone-subtitle">Um lugar para tudo o que você assiste.</p>${formField("E-mail", "seu@email.com")}${formField("Senha (mínimo 8 caracteres)", "••••••••")}${goButton("Criar conta", "login", "primary", true)}<div class="form-note success" style="margin-top:10px">Se os dados puderem ser usados para criar uma conta, enviaremos instruções para o e-mail.</div><a class="center-link" href="#" data-go="login">Já tem conta? Entrar</a></div>`;
-      if (template === "callback") inner = `${iconLogo}<div class="phone-content" style="text-align:center"><p class="phone-title">Confirmando seu acesso.</p><p class="phone-subtitle">Estamos validando o link com segurança.</p><div class="soft-card" style="padding:24px"><span style="display:inline-grid;width:34px;height:34px;place-items:center;border:2px solid #29323C;border-top-color:var(--brand);border-radius:50%;color:var(--pink)">◌</span><p style="margin-top:11px">Validando link de autenticação</p></div><div class="form-note">Confirmação de e-mail ocorre somente se estiver habilitada na configuração do provedor.</div>${goButton("Continuar para entrar","login","secondary",true)}<div style="margin-top:8px">${goButton("Fluxo de recuperação","reset","ghost",true)}</div></div>`;
-      if (template === "forgot") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Recupere seu acesso.</p><p class="phone-subtitle">Enviaremos as instruções para o e-mail informado.</p>${formField("E-mail", "seu@email.com")}<div class="form-note success">Se houver uma conta associada a esse endereço, enviaremos instruções para redefinir a senha.</div>${goButton("Enviar instruções", "reset", "primary", true)}<a class="center-link" href="#" data-go="login">Voltar para entrar</a></div>`;
-      if (template === "reset") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Escolha uma nova senha.</p><p class="phone-subtitle">Use uma senha nova para recuperar o acesso.</p>${formField("Nova senha (mínimo 8 caracteres)", "••••••••")}${formField("Confirme a nova senha", "••••••••")}${goButton("Atualizar senha", "account", "primary", true)}<div class="form-note success" style="margin-top:10px">Senha alterada com sucesso. Sua sessão continua protegida.</div></div>`;
-      if (template === "account") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Tudo pronto.</p><p class="phone-subtitle">Sua conta Reelix está autenticada.</p><div class="soft-card"><p class="phone-kicker">CONTA AUTENTICADA</p><strong>usuario@exemplo.com</strong><div class="skeleton short"></div><p>ID Reelix: ••••••••</p></div><div class="form-note">Exemplo visual dos campos existentes; valores reais não são exibidos no wireframe.</div>${goButton("Sair da conta", "login", "secondary", true)}<div class="phone-divider"></div>${future ? '<div class="soft-card"><strong>Próximo passo (planejado)</strong><p>Consultar estado de onboarding no servidor. Não é condição para autenticar.</p></div>' : '<div class="soft-card"><strong>Escopo atual</strong><p>Conta autenticada e integração da API; ainda não é uma Home de descoberta.</p></div>'}</div>`;
+      if (template === "login") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Suas histórias começam aqui.</p><p class="phone-subtitle">Entre para acompanhar tudo o que você assiste.</p><div class="soft-card">${formField("E-mail", "voce@exemplo.com")}${formField("Senha", "••••••••", "", true)}<a class="text-link" href="#" data-go="forgot">Esqueci minha senha</a>${goButton("Entrar", "account", "primary", true)}</div><a class="center-link" href="#" data-go="signup">Ainda não tem conta? Criar conta</a></div>`;
+      if (template === "signup") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Crie sua conta.</p><p class="phone-subtitle">Um lugar para tudo o que você assiste.</p><div class="soft-card">${formField("E-mail", "voce@exemplo.com")}${formField("Senha (mínimo 8 caracteres)", "Crie uma senha", "", true)}${goButton("Criar conta", "login", "primary", true)}</div><div class="form-note success" style="margin-top:10px">Se os dados puderem ser usados para criar uma conta, enviaremos instruções para o e-mail.</div><a class="center-link" href="#" data-go="login">Já tem conta? Entrar</a></div>`;
+      if (template === "callback") inner = `${iconLogo}<div class="phone-content" style="text-align:center"><p class="phone-title">${currentScreen.state === "Erro / expirado" ? "Link indisponível." : "Confirmando seu acesso."}</p><p class="phone-subtitle">${currentScreen.state === "Erro / expirado" ? "Solicite um novo link para continuar com segurança." : "Estamos validando o link com segurança."}</p><div class="soft-card" style="padding:24px"><span style="display:inline-grid;width:34px;height:34px;place-items:center;border:2px solid #29323C;border-top-color:var(--brand);border-radius:50%;color:var(--pink)">◌</span><p style="margin-top:11px">Validando link de autenticação</p></div><div class="form-note">Confirmação de e-mail ocorre somente se estiver habilitada no provedor. Link inválido ou expirado aparece em toast.</div>${goButton("Voltar para entrar","login","secondary",true)}<div style="margin-top:8px">${goButton("Fluxo de recuperação","reset","ghost",true)}</div></div>`;
+      if (template === "forgot") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Recupere seu acesso.</p><p class="phone-subtitle">Enviaremos as instruções para o e-mail informado.</p><div class="soft-card">${formField("E-mail", "voce@exemplo.com")}${goButton("Enviar instruções", "reset", "primary", true)}</div><div class="form-note success">Se houver uma conta associada a esse endereço, enviaremos instruções para redefinir a senha.</div><a class="center-link" href="#" data-go="login">Voltar para entrar</a></div>`;
+      if (template === "reset") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Escolha uma nova senha.</p><p class="phone-subtitle">Use uma senha nova para recuperar o acesso.</p><div class="soft-card">${formField("Nova senha (mínimo 8 caracteres)", "Nova senha", "", true)}${formField("Confirme a nova senha", "Repita a nova senha", "", true)}${goButton("Atualizar senha", "account", "primary", true)}</div><div class="form-note success" style="margin-top:10px">Senha alterada com sucesso.</div></div>`;
+      if (template === "account") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Seu próximo capítulo começa aqui.</p><p class="phone-subtitle">Seu espaço está pronto. Suas escolhas podem mudar quando quiser.</p><div class="soft-card"><p class="phone-kicker">SEU REELIX</p><strong>usuario@exemplo.com</strong><p>Conta conectada</p><div class="stat-row"><div class="stat-box"><strong>—</strong><span>GÊNEROS</span></div><div class="stat-box"><strong>—</strong><span>FILMES</span></div><div class="stat-box"><strong>—</strong><span>SÉRIES</span></div></div></div><div class="form-note">As contagens reais vêm de GET /api/v1/onboarding; o wireframe não exibe valores reais.</div>${goButton("Editar preferências", "preferences", "primary", true)}<div style="margin-top:8px">${goButton("Meu perfil", "profile", "secondary", true)}</div><div style="margin-top:8px">${goButton("Sair da conta", "login", "ghost", true)}</div>${future ? '<div class="soft-card"><strong>Próxima dependência</strong><p>Home &amp; Discovery substituirá esta tela quando o módulo for especificado e implementado.</p></div>' : ""}</div>`;
       if (template === "session-init") inner = `${iconLogo}<div class="phone-content" style="text-align:center"><p class="phone-title">Iniciando Reelix</p><p class="phone-subtitle">Estamos verificando sua sessão salva.</p><div class="soft-card" style="padding:22px"><span style="display:inline-grid;width:34px;height:34px;place-items:center;border:2px solid #29323C;border-top-color:var(--brand);border-radius:50%;color:var(--pink)">◌</span><p style="margin-top:11px">Carregando sua sessão…</p></div><div class="form-note">Se a restauração falhar, o app apresenta erro e opção de tentar novamente.</div>${goButton("Sem sessão: ir ao login","login","primary",true)}<div style="margin-top:8px">${goButton("Sessão válida: conta","account","secondary",true)}</div></div>`;
-      if (template === "welcome") inner = `${phoneTop}<div class="phone-content"><div class="phone-logo-row">${iconLogo}<span class="step-mark">COMEÇAR</span></div><div class="title-art"><small>Seu próximo capítulo</small><strong>Descubra o seu Reelix</strong></div><p class="phone-title" style="margin-top:16px">O que você gosta de assistir?</p><p class="phone-subtitle">Conte um pouco sobre seus gostos. Você poderá mudar tudo depois no perfil.</p><div class="progress"><span style="width:16%"></span></div>${goButton("Vamos começar", "genres", "primary", true)}<div style="margin-top:8px">${goButton("Agora não", "account", "ghost", true)}</div></div>`;
-      if (template === "genres") inner = `${phoneTop}<div class="phone-content"><div class="phone-logo-row">${iconLogo}<span class="step-mark">1 / 3</span></div><div class="progress"><span style="width:34%"></span></div><p class="phone-kicker">SEUS GOSTOS</p><p class="phone-title">Quais gêneros chamam sua atenção?</p><p class="phone-subtitle">Escolha os que combinam com você. Pode pular e editar depois.</p><div class="chip-row">${choice("Ação",true)}${choice("Aventura")}${choice("Animação")}${choice("Comédia",true)}${choice("Documentário")}${choice("Drama")}${choice("Terror")}${choice("Romance")}${choice("Ficção científica")}</div><div class="phone-actions">${goButton("Voltar","welcome","secondary")}${goButton("Continuar","fav-movies","primary")}</div><a class="center-link" href="#" data-go="fav-movies">Pular esta etapa</a></div>`;
+      if (template === "welcome") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span></span><span class="step-mark">ETAPA 1 DE 5</span></div><div class="progress"><span style="width:20%"></span></div><p class="phone-kicker">SEU REELIX</p><p class="phone-title">Vamos encontrar seu próximo favorito.</p><p class="phone-subtitle">Escolha alguns gêneros e títulos para personalizar seu espaço.</p><div class="progress" style="width:42px"><span style="width:100%"></span></div>${goButton("Começar", "genres", "primary", true)}</div>`;
+      if (template === "genres") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="welcome">‹ VOLTAR</span><span class="step-mark">ETAPA 2 DE 5</span></div><div class="progress"><span style="width:40%"></span></div><p class="phone-kicker">PREFERÊNCIAS</p><p class="phone-title">Que tipo de história te prende?</p><div class="tab-row"><span class="tab active">Filmes</span><span class="tab">Séries</span></div><p class="tiny">2 de 20 gêneros selecionados</p><div class="chip-row">${choice("Ação",true)}${choice("Aventura")}${choice("Animação")}${choice("Comédia",true)}${choice("Documentário")}${choice("Drama")}${choice("Terror")}${choice("Romance")}${choice("Ficção científica")}</div>${goButton("Continuar","fav-movies","primary",true)}<a class="center-link" href="#" data-go="fav-movies">Pular esta etapa</a></div>`;
       if (template === "fav-movies" || template === "fav-series") {
         const isMovie = template === "fav-movies";
-        const title = isMovie ? "Filmes que você ama" : "Séries que você acompanha";
-        const itemType = isMovie ? "filme" : "série";
-        const pct = isMovie ? "58%" : "82%";
-        inner = `${phoneTop}<div class="phone-content"><div class="phone-logo-row">${iconLogo}<span class="step-mark">${isMovie ? "2" : "3"} / 3</span></div><div class="progress"><span style="width:${pct}"></span></div><p class="phone-kicker">PERSONALIZE SEU CATÁLOGO</p><p class="phone-title">${title}</p><p class="phone-subtitle">Pesquise no catálogo e selecione alguns favoritos. Etapa opcional.</p><div class="input search"><span>⌕ &nbsp; Buscar ${itemType}…</span><span class="icon">↵</span></div><p class="tiny" style="margin:7px 0">RESULTADOS DO CATÁLOGO · EXEMPLOS VISUAIS</p>${resultCard("Título do catálogo","Ano · Gêneros disponíveis")}${resultCard("Outro título","Data e metadados opcionais","cool")}<div class="chip-row">${choice("Selecionado",true)}</div><div class="phone-actions">${goButton("Voltar",isMovie ? "genres" : "fav-movies","secondary")}${goButton(isMovie ? "Continuar" : "Salvar","fav-series","primary")}</div><a class="center-link" href="#" data-go="${isMovie ? "fav-series" : "complete"}">Pular por agora</a></div>`;
+        inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="${isMovie ? "genres" : "fav-movies"}">‹ VOLTAR</span><span class="step-mark">ETAPA ${isMovie ? "3" : "4"} DE 5</span></div><div class="progress"><span style="width:${isMovie ? "60%" : "80%"}"></span></div><p class="phone-kicker">${isMovie ? "FILMES" : "SÉRIES"}</p><p class="phone-title">${isMovie ? "Quais filmes você ama?" : "Quais séries você acompanha?"}</p><p class="phone-subtitle">Escolha até 10. Esta etapa é opcional.</p><div class="phone-actions" style="margin-top:0"><div class="input search" style="flex:2"><span>Buscar no catálogo</span></div>${goButton("Buscar", template, "secondary")}</div><p class="tiny" style="margin:7px 0">Digite ao menos 2 caracteres. Os resultados abaixo são exemplos visuais.</p>${resultCard("Título do catálogo","Ano · metadados disponíveis")}${resultCard("Outro título","Metadados opcionais","cool")}<p class="tiny">1 de 10 selecionados</p><a class="center-link" href="#" data-go="${template}">Remover seleções desta etapa</a>${goButton("Continuar", isMovie ? "fav-series" : "complete", "primary", true)}<a class="center-link" href="#" data-go="${isMovie ? "fav-series" : "complete"}">Pular esta etapa</a></div>`;
       }
-      if (template === "complete") inner = `${phoneTop}<div class="phone-content"><div class="phone-logo-row">${iconLogo}<span class="step-mark">FINALIZAR</span></div><div class="title-art series-art"><small>Preferências</small><strong>Seu perfil de gostos</strong></div><p class="phone-title" style="margin-top:15px">Pronto para salvar?</p><p class="phone-subtitle">Você pode concluir mesmo sem escolher títulos favoritos, conforme as regras mínimas do fluxo.</p><div class="soft-card"><strong>Escolhas salvas no servidor</strong><p>Gêneros e referências de catálogo vinculados à sua conta autenticada.</p></div>${goButton("Salvar e concluir","profile","primary",true)}<div style="margin-top:8px">${goButton("Continuar depois","account","secondary",true)}</div></div>`;
-      if (template === "profile") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Meu perfil</p><span class="tiny">⋯</span></div><div class="user-row"><div class="avatar">R</div><div><strong>Nome de exibição</strong><span>Bio não informada</span></div></div><div class="soft-card"><p>Avatar padrão · upload não disponível até decisão sobre armazenamento.</p></div><div class="stat-row"><div class="stat-box"><strong>—</strong><span>ESTATÍSTICAS</span></div><div class="stat-box"><strong>—</strong><span>CONQUISTAS</span></div><div class="stat-box"><strong>Privado</strong><span>COMPARTILHAMENTO</span></div></div><div class="tab-row"><span class="tab active">Perfil</span><span class="tab">Preferências</span><span class="tab">Privacidade</span></div>${goButton("Editar perfil","profile-edit","secondary",true)}<div class="phone-actions">${goButton("Preferências","preferences","secondary")}${goButton("Privacidade","privacy","secondary")}</div><p class="tiny" style="margin-top:12px">Estatísticas e conquistas dependem de módulos responsáveis; nenhum valor foi presumido.</p></div>`;
-      if (template === "profile-edit") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Editar perfil</p><span class="tiny">CANCELAR</span></div><div class="user-row"><div class="avatar">R</div><div><strong>Avatar padrão</strong><span>Imagem personalizada bloqueada</span></div></div>${formField("Nome de exibição","Como devemos chamar você?")}${formField("Biografia","Conte um pouco sobre você") }<p class="tiny">Limites de texto serão definidos no contrato e validados no servidor.</p><div class="soft-card"><strong>Avatar</strong><p>Remover avatar personalizado / manter avatar padrão. Upload depende de decisão de armazenamento e regras de segurança.</p></div>${goButton("Salvar alterações","profile","primary",true)}<a class="center-link" href="#" data-go="profile">Cancelar</a></div>`;
-      if (template === "preferences") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Minhas preferências</p><span class="tiny">EDITAR</span></div><p class="phone-subtitle">Uma fonte de verdade compartilhada com o onboarding.</p><p class="mini-section">GÊNEROS</p><div class="chip-row">${choice("Ação",true)}${choice("Comédia",true)}${choice("Drama")}</div><p class="mini-section">FILMES FAVORITOS</p>${resultCard("Referência de filme","ID interno do catálogo") }<p class="mini-section">SÉRIES FAVORITAS</p>${resultCard("Referência de série","ID interno do catálogo","cool")}${goButton("Editar preferências","genres","primary",true)}<p class="tiny" style="margin-top:9px">Não duplica títulos nem gêneros do catálogo.</p></div>`;
-      if (template === "privacy") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Privacidade</p><span class="tiny">SALVAR</span></div><p class="phone-subtitle">Revise o que é compartilhado. As opções finais dependem da política do produto.</p><div class="row"><span>Visibilidade do perfil<small>Opção a definir</small></span><span class="toggle"></span></div><div class="row"><span>Preferências pessoais<small>Privadas por padrão até decisão</small></span><span class="toggle on"></span></div><div class="row"><span>Histórico de atividade<small>Não tornar público automaticamente</small></span><span class="toggle on"></span></div><div class="soft-card"><strong>Compartilhamento atual</strong><p>Mostre ao usuário um resumo do que está visível para outras pessoas.</p></div><div class="form-note">Níveis, defaults e regras de consulta de terceiros ainda precisam de contrato.</div>${goButton("Salvar preferências","profile","primary",true)}<a class="center-link" href="#" data-go="profile">Voltar ao perfil</a></div>`;
+      if (template === "complete") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="fav-series">‹ VOLTAR</span><span class="step-mark">ETAPA 5 DE 5</span></div><div class="progress"><span style="width:100%"></span></div><p class="phone-kicker">PRONTO</p><p class="phone-title">Seu ponto de partida.</p><div class="row"><span>Gêneros</span><strong>—</strong></div><div class="row"><span>Filmes favoritos</span><strong>—</strong></div><div class="row"><span>Séries favoritas</span><strong>—</strong></div><p class="phone-subtitle" style="margin-top:10px">Você pode editar suas escolhas no perfil.</p>${goButton("Concluir","account","primary",true)}</div>`;
+      if (template === "profile") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="account">‹ VOLTAR</span><span class="step-mark">CONTA REELIX</span></div><div class="user-row"><div class="avatar">R</div><div><strong>Seu perfil</strong><span>Sua identidade no Reelix.</span></div></div><p class="mini-section">INFORMAÇÕES</p>${formField("Nome de exibição","Como você quer aparecer")}<p class="tiny" style="text-align:right">0/50</p>${formField("Biografia","Uma frase sobre você")}<p class="tiny" style="text-align:right">0/280</p><p class="mini-section">PRIVACIDADE</p><div class="row" data-go="privacy"><span>Perfil visível<small>Privado por padrão</small></span><span class="toggle"></span></div><p class="mini-section">PREFERÊNCIAS</p><div class="row" data-go="preferences"><span>Gêneros e títulos favoritos</span><span class="tiny">Editar</span></div>${goButton("Salvar alterações","profile-edit","primary",true)}<p class="tiny" style="margin-top:9px">Créditos TMDB ao final da tela. Estatísticas, conquistas e upload de avatar não fazem parte deste incremento.</p></div>`;
+      if (template === "profile-edit") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="account">‹ VOLTAR</span><span class="step-mark">CONTA REELIX</span></div><p class="mini-section">INFORMAÇÕES</p><div class="field"><label>Nome de exibição</label><div class="input" style="border-color:var(--pink)"><span>Nome em edição</span></div></div><p class="tiny" style="text-align:right">14/50</p>${formField("Biografia","Uma frase sobre você")}<p class="tiny" style="text-align:right">0/280</p><div class="form-note">O campo em foco recebe borda rosa. Os limites de 50 e 280 caracteres também são validados no servidor.</div>${goButton("Salvar alterações","profile","primary",true)}<div class="form-note success" style="margin-top:10px">Perfil atualizado.</div></div>`;
+      if (template === "preferences") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="profile">‹ VOLTAR</span><span class="step-mark">EDITANDO PREFERÊNCIAS</span></div><div class="progress"><span style="width:40%"></span></div><p class="phone-kicker">PREFERÊNCIAS</p><p class="phone-title">Que tipo de história te prende?</p><p class="phone-subtitle">Mesmo fluxo do onboarding, aberto em modo de edição pela Home ou pelo Perfil.</p><div class="chip-row">${choice("Ação",true)}${choice("Comédia",true)}${choice("Drama")}</div>${goButton("Continuar","fav-movies","primary",true)}<a class="center-link" href="#" data-go="profile">Cancelar edição</a><p class="tiny" style="margin-top:9px">Na revisão, a ação final é “Salvar preferências”. Não duplica títulos nem gêneros do catálogo.</p></div>`;
+      if (template === "privacy") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="account">‹ VOLTAR</span><span class="step-mark">CONTA REELIX</span></div><p class="mini-section">PRIVACIDADE</p><div class="row"><span>Perfil visível<small>Seus dados básicos podem aparecer quando alguém consulta seu perfil.</small></span><span class="toggle"></span></div><div class="row"><span>Favoritos visíveis<small>Exibe seus títulos favoritos no perfil público.</small></span><span class="toggle"></span></div><div class="row"><span>Histórico visível<small>A configuração será aplicada quando o histórico estiver disponível.</small></span><span class="toggle"></span></div><div class="form-note">Todas as opções começam desligadas e são salvas junto com o perfil.</div>${goButton("Salvar alterações","profile","primary",true)}</div>`;
       if (template === "search") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Descobrir</p><span class="tiny">⌕</span></div><p class="phone-subtitle">Pesquise filmes e séries no catálogo disponível.</p><div class="input search"><span>⌕ &nbsp; Título, filme ou série</span><span class="icon">↵</span></div><div class="chip-row">${choice("Todos",true)}${choice("Filmes")}${choice("Séries")}</div><div class="soft-card"><strong>Busca autenticada</strong><p>Termo, tipo, página e idioma seguem o contrato Reelix; provedor disponível no backend.</p></div><div class="phone-actions">${goButton("Buscar","results","primary")}${goButton("Ver séries","series","secondary")}</div><p class="tiny" style="margin-top:13px">PROPOSTA DE INTERFACE · NÃO ESPECIFICADA PELO PLANO DE CATÁLOGO</p></div>`;
       if (template === "results") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Resultados</p><span class="tiny">FILTRO</span></div><div class="input search"><span>⌕ &nbsp; Busca atual</span><span class="icon">×</span></div><div class="chip-row">${choice("Todos",true)}${choice("Filmes")}${choice("Séries")}</div><p class="tiny">RESULTADOS · PROVEDOR / PÁGINA DISPONÍVEIS</p>${resultCard("Resultado do catálogo","Filme · metadados disponíveis")}${resultCard("Resultado do catálogo","Série · metadados disponíveis","cool")}${resultCard("Resultado do catálogo","Filme · data opcional","gold")}<div class="phone-actions">${goButton("‹ Anterior","search","secondary")}${goButton("Próxima página","movie","primary")}</div><p class="tiny" style="margin-top:10px">Resultados ilustrativos, não retornados por API.</p></div>`;
       if (template === "movie") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="results">‹ VOLTAR</span><span class="tiny">DETALHES</span></div><div class="title-art"><small>Filme · provedor de origem</small><strong>Título do catálogo</strong></div><div class="inline-metadata">${chip("Data opcional")}${chip("Duração opcional")}${chip("Idioma opcional")}</div><div class="chip-row">${choice("Gênero disponível")}${choice("Outro gênero")}</div><p class="mini-section">SINOPSE</p><p class="phone-subtitle">Sinopse fornecida pelo provedor, quando disponível. Este campo permanece opcional.</p><div class="soft-card"><strong>Origem identificável</strong><p>ID interno Reelix + provedor + ID externo.</p></div><div class="form-note">Sem ação de tracking, avaliação, lista, recomendação ou streaming: fora do plano de catálogo.</div>${goButton("Voltar aos resultados","results","secondary",true)}</div>`;
@@ -1044,6 +1152,7 @@
     function bannerMarkup(screen) {
       if (!currentScreen.state || !screen.stateCopy || !screen.stateCopy[currentScreen.state]) return "";
       const [kind, copy] = screen.stateCopy[currentScreen.state];
+      if (kind === "error" && screen.module !== "catalog") return `<div class="toast-preview" role="alert"><div><strong>Algo deu errado</strong><p>${copy}</p></div><span aria-label="Fechar aviso">×</span></div>`;
       return `<div class="state-banner ${kind}"><strong>${currentScreen.state}:</strong> ${copy}</div>`;
     }
 
@@ -1128,19 +1237,19 @@
         {
           title: "Authentication", status: "done", caption: "Implementado no app; comportamento planejado mantém o login independente do onboarding.",
           paths: [
-            [["Início / sessão","session-init"],["Entrar","login"],["Conta autenticada","account"],["Sair","login"]],
+            [["Início / sessão","session-init"],["Entrar","login"],["Home autenticada","account"],["Sair","login"]],
             [["Criar conta","signup"],["Callback (se habilitado)","callback"],["Entrar","login"]],
             [["Recuperar acesso","forgot"],["Callback","callback"],["Nova senha","reset"],["Conta","account"]],
           ], label: "AS IS + continuidade planejada",
         },
         {
-          title: "Onboarding & Profile", status: "todo", caption: "Fluxo TO BE baseado no plano 02 e specs; nenhuma dessas telas foi encontrada no app.",
+          title: "Onboarding & Profile", status: "done", caption: "Implementado no app: onboarding retomável, edição de preferências e perfil com privacidade.",
           paths: [
-            [["Início / retomar","welcome"],["Gêneros","genres"],["Filmes (opcional)","fav-movies"],["Séries (opcional)","fav-series"],["Salvar/concluir","complete"]],
-            [["Conclusão","complete"],["Perfil","profile"],["Editar perfil","profile-edit"]],
-            [["Perfil","profile"],["Preferências","preferences"]],
+            [["Boas-vindas","welcome"],["Gêneros","genres"],["Filmes (opcional)","fav-movies"],["Séries (opcional)","fav-series"],["Revisão","complete"],["Home","account"]],
+            [["Home","account"],["Perfil","profile"],["Editar perfil","profile-edit"]],
+            [["Home / Perfil","profile"],["Editar preferências","preferences"],["Gêneros","genres"]],
             [["Perfil","profile"],["Privacidade","privacy"]],
-          ], label: "TO BE · proposta aguardando aprovação",
+          ], label: "AS IS · implementado",
         },
         {
           title: "Catalog · API e consumo visual", status: "partial", caption: "API atual disponível; sequência mobile abaixo é apenas proposta, pois telas foram excluídas do escopo do plano.",

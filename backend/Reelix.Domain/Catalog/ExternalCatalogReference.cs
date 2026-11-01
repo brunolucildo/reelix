@@ -37,17 +37,17 @@ public sealed class ExternalCatalogReference
     {
         if (string.IsNullOrWhiteSpace(provider))
         {
-            throw new ArgumentException("A provider is required.", nameof(provider));
+            throw new ArgumentException("Informe o provedor do catálogo.", nameof(provider));
         }
 
         if (string.IsNullOrWhiteSpace(externalId))
         {
-            throw new ArgumentException("An external identifier is required.", nameof(externalId));
+            throw new ArgumentException("Informe o identificador externo.", nameof(externalId));
         }
 
         if (string.IsNullOrWhiteSpace(contentType))
         {
-            throw new ArgumentException("A content type is required.", nameof(contentType));
+            throw new ArgumentException("Informe o tipo de conteúdo.", nameof(contentType));
         }
 
         return new ExternalCatalogReference(

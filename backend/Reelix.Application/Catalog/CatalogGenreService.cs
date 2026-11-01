@@ -16,13 +16,13 @@ public sealed class CatalogGenreService(
     {
         if (string.IsNullOrWhiteSpace(language) || language.Length > 16)
         {
-            throw new ArgumentException("A valid language code is required.", nameof(language));
+            throw new ArgumentException("Informe um código de idioma válido.", nameof(language));
         }
 
         var catalogProvider = providers.SingleOrDefault(candidate => candidate.Provider == provider)
             ?? throw new CatalogProviderException(
                 "catalog_provider_not_supported",
-                $"The {provider} catalog provider does not supply genre lists.",
+                $"O provedor de catálogo {provider} não oferece lista de gêneros.",
                 (int)HttpStatusCode.BadRequest);
         var key = $"catalog-genres:{provider}:{contentType}:{language}";
         if (Cache.TryGetValue(key, out var cached) && cached.ExpiresAt > DateTimeOffset.UtcNow)

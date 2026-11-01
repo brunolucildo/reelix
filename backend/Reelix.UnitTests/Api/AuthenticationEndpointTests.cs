@@ -127,6 +127,10 @@ public sealed class AuthenticationEndpointTests
         using var response = await _client.SendAsync(request);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var problem = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal(
+            "O nome de exibição pode ter no máximo 50 caracteres.",
+            problem.RootElement.GetProperty("detail").GetString());
     }
 
     [Fact]
@@ -246,6 +250,11 @@ public sealed class AuthenticationEndpointTests
         using var response = await _client.SendAsync(request);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var problem = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal("Preferências de onboarding inválidas.", problem.RootElement.GetProperty("title").GetString());
+        Assert.Equal(
+            "Um ou mais filmes favoritos não estão no catálogo.",
+            problem.RootElement.GetProperty("detail").GetString());
     }
 
     [Fact]

@@ -149,9 +149,10 @@ public sealed class TmdbCatalogProvider(
         var token = options.Value.AccessToken;
         if (string.IsNullOrWhiteSpace(token))
         {
+            logger.LogError("Catalog provider {Provider} is not configured. Set Catalog:Tmdb:AccessToken on the server.", Provider);
             throw new CatalogProviderException(
                 "catalog_provider_not_configured",
-                "TMDB is not configured. Set Catalog:Tmdb:AccessToken on the server.",
+                "O catálogo não está configurado no servidor.",
                 (int)HttpStatusCode.ServiceUnavailable);
         }
 
@@ -212,7 +213,7 @@ public sealed class TmdbCatalogProvider(
         {
             throw new CatalogProviderException(
                 "catalog_invalid_external_id",
-                "TMDB identifiers must be positive integers.",
+                "Identificadores TMDB devem ser números inteiros positivos.",
                 (int)HttpStatusCode.BadRequest);
         }
 

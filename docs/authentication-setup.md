@@ -15,6 +15,8 @@ O app usa Supabase Auth para cadastro, login, confirmação de e-mail, recupera�
    npx expo start
    ```
 
+Nas telas de entrada, cadastro e redefinição, os campos de senha têm o botão “Mostrar/Ocultar”, com área de toque de 44 px e rótulos acessíveis. Erros por campo aparecem inline. Falhas do Supabase Auth, como credenciais inválidas e links expirados, aparecem em toast sem revelar se o e-mail existe. Mensagens de sucesso continuam inline.
+
 A chave `publishable` (ou a antiga chave `anon`) é pública e pode compor o bundle do app. Nunca use `service_role`, chaves secretas ou a chave privada de assinatura JWT no mobile. Os tokens de sessão são mantidos no `expo-secure-store` em iOS/Android; a versão web, se utilizada, recorre ao armazenamento local do navegador e não deve ser tratada como limite de segurança.
 
 ## Projeto Supabase

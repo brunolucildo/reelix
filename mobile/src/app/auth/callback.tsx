@@ -5,7 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 
 import { AuthScreen } from '@/components/auth/auth-screen';
 import { AuthLink } from '@/components/auth/auth-link';
-import { FormMessage } from '@/components/auth/form-message';
+import { useToast } from '@/providers/toast-provider';
 import { supabase } from '@/services/supabase';
 import { colors } from '@/theme/tokens';
 
@@ -50,6 +50,7 @@ export default function AuthCallbackScreen() {
   }>();
   const incomingUrl = Linking.useLinkingURL();
   const [error, setError] = useState<string | null>(null);
+  const { showError } = useToast();
   const first = (value: string | string[] | undefined) =>
     Array.isArray(value) ? value[0] : value;
 
@@ -101,7 +102,9 @@ export default function AuthCallbackScreen() {
         }
       } catch {
         if (active) {
-          setError('Este link de autenticação é inválido ou expirou. Solicite um novo link e tente novamente.');
+          const message = 'Este link de autenticação é inválido ou expirou. Solicite um novo link e tente novamente.';
+          setError(message);
+          showError(message);
         }
       }
     };
@@ -111,13 +114,15 @@ export default function AuthCallbackScreen() {
     return () => {
       active = false;
     };
-  }, [incomingUrl, params.access_token, params.code, params.error, params.flow, params.refresh_token, params.token_hash, params.type]);
+  }, [incomingUrl, params.access_token, params.code, params.error, params.flow, params.refresh_token, params.token_hash, params.type, showError]);
 
   return (
-    <AuthScreen title="Confirmando seu acesso." subtitle="Estamos validando o link com segurança.">
+    <AuthScreen
+      title={error ? 'Link indisponível.' : 'Confirmando seu acesso.'}
+      subtitle={error ? 'Solicite um novo link para continuar com segurança.' : 'Estamos validando o link com segurança.'}
+    >
       {error ? (
         <>
-          <FormMessage message={error} tone="error" />
           <AuthLink href="/" label="Voltar para entrar" />
         </>
       ) : (

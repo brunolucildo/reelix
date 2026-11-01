@@ -61,8 +61,8 @@ public static class ProfileEndpoints
         {
             return Results.Problem(
                 statusCode: StatusCodes.Status400BadRequest,
-                title: "Invalid profile.",
-                detail: exception.Message);
+                title: "Perfil inválido.",
+                detail: exception.ToUserMessage());
         }
     }
 

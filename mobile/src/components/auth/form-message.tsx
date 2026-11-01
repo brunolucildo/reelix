@@ -1,6 +1,6 @@
 import { StyleSheet, Text } from 'react-native';
 
-import { colors, fontFamily } from '@/theme/tokens';
+import { colors, fontFamily, typography } from '@/theme/tokens';
 
 type FormMessageProps = {
   message: string;
@@ -21,7 +21,7 @@ export function FormMessage({ message, tone }: FormMessageProps) {
 
 const styles = StyleSheet.create({
   message: {
-    fontSize: 14,
+    fontSize: typography.bodySmall,
     fontFamily: fontFamily.regular,
     lineHeight: 21,
   },

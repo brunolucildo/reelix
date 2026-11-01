@@ -8,7 +8,7 @@ The identity follows the Reelix visual reference in [`docs/visual_identity.png`]
 | --- | --- | --- |
 | Reelix red | `#FF2D55` | Primary mark, selected states, calls to action |
 | Reelix pink | `#FF6688` | Secondary accents and highlights |
-| Background | `#0F0F10` | Main dark canvas |
+| Background | `#080B0F` | Main app canvas |
 | Surface | `#1A1A1E` | Cards and contained surfaces |
 | Raised surface | `#2A2A2E` | Borders and elevated details |
 | Text | `#FFFFFF` | Primary content and monochrome-on-dark logo |

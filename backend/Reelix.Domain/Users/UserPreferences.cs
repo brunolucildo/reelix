@@ -28,7 +28,7 @@ public sealed class UserPreferences
     {
         if (accountId == Guid.Empty)
         {
-            throw new ArgumentException("A valid account identifier is required.", nameof(accountId));
+            throw new ArgumentException("Informe um identificador de conta válido.", nameof(accountId));
         }
 
         return new UserPreferences(accountId);
@@ -38,7 +38,7 @@ public sealed class UserPreferences
     {
         if (string.IsNullOrWhiteSpace(currentStep))
         {
-            throw new ArgumentException("An onboarding step is required.", nameof(currentStep));
+            throw new ArgumentException("Informe uma etapa do onboarding.", nameof(currentStep));
         }
 
         CurrentStep = currentStep;

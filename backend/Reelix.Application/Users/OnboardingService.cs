@@ -39,7 +39,7 @@ public sealed class OnboardingService(
                 CatalogContentType.Movie,
                 cancellationToken))
         {
-            throw new ArgumentException("One or more favorite movie IDs are not in the catalog.");
+            throw new ArgumentException("Um ou mais filmes favoritos não estão no catálogo.");
         }
 
         if (!await preferences.CatalogTitlesExistAsync(
@@ -47,7 +47,7 @@ public sealed class OnboardingService(
                 CatalogContentType.Series,
                 cancellationToken))
         {
-            throw new ArgumentException("One or more favorite series IDs are not in the catalog.");
+            throw new ArgumentException("Uma ou mais séries favoritas não estão no catálogo.");
         }
 
         await preferences.SaveProgressAsync(account.Id, progress, cancellationToken);
@@ -80,7 +80,9 @@ public sealed class OnboardingService(
             cancellationToken);
         if (selectedGenreIds.Any(id => validIds.All(genre => genre.Id != id)))
         {
-            throw new ArgumentException($"One or more {contentType} genre IDs are invalid.");
+            throw new ArgumentException(contentType == CatalogContentType.Movie
+                ? "Um ou mais gêneros de filmes são inválidos."
+                : "Um ou mais gêneros de séries são inválidos.");
         }
     }
 
@@ -88,13 +90,13 @@ public sealed class OnboardingService(
     {
         if (!Enum.IsDefined(progress.CurrentStep) || progress.CurrentStep == OnboardingStep.Completed)
         {
-            throw new ArgumentException("A valid in-progress onboarding step is required.", nameof(progress));
+            throw new ArgumentException("Informe uma etapa válida do onboarding em andamento.", nameof(progress));
         }
 
-        ValidateSelection(progress.MovieGenreIds, 20, "movie genres");
-        ValidateSelection(progress.SeriesGenreIds, 20, "series genres");
-        ValidateSelection(progress.FavoriteMovieIds, 10, "favorite movies");
-        ValidateSelection(progress.FavoriteSeriesIds, 10, "favorite series");
+        ValidateSelection(progress.MovieGenreIds, 20, "gêneros de filmes");
+        ValidateSelection(progress.SeriesGenreIds, 20, "gêneros de séries");
+        ValidateSelection(progress.FavoriteMovieIds, 10, "filmes favoritos");
+        ValidateSelection(progress.FavoriteSeriesIds, 10, "séries favoritas");
     }
 
     private static void ValidateSelection<T>(
@@ -105,7 +107,7 @@ public sealed class OnboardingService(
         ArgumentNullException.ThrowIfNull(items);
         if (items.Count > maximum || items.Distinct().Count() != items.Count)
         {
-            throw new ArgumentException($"Select no more than {maximum} unique {name}.", name);
+            throw new ArgumentException($"Selecione no máximo {maximum} {name}, sem repetições.");
         }
     }
 }

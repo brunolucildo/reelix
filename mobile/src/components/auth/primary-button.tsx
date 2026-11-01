@@ -1,13 +1,13 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors, fontFamily, radii } from '@/theme/tokens';
+import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 
 type PrimaryButtonProps = {
   label: string;
   onPress: () => void;
   loading?: boolean;
   disabled?: boolean;
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'quiet';
 };
 
 export function PrimaryButton({
@@ -22,20 +22,29 @@ export function PrimaryButton({
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={label}
       accessibilityState={{ busy: loading, disabled: isDisabled }}
       disabled={isDisabled}
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        variant === 'secondary' ? styles.secondary : styles.primary,
+        variant === 'primary' ? styles.primary : null,
+        variant === 'secondary' ? styles.secondary : null,
+        variant === 'quiet' ? styles.quiet : null,
         pressed && !isDisabled ? styles.pressed : null,
         isDisabled ? styles.disabled : null,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? colors.white : colors.brand} />
+        <ActivityIndicator color={variant === 'primary' ? colors.background : colors.brandSecondary} />
       ) : (
-        <Text style={[styles.label, variant === 'secondary' ? styles.secondaryLabel : null]}>
+        <Text
+          style={[
+            styles.label,
+            variant === 'secondary' ? styles.secondaryLabel : null,
+            variant === 'quiet' ? styles.quietLabel : null,
+          ]}
+        >
           {label}
         </Text>
       )}
@@ -45,11 +54,11 @@ export function PrimaryButton({
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: 52,
+    minHeight: 54,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radii.medium,
-    paddingHorizontal: 18,
+    paddingHorizontal: spacing.medium,
   },
   primary: {
     backgroundColor: colors.brand,
@@ -57,15 +66,21 @@ const styles = StyleSheet.create({
   secondary: {
     borderColor: colors.border,
     borderWidth: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceElevated,
+  },
+  quiet: {
+    backgroundColor: 'transparent',
   },
   label: {
-    color: colors.white,
-    fontSize: 15,
-    fontFamily: fontFamily.extraBold,
+    color: colors.background,
+    fontSize: typography.body,
+    fontFamily: fontFamily.bold,
   },
   secondaryLabel: {
     color: colors.textPrimary,
+  },
+  quietLabel: {
+    color: colors.error,
   },
   pressed: {
     opacity: 0.82,
