@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Reelix.Application.Authentication;
 using Reelix.Application.Catalog;
@@ -29,6 +30,7 @@ public static class DependencyInjection
 
         services.AddDbContext<ReelixDbContext>(options =>
             options.UseNpgsql(connectionString));
+        services.AddMemoryCache(options => options.SizeLimit = 200);
         services.AddScoped<IUserAccountRepository, UserAccountRepository>();
         services.AddScoped<IUserProfileRepository, UserProfileRepository>();
         services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository>();

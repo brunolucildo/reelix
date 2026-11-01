@@ -33,6 +33,16 @@ public static class CatalogEndpoints
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
             .ProducesProblem(StatusCodes.Status504GatewayTimeout);
 
+        group.MapGet("/discover", Discover)
+            .WithName("DiscoverCatalog")
+            .WithSummary("Discover popular or upcoming movies and series.")
+            .Produces<CatalogDiscoveryPage>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
+            .ProducesProblem(StatusCodes.Status502BadGateway)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
+            .ProducesProblem(StatusCodes.Status504GatewayTimeout);
+
         group.MapGet("/{provider}/{contentType}/{externalId}", GetDetails)
             .WithName("GetCatalogTitle")
             .WithSummary("Get normalized details for a movie or series.")
@@ -124,6 +134,36 @@ public static class CatalogEndpoints
                     page,
                     language,
                     context.RequestAborted)));
+    }
+
+    private static async Task<IResult> Discover(
+        HttpContext context,
+        CatalogService catalog,
+        string type,
+        string section,
+        [FromQuery] int[]? genreIds = null,
+        int page = 1,
+        string provider = "tmdb",
+        string language = "pt-BR")
+    {
+        if (!TryParseProvider(provider, out var parsedProvider) ||
+            !TryParseContentType(type, out var parsedType) ||
+            !Enum.TryParse<CatalogDiscoveryCategory>(section, ignoreCase: true, out var category) ||
+            !Enum.IsDefined(category))
+        {
+            return InvalidDiscoveryParameter();
+        }
+
+        return await ExecuteAsync(
+            context,
+            async () => Results.Ok(await catalog.DiscoverAsync(
+                parsedProvider,
+                parsedType,
+                category,
+                genreIds ?? [],
+                page,
+                language,
+                context.RequestAborted)));
     }
 
     private static async Task<IResult> GetDetails(
@@ -231,4 +271,10 @@ public static class CatalogEndpoints
             statusCode: StatusCodes.Status400BadRequest,
             title: "Provedor ou tipo de conteúdo inválido.",
             detail: "Use o provedor 'tmdb' ou 'omdb' e o tipo de conteúdo 'movie' ou 'series'.");
+
+    private static IResult InvalidDiscoveryParameter() =>
+        Results.Problem(
+            statusCode: StatusCodes.Status400BadRequest,
+            title: "Parâmetro de descoberta inválido.",
+            detail: "Use o provedor 'tmdb', um tipo válido e a seção 'popular' ou 'upcoming'.");
 }

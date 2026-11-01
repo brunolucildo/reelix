@@ -5,6 +5,30 @@ namespace Reelix.UnitTests.Catalog;
 public sealed class CatalogServiceTests
 {
     [Fact]
+    public async Task DiscoverAsync_MapsStableInternalIdsAndPreservesQueryMetadata()
+    {
+        var provider = new StubCatalogProvider();
+        var references = new StubReferenceRepository();
+        var service = new CatalogService([provider], references);
+
+        var page = await service.DiscoverAsync(
+            CatalogProvider.Tmdb,
+            CatalogContentType.Movie,
+            CatalogDiscoveryCategory.Popular,
+            [28],
+            1,
+            "pt-BR",
+            CancellationToken.None);
+
+        var title = Assert.Single(page.Items);
+        Assert.Equal(references.IdFor("11", CatalogReferenceType.Movie), title.Id);
+        Assert.Equal("Popular title", title.Title);
+        Assert.Equal(CatalogContentType.Movie, page.ContentType);
+        Assert.Equal(CatalogDiscoveryCategory.Popular, page.Category);
+        Assert.Equal(2, page.TotalPages);
+    }
+
+    [Fact]
     public async Task GetSeason_AssignsStableInternalIdsToSeriesSeasonAndEpisodes()
     {
         var provider = new StubCatalogProvider();
@@ -32,9 +56,35 @@ public sealed class CatalogServiceTests
             references.LastRequestedReferences);
     }
 
-    private sealed class StubCatalogProvider : ICatalogProvider
+    private sealed class StubCatalogProvider : ICatalogProvider, ICatalogDiscoveryProvider
     {
         public CatalogProvider Provider => CatalogProvider.Tmdb;
+
+        public Task<ProviderCatalogPage> DiscoverAsync(
+            CatalogContentType contentType,
+            CatalogDiscoveryCategory category,
+            IReadOnlyCollection<int> genreIds,
+            int page,
+            string language,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(new ProviderCatalogPage(
+                [
+                    new ProviderCatalogTitle(
+                        "11",
+                        contentType,
+                        "Popular title",
+                        null,
+                        null,
+                        [],
+                        null,
+                        null,
+                        null,
+                        null,
+                        null),
+                ],
+                page,
+                2,
+                21));
 
         public Task<ProviderCatalogPage> SearchAsync(
             string query,

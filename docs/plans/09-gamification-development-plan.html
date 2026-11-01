@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#080b0f">
+    <meta name="description" content="Plano proposto para conquistas, estatísticas verificáveis e rankings do Reelix.">
+    <title>Plano 09 — Gamificação | Reelix</title>
+    <style>
+      :root { color-scheme: dark; --brand: #ff2d55; --background: #080b0f; --surface: #10141b; --border: #202d36; --text: #fff; --muted: #a1a1aa; font-family: "Sora", "Segoe UI", sans-serif; }
+      * { box-sizing: border-box; } body { margin: 0; background: radial-gradient(ellipse at 8% 0%, rgb(255 45 85 / 18%), transparent 32rem), var(--background); color: var(--text); line-height: 1.65; }
+      a { color: #ff6688; text-underline-offset: 3px; } .page { width: min(1080px, calc(100% - 40px)); margin: auto; padding: 42px 0 72px; }
+      .brand { font-size: 1.3rem; font-weight: 800; margin-bottom: 28px; color: var(--brand); } .hero, .card { padding: 24px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); } .hero { padding: 30px; border-radius: 24px; }
+      .eyebrow { color: #ff6688; text-transform: uppercase; letter-spacing: .15em; font-size: .8rem; font-weight: 800; } h1 { font-size: clamp(2.2rem, 6vw, 4rem); line-height: 1.1; letter-spacing: -.055em; margin: 12px 0; } h1 span { color: var(--brand); }
+      h2 { font-size: 1.8rem; letter-spacing: -.04em; margin: 0 0 14px; } h3 { margin: 0 0 8px; font-size: 1.1rem; } p, li { color: var(--muted); } strong { color: var(--text); } li + li { margin-top: 7px; } ul, ol { padding-left: 22px; }
+      main { display: grid; gap: 38px; margin-top: 42px; } .columns, .phase-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } .status { display: inline-block; color: #fbbf24; border: 1px solid #806224; border-radius: 999px; padding: 6px 12px; font-size: .85rem; } .decision { border-color: #806224; } .callout { border-left: 3px solid var(--brand); padding: 16px; background: rgb(255 45 85 / 8%); }
+      footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); } @media (max-width: 720px) { .columns, .phase-grid { grid-template-columns: 1fr; } .page { width: calc(100% - 28px); } .hero { padding: 22px; } } @media print { :root { color-scheme: light; --background: white; --surface: #f5f5f7; --border: #d1d1d6; --text: #171719; --muted: #414147; } body { background: white; } .page { width: 100%; padding: 0; } .card { break-inside: avoid; } }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header><div class="brand">reelix</div><div class="hero">
+        <p class="eyebrow">Etapa 9 · especificação 11</p>
+        <h1>Conquistas e estatísticas <span>reproduzíveis.</span></h1>
+        <p>Calcular progresso a partir dos registros existentes, com regras determinísticas, metadados identificáveis e correções consistentes. Nenhum resultado será decidido por IA.</p>
+        <span class="status">Proposto em 01/11/2026 · aguardando aprovação</span>
+      </div></header>
+      <main>
+        <section aria-labelledby="baseline"><h2 id="baseline">Ponto de partida e dependências</h2><article class="card"><ul>
+          <li>TrackingRecord registra um filme ou episódio por alvo/conta, com data de visualização corrigível. O modelo atual não representa sessões de rewatch nem medição real de tempo.</li>
+          <li>Catálogo retorna gêneros e duração opcionais, mas a persistência de referências guarda apenas identidade externa e tipo. Não é possível somar horas/gêneros offline apenas com as tabelas atuais.</li>
+          <li>O cálculo básico depende de tracking e catálogo; ranking entre amigos depende da etapa 7. Notificação de conquista usa o contrato da etapa 8, mas push indisponível não impede concessão.</li>
+          <li>Perfil já existe; inserir badges sem tornar automaticamente públicas preferências, estatísticas detalhadas ou histórico completo.</li>
+        </ul></article></section>
+        <section aria-labelledby="rules"><h2 id="rules">Regras iniciais e fórmulas propostas</h2><div class="columns">
+          <article class="card"><h3>Catálogo de conquistas</h3><ul>
+            <li><strong>Primeiro filme:</strong> pelo menos 1 filme distinto válido assistido.</li>
+            <li><strong>Cinéfilo:</strong> pelo menos 10 filmes distintos válidos assistidos.</li>
+            <li><strong>Maratona inicial:</strong> pelo menos 10 episódios distintos válidos assistidos.</li>
+            <li><strong>Séries em foco:</strong> pelo menos 3 séries distintas com ao menos um episódio assistido; não chamar essa regra de “séries completas”.</li>
+            <li><strong>Explorador de gêneros:</strong> pelo menos 5 gêneros canônicos distintos entre filmes assistidos com metadados conhecidos. Ausência de gênero não conta.</li>
+            <li>Definição separada da obtenção: código estável, título, descrição, tipo de regra, limiar, versão, vigência e estado ativo. Parâmetros configuráveis, sem engine de scripts arbitrários.</li>
+          </ul></article>
+          <article class="card"><h3>Estatísticas explicáveis</h3><ul>
+            <li>Filmes/episódios: contar alvos distintos por tipo, não eventos ou quantidade de atualizações. Séries acompanhadas: contar SeriesId distintos válidos.</li>
+            <li>Período: filtrar WatchedAt em intervalo semiaberto <code>[início, fim)</code>; armazenar UTC e fechar fuso de apresentação antes dos agregados mensais.</li>
+            <li>Horas estimadas = soma de durações positivas conhecidas dos filmes/episódios elegíveis ÷ 60. Nunca usar duração total da série e também a de seus episódios.</li>
+            <li>Retornar quantidade com/sem duração, cobertura, origem e instante do cálculo. Sem durações conhecidas: horas nulas, não zero inventado.</li>
+            <li>O sistema atual não mede tempo confirmado de reprodução: retornar esse campo como indisponível e rotular todo somatório por runtime como estimativa.</li>
+            <li>Gêneros normalizados por identidade/mapeamento do catálogo; não contar grafias/idiomas diferentes como novos gêneros.</li>
+          </ul></article>
+        </div></section>
+        <section aria-labelledby="decisions"><h2 id="decisions">Privacidade e correções a aprovar</h2><article class="card decision"><ul>
+          <li><strong>Proposta:</strong> badges obtidos públicos por padrão, com controle para ocultá-los. Sua consulta pública retorna apenas badge/data, nunca registros que comprovaram a conquista.</li>
+          <li><strong>Proposta:</strong> conquistas iniciais refletem estado atual; remoção que reduz progresso abaixo do limiar revoga badge. Reaquisição reativa o mesmo registro, sem múltiplas recompensas/notificações.</li>
+          <li>Preservar primeira obtenção e registrar revogação/reativação conforme retenção definida. Correção de data movimenta estatísticas de período, mas não duplica progresso vitalício.</li>
+          <li><strong>Proposta:</strong> ranking mensal entre amigos, com participação opt-in independente do histórico público. Métrica inicial: filmes distintos assistidos no mês; episódios ficam em ranking separado, sem pesos arbitrários.</li>
+          <li>Ordenar contagem decrescente; empates compartilham posição e têm ID estável apenas como desempate de paginação. Retornar nome/avatar/posição/contagem consentida, sem títulos ou detalhes privados.</li>
+          <li>Ranking global, pontuação combinada, conquistas recorrentes e “série completa” ficam fora do MVP até regras e dados suficientes serem aprovados.</li>
+        </ul></article></section>
+        <section aria-labelledby="implementation"><h2 id="implementation">Persistência, cálculo e contratos</h2><div class="columns">
+          <article class="card"><h3>Recalcular sem dupla contagem</h3><ul>
+            <li>Tabelas separadas para definição, obtenção única conta/conquista e projeção de progresso/estatísticas com versão de regra e fonte. FK, unicidade e índices por conta/período.</li>
+            <li>Reusar processamento persistente da etapa 8, se aprovado, para marcar contas afetadas por criação, correção, exclusão e mudança relevante no catálogo; não criar outro broker.</li>
+            <li>Recalcular a partir da fonte de verdade em lote por conta/período, em vez de incrementar cegamente contadores. Versionamento evita que cálculo antigo sobrescreva resultado recente.</li>
+            <li>Executar backfill do histórico existente e reconciliação repetível. Gravar concessão e evento de primeira obtenção atomicamente; chave única impede duplicação por concorrência.</li>
+            <li>Alteração de regra exige versão e política de recomputação explícita. Metadados ausentes deixam progresso dependente do catálogo incompleto, sem invalidar contagens básicas.</li>
+            <li>Migration EF Core, RLS e ausência de grants Data API; no backend, escopo da conta e autorização de rankings/badges públicos continuam obrigatórios.</li>
+          </ul></article>
+          <article class="card"><h3>Metadados e superfícies</h3><ul>
+            <li>Adicionar somente o snapshot mínimo necessário por referência: duração/gêneros normalizados, provedor, data e versão. Enriquecer em lotes com cache e limites, sem chamada externa por badge no perfil.</li>
+            <li>Correção de duração/gênero invalida projeções afetadas e produz resultados reproduzíveis com a versão do snapshot. Não atribuir rewatch que o tracking não registra.</li>
+            <li>API proposta em <code>/api/v1/gamification</code>: catálogo, conquistas/progresso próprios, estatísticas por período, badges públicos permitidos e ranking consentido paginado.</li>
+            <li>Não aceitar pontuação, horas ou conquista obtida do cliente. Expor origem, versão e updatedAt para explicar atualização assíncrona.</li>
+            <li>Mobile: seção de badges no perfil, detalhe de regra/progresso, estatísticas e ranking com consentimento, estados incompletos, carregamento e retentativa.</li>
+            <li>Invalidar projeções após alterações no tracking e reconsultar enquanto processamento estiver pendente com política limitada; privacidade e troca de conta limpam caches privados.</li>
+          </ul></article>
+        </div></section>
+        <section aria-labelledby="phases"><h2 id="phases">Sequência de execução após aprovação</h2><div class="phase-grid">
+          <article class="card"><h3>01 · Fechar regras e dados</h3><p>Aprovar limiares, revogação, publicidade de badges, ranking, fuso e fórmulas. Auditar cobertura de runtime/gêneros e definir snapshot mínimo. Saída: catálogo inicial e exemplos calculáveis aprovados.</p></article>
+          <article class="card"><h3>02 · Motor determinístico</h3><p>Implementar avaliadores simples, persistência, backfill e recomputação versionada. Cobrir alterações de histórico e catálogo. Saída: resultados reproduzidos a partir de fixtures e fontes persistidas.</p></article>
+          <article class="card"><h3>03 · API e integrações</h3><p>Expor catálogo/progresso/estatísticas, ranking consentido e badges limitados; ligar eventos de tracking e primeira conquista ao processamento existente. Saída: autorização e unicidade verificadas no banco.</p></article>
+          <article class="card"><h3>04 · Mobile e aceite</h3><p>Integrar perfil, estatísticas, progresso e ranking acessíveis. Documentar estimativas, cobertura e atualização, atualizar wireframes e executar verificações relevantes. Saída: exemplos de cálculo conferidos também na UI.</p></article>
+        </div></section>
+        <section aria-labelledby="acceptance"><h2 id="acceptance">Testes e critérios de conclusão</h2><article class="card"><ul>
+          <li>Para cada limiar, testar N-1, N e N+1; eventos repetidos/concorrentes e marcação alternada não criam outra obtenção.</li>
+          <li>Correção de data muda período; exclusão revoga conforme política; reaquisição não duplica recompensa. Backfill e recomputação repetidos chegam ao mesmo resultado.</li>
+          <li>Fixture: um filme de 120 minutos e um episódio de 45 produzem 2,75 horas estimadas; item adicional sem duração mantém o valor e reduz cobertura para 2 de 3, sem inventar tempo.</li>
+          <li>Testar gêneros ausentes/duplicados, mudança de snapshot, série sem total de episódios e fronteiras de mês/fuso; tempo confirmado permanece indisponível.</li>
+          <li>Ranking exclui não participantes/não amigos e respeita empate/paginação. Badge público não libera histórico privado e não permite enviar pontuação própria.</li>
+          <li>Executar testes .NET de Gamification/integração e regressões de tracking, lint/typecheck mobile; medir consultas para evitar recálculo integral em cada acesso ao perfil.</li>
+        </ul></article></section>
+        <section aria-labelledby="approval"><h2 id="approval">Marco de aprovação</h2><article class="card decision"><p>Aprovar regras e política de correção antes da implementação. O histórico existente basta para contagens, mas estatísticas de horas/gêneros exigem completar a origem dos metadados, sem inventá-los.</p></article></section>
+      </main>
+      <footer>Referências: <a href="../specs/11-gamification.md">especificação 11</a>, <a href="../architecture.md">arquitetura</a>, <a href="./04-tracking-and-lists-development-plan.html">tracking/listas</a>, <a href="./07-social-development-plan.html">social</a>, <a href="./08-notifications-development-plan.html">notificações</a> e <a href="./10-mobile-widgets-development-plan.html">próxima etapa: widgets</a>.</footer>
+    </div>
+  </body>
+</html>

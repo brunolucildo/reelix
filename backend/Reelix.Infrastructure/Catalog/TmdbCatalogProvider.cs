@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Reelix.Application.Catalog;
@@ -19,8 +20,11 @@ public sealed class TmdbCatalogOptions
 public sealed class TmdbCatalogProvider(
     HttpClient httpClient,
     IOptions<TmdbCatalogOptions> options,
-    ILogger<TmdbCatalogProvider> logger) : ICatalogProvider, ICatalogGenreProvider
+    ILogger<TmdbCatalogProvider> logger,
+    IMemoryCache? memoryCache = null) : ICatalogProvider, ICatalogGenreProvider, ICatalogDiscoveryProvider
 {
+    private static readonly TimeSpan DiscoveryCacheDuration = TimeSpan.FromMinutes(10);
+
     public CatalogProvider Provider => CatalogProvider.Tmdb;
 
     public async Task<IReadOnlyList<CatalogGenre>> GetGenresAsync(
@@ -80,6 +84,87 @@ public sealed class TmdbCatalogProvider(
             Math.Max(1, pageResult.Page),
             Math.Max(1, pageResult.TotalPages),
             Math.Max(0, pageResult.TotalResults));
+    }
+
+    public async Task<ProviderCatalogPage> DiscoverAsync(
+        CatalogContentType contentType,
+        CatalogDiscoveryCategory category,
+        IReadOnlyCollection<int> genreIds,
+        int page,
+        string language,
+        CancellationToken cancellationToken)
+    {
+        var cacheKey = string.Join(
+            ":",
+            "tmdb-discovery",
+            contentType.ToString(),
+            category.ToString(),
+            string.Join(",", genreIds.OrderBy(id => id)),
+            page.ToString(CultureInfo.InvariantCulture),
+            language);
+        if (memoryCache is not null &&
+            memoryCache.TryGetValue(cacheKey, out ProviderCatalogPage? cachedPage) &&
+            cachedPage is not null)
+        {
+            return cachedPage;
+        }
+
+        var path = contentType == CatalogContentType.Movie ? "movie" : "tv";
+        var dateField = contentType == CatalogContentType.Movie
+            ? "primary_release_date"
+            : "first_air_date";
+        var sortOrder = category == CatalogDiscoveryCategory.Upcoming
+            ? $"{dateField}.asc"
+            : "popularity.desc";
+        var query = new List<string>
+        {
+            "include_adult=false",
+            $"language={Uri.EscapeDataString(language)}",
+            $"page={page}",
+            $"sort_by={sortOrder}",
+        };
+        if (category == CatalogDiscoveryCategory.Upcoming)
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            query.Add($"{dateField}.gte={today:yyyy-MM-dd}");
+            query.Add($"{dateField}.lte={today.AddMonths(12):yyyy-MM-dd}");
+        }
+
+        if (genreIds.Count > 0)
+        {
+            query.Add($"with_genres={string.Join(",", genreIds.OrderBy(id => id))}");
+        }
+
+        using var response = await SendAsync(
+            $"3/discover/{path}?{string.Join('&', query)}",
+            cancellationToken);
+        response.EnsureSuccessStatusCodeOrThrow(Provider, logger);
+        var pageResult = await CatalogProviderHttp.ReadJsonAsync<TmdbPageResponse>(
+            response,
+            Provider,
+            logger,
+            cancellationToken);
+        var items = pageResult.Results
+            .Where(item => item.Id > 0 && !string.IsNullOrWhiteSpace(item.Title ?? item.Name))
+            .Select(item => Map(item, contentType))
+            .Where(item => item is not null)
+            .Cast<ProviderCatalogTitle>()
+            .ToArray();
+        var result = new ProviderCatalogPage(
+            items,
+            Math.Max(1, pageResult.Page),
+            Math.Max(1, pageResult.TotalPages),
+            Math.Max(0, pageResult.TotalResults));
+
+        memoryCache?.Set(
+            cacheKey,
+            result,
+            new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = DiscoveryCacheDuration,
+                Size = 1,
+            });
+        return result;
     }
 
     public async Task<ProviderCatalogTitle?> GetDetailsAsync(

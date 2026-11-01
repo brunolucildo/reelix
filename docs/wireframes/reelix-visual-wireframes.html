@@ -632,9 +632,10 @@
   </header>
 
   <nav class="module-nav wrap" aria-label="Navegação por módulo" role="tablist">
-    <button class="module-button" role="tab" aria-selected="true" data-module="auth">Authentication <span class="nav-count">05</span></button>
+    <button class="module-button" role="tab" aria-selected="true" data-module="auth">Authentication <span class="nav-count">06</span></button>
     <button class="module-button" role="tab" aria-selected="false" data-module="onboarding">Onboarding &amp; Profile <span class="nav-count">09</span></button>
-    <button class="module-button" role="tab" aria-selected="false" data-module="catalog">Catalog <span class="nav-count">05</span></button>
+    <button class="module-button" role="tab" aria-selected="false" data-module="home-discovery">Home &amp; Discovery <span class="nav-count">05</span></button>
+    <button class="module-button" role="tab" aria-selected="false" data-module="catalog">Catalog <span class="nav-count">01</span></button>
     <button class="module-button" role="tab" aria-selected="false" data-module="tracking">Tracking <span class="nav-count">01</span></button>
     <button class="module-button" role="tab" aria-selected="false" data-module="lists">Favoritos e listas <span class="nav-count">01</span></button>
   </nav>
@@ -831,21 +832,21 @@
       },
       {
         id: "account",
-        module: "auth",
-        name: "Home autenticada",
-        objective: "Resumir a conta autenticada, mostrar contagens reais de preferências e dar acesso a preferências, perfil e logout.",
+        module: "home-discovery",
+        name: "Home de descoberta",
+        objective: "Descobrir filmes e séries com listas populares, favoritos e sugestões baseadas nas preferências.",
         route: "home.tsx",
         current: "done",
-        tobe: "partial",
-        currentCaption: "Tela implementada; ainda não é a Home de descoberta",
-        currentNotes: ["Consulta GET /api/v1/onboarding e redireciona contas incompletas ao onboarding", "Card SEU REELIX com e-mail, status da conta (GET /api/v1/auth/me) e contagens de gêneros, filmes e séries", "Ações: Editar preferências (primária), Meu perfil (secundária), Sair da conta (discreta)", "Erros de conta, preferências e logout em toast; Tentar novamente continua na tela", "O ID técnico da conta não é exibido"],
-        currentStates: ["Carregando conta", "Erro API", "Sessão autenticada"],
-        states: ["Carregando conta", "Erro API", "Sessão autenticada"],
-        stateCopy: {"Carregando conta": ["", "Conferindo sua conta…"], "Erro API": ["error", "Não foi possível consultar sua conta. Verifique a conexão e tente novamente."], "Sessão autenticada": ["success", "Conta conectada."]},
-        description: "Home autenticada atual: resumo da conta e atalhos. Descoberta, feed e recomendações ainda não existem.",
-        scope: "01 · Authentication + 02 · Onboarding",
-        flow: "Login → Home (ou Onboarding, se pendente) → Preferências / Perfil / Sair",
-        changes: "Manter enquanto Home & Discovery não for implementada; a futura home de descoberta deve seguir a spec 04 sem simular conteúdo.",
+        tobe: "kept",
+        currentCaption: "Home de descoberta implementada",
+        currentNotes: ["Consulta preferências do onboarding; direciona contas incompletas ao fluxo existente", "Alterna entre filmes e séries", "Seções independentes de destaques, favoritos, sugestões por gênero e lançamentos/estreias", "Cada seção possui carregamento, vazio, erro e retentativa próprios; listas populares paginam ao pedir mais", "Atalhos para pesquisa, perfil, listas, tracking e logout"],
+        currentStates: ["Carregando preferências", "Erro de preferências", "Carregamento por seção", "Vazio por seção", "Erro parcial", "Home disponível"],
+        states: ["Carregando preferências", "Erro de preferências", "Carregamento por seção", "Vazio por seção", "Erro parcial", "Home disponível"],
+        stateCopy: {"Carregando preferências": ["", "Preparando sua Home…"], "Erro de preferências": ["error", "Não foi possível carregar suas preferências. Tente novamente."], "Carregamento por seção": ["", "Carregando títulos do catálogo…"], "Vazio por seção": ["", "Nenhum título disponível nesta seção."], "Erro parcial": ["error", "Uma seção não está disponível; as demais continuam acessíveis."], "Home disponível": ["success", "Descubra títulos de filmes e séries."]},
+        description: "Home com dados normalizados do catálogo, dados privados do próprio usuário e fallback sem preferências.",
+        scope: "04 · Home / Discovery",
+        flow: "Login → Home → Filmes / Séries → Detalhes; Home → Pesquisa → Resultados → Detalhes",
+        changes: "Substituir o resumo de conta por descoberta; manter acessos a perfil, favoritos/listas, tracking e logout.",
         template: "account",
         next: "profile",
         prev: "login",
@@ -1052,52 +1053,52 @@
         prev: "profile-edit",
       },
       {
-        id: "search", module: "catalog", name: "Buscar títulos", objective: "Pesquisar filmes e séries na API Reelix autenticada, com paginação e filtro de tipo.", route: "Proposta de UI — API: GET /api/v1/catalog/search",
-        current: "partial", tobe: "unknown", currentCaption: "API implementada; tela mobile não encontrada",
-        currentNotes: ["Endpoint GET /api/v1/catalog/search exige autorização.", "Suporta query, type opcional (movie/series), provider (tmdb/omdb), page e language.", "Sem rota ou componente mobile de busca."],
-        currentStates: ["API funcional", "UI ausente"],
-        states: ["Carregando", "Resultados", "Vazio", "Erro / rate limit"],
-        stateCopy: { "Carregando": ["", "Consultando o catálogo autenticado…"], "Resultados": ["success", "Resultados paginados recebidos do provedor escolhido."], "Vazio": ["", "Nenhum título encontrado. Tente outra busca."], "Erro / rate limit": ["error", "Catálogo indisponível ou limite atingido. Apresente erro previsível e permita tentar novamente."] },
-        description: "Conceito de interface para contrato existente. UI não faz parte do escopo do plano de catálogo.",
-        scope: "03 · Catalog · proposta visual", flow: "Busca → Resultados paginados → Detalhes",
-        changes: "Representação de consumo proposta, não prometida pelo plano. Erros, rate limits e campos ausentes não geram títulos fictícios.",
+        id: "search", module: "home-discovery", name: "Buscar títulos", objective: "Pesquisar filmes e séries na API Reelix autenticada, com filtro de tipo.", route: "search.tsx · GET /api/v1/catalog/search",
+        current: "done", tobe: "kept", currentCaption: "Busca mobile implementada",
+        currentNotes: ["Busca autenticada no catálogo TMDB com schemas validados.", "Seletor de filmes e séries.", "Resultados navegam para detalhes; erros permitem nova tentativa."],
+        currentStates: ["Busca vazia", "Carregando", "Resultados", "Sem resultados", "Erro"],
+        states: ["Busca vazia", "Carregando", "Resultados", "Sem resultados", "Erro"],
+        stateCopy: { "Busca vazia": ["", "Pesquise filmes ou séries do catálogo."], "Carregando": ["", "Buscando títulos…"], "Resultados": ["success", "Resultados normalizados recebidos do catálogo."], "Sem resultados": ["", "Nenhum título encontrado para essa pesquisa."], "Erro": ["error", "A pesquisa não está disponível agora. Tente novamente."] },
+        description: "Tela de busca da descoberta com filtro por tipo e entrada para cada detalhe de título.",
+        scope: "04 · Home / Discovery", flow: "Home → Pesquisa → Resultados → Detalhes",
+        changes: "Implementar pesquisa autenticada; campos ausentes seguem opcionais e nenhum título fictício é exibido.",
         template: "search", next: "results", prev: "season",
       },
       {
-        id: "results", module: "catalog", name: "Resultados de busca", objective: "Exibir resultados normalizados e navegação entre páginas quando suportada.", route: "Proposta de UI — resposta CatalogSearchPage",
-        current: "partial", tobe: "unknown", currentCaption: "Modelo/endpoint no backend; sem tela mobile",
-        currentNotes: ["Backend retorna página, totalPages, totalResults e provedor.", "Metadados de cada resultado são opcionais.", "Não há tela mobile para lista/resultados."],
-        currentStates: ["API funcional", "UI ausente"],
+        id: "results", module: "home-discovery", name: "Resultados de busca", objective: "Exibir resultados normalizados da pesquisa do catálogo.", route: "search.tsx · estado de resultados",
+        current: "done", tobe: "kept", currentCaption: "Resultados integrados à busca",
+        currentNotes: ["Resultados reais apresentados em cartões com pôster, título e ano quando disponíveis.", "Selecionar resultado abre a tela de detalhes.", "Estados vazio, carregamento e falha são tratados."],
+        currentStates: ["Carregando", "Lista", "Sem resultados", "Erro"],
         states: ["Carregando", "Lista", "Sem resultados", "Erro"],
         stateCopy: { "Carregando": ["", "Carregando a próxima página…"], "Lista": ["success", "Resultados normalizados; campos ausentes permanecem opcionais."], "Sem resultados": ["", "Não encontramos títulos para essa busca."], "Erro": ["error", "Não foi possível carregar resultados. Tente novamente."] },
-        description: "Lista de resultados sem imagens reais nesta proposta; paginação reflete o contrato público.",
-        scope: "03 · Catalog · proposta visual", flow: "Busca → Resultados → Detalhe de filme ou série",
-        changes: "Proposta de tela consumidora. Disponibilidade/direitos de posters e campos dependem do provedor e não estão presumidos.",
+        description: "Estado de resultados da tela de pesquisa, apoiado nos metadados retornados pelo catálogo.",
+        scope: "04 · Home / Discovery", flow: "Pesquisa → Resultados → Detalhes",
+        changes: "Usar imagens e campos somente quando fornecidos pelo catálogo.",
         template: "results", next: "movie", prev: "search",
       },
       {
-        id: "movie", module: "catalog", name: "Detalhes de filme", objective: "Consultar metadados normalizados e opcionais de um filme.", route: "Proposta de UI — GET /api/v1/catalog/{provider}/movie/{externalId}",
-        current: "partial", tobe: "unknown", currentCaption: "Detalhes disponíveis na API; UI mobile ausente",
-        currentNotes: ["Endpoint autenticado permite detalhes de filme.", "Título original, sinopse, gêneros, data, duração e imagens são opcionais conforme provedor.", "Tracking, ratings, listas e disponibilidade em streaming estão fora do módulo."],
-        currentStates: ["API funcional", "UI ausente"],
+        id: "movie", module: "home-discovery", name: "Detalhes de filme", objective: "Consultar metadados normalizados de um filme.", route: "title/[provider]/[contentType]/[externalId].tsx",
+        current: "done", tobe: "kept", currentCaption: "Detalhes mobile implementados",
+        currentNotes: ["Tela autenticada consulta o endpoint de detalhes do catálogo.", "Título original, sinopse, gêneros, data, duração e imagens aparecem quando disponíveis.", "Retorno preserva a Home ou pesquisa ao voltar."],
+        currentStates: ["Carregando", "Detalhes", "Não encontrado", "Erro provedor"],
         states: ["Carregando", "Detalhes", "Não encontrado", "Erro provedor"],
         stateCopy: { "Carregando": ["", "Carregando detalhes do título…"], "Detalhes": ["success", "Exiba apenas os metadados que o provedor retornar."], "Não encontrado": ["", "Título não encontrado no provedor selecionado."], "Erro provedor": ["error", "Falha do provedor. Mostre estado recuperável sem título substituto."] },
-        description: "Visual de detalhes limitado aos metadados do catálogo. Ações de tracking/lista/avaliação não são incluídas.",
-        scope: "03 · Catalog · proposta visual", flow: "Resultados → Detalhes do filme → Voltar à busca",
-        changes: "UI é conceitual. Imagens e atribuição só após validação de direitos/termos; não inclui tracking, avaliações nem favoritos do produto.",
+        description: "Detalhes limitados aos metadados disponíveis no catálogo.",
+        scope: "04 · Home / Discovery", flow: "Resultados ou Home → Detalhes do filme → Voltar",
+        changes: "Exibir somente campos existentes; ações de tracking, avaliações e listas permanecem nos módulos responsáveis.",
         template: "movie", next: "search", prev: "results",
       },
       {
-        id: "series", module: "catalog", name: "Detalhes de série", objective: "Consultar metadados de série e oferecer caminho para temporadas suportadas.", route: "Proposta de UI — GET /api/v1/catalog/{provider}/series/{externalId}",
-        current: "partial", tobe: "unknown", currentCaption: "Detalhes disponíveis na API; UI mobile ausente",
-        currentNotes: ["Endpoint autenticado consulta detalhes de filme/série.", "O modelo mantém gêneros, datas, sinopse e imagens opcionais.", "Não há rota mobile de catálogo."],
-        currentStates: ["API funcional", "UI ausente"],
+        id: "series", module: "home-discovery", name: "Detalhes de série", objective: "Consultar metadados normalizados de uma série.", route: "title/[provider]/[contentType]/[externalId].tsx",
+        current: "done", tobe: "kept", currentCaption: "Detalhes mobile implementados",
+        currentNotes: ["Tela autenticada consulta o endpoint de detalhes do catálogo.", "Gêneros, datas, sinopse e imagens aparecem quando disponíveis.", "Retorno preserva a Home ou pesquisa ao voltar."],
+        currentStates: ["Carregando", "Detalhes", "Não encontrado", "Erro provedor"],
         states: ["Carregando", "Detalhes", "Não encontrado", "Erro provedor"],
         stateCopy: { "Carregando": ["", "Carregando dados da série…"], "Detalhes": ["success", "Temporadas e metadados aparecem apenas quando disponíveis."], "Não encontrado": ["", "Série não encontrada no provedor."], "Erro provedor": ["error", "Não foi possível consultar detalhes. Tente novamente."] },
-        description: "Exibe campos opcionais e entrada para temporadas sem inferir metadados ausentes.",
-        scope: "03 · Catalog · proposta visual", flow: "Resultados → Detalhes da série → Temporada → Episódios",
-        changes: "Representação conceitual; rotas futuras devem seguir contratos, autenticação e erros da API.",
-        template: "series", next: "season", prev: "results",
+        description: "Detalhes de série limitados aos metadados existentes; episódios e tracking permanecem nos módulos correspondentes.",
+        scope: "04 · Home / Discovery", flow: "Resultados ou Home → Detalhes da série → Voltar",
+        changes: "Não inferir metadados ausentes nem incluir regras de acompanhamento neste módulo.",
+        template: "series", next: "search", prev: "results",
       },
       {
         id: "season", module: "catalog", name: "Temporada e episódios", objective: "Consultar episódios retornados para uma temporada da série.", route: "Proposta de UI — GET /api/v1/catalog/{provider}/series/{externalId}/seasons/{seasonNumber}",
@@ -1138,9 +1139,10 @@
     ];
 
     const modules = {
-      auth: { label: "Authentication", ids: ["login", "signup", "callback", "forgot", "reset", "account", "session-init"] },
+      auth: { label: "Authentication", ids: ["login", "signup", "callback", "forgot", "reset", "session-init"] },
       onboarding: { label: "Onboarding & Profile", ids: ["welcome", "genres", "fav-movies", "fav-series", "complete", "profile", "profile-edit", "preferences", "privacy"] },
-      catalog: { label: "Catalog", ids: ["search", "results", "movie", "series", "season"] },
+      "home-discovery": { label: "Home & Discovery", ids: ["account", "search", "results", "movie", "series"] },
+      catalog: { label: "Catalog", ids: ["season"] },
       tracking: { label: "Tracking", ids: ["tracking"] },
       lists: { label: "Favoritos e listas", ids: ["lists"] },
     };
@@ -1165,7 +1167,7 @@
       if (template === "callback") inner = `${iconLogo}<div class="phone-content" style="text-align:center"><p class="phone-title">${currentScreen.state === "Erro / expirado" ? "Link indisponível." : "Confirmando seu acesso."}</p><p class="phone-subtitle">${currentScreen.state === "Erro / expirado" ? "Solicite um novo link para continuar com segurança." : "Estamos validando o link com segurança."}</p><div class="soft-card" style="padding:24px"><span style="display:inline-grid;width:34px;height:34px;place-items:center;border:2px solid #29323C;border-top-color:var(--brand);border-radius:50%;color:var(--pink)">◌</span><p style="margin-top:11px">Validando link de autenticação</p></div><div class="form-note">Confirmação de e-mail ocorre somente se estiver habilitada no provedor. Link inválido ou expirado aparece em toast.</div>${goButton("Voltar para entrar","login","secondary",true)}<div style="margin-top:8px">${goButton("Fluxo de recuperação","reset","ghost",true)}</div></div>`;
       if (template === "forgot") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Recupere seu acesso.</p><p class="phone-subtitle">Enviaremos as instruções para o e-mail informado.</p><div class="soft-card">${formField("E-mail", "voce@exemplo.com")}${goButton("Enviar instruções", "reset", "primary", true)}</div><div class="form-note success">Se houver uma conta associada a esse endereço, enviaremos instruções para redefinir a senha.</div><a class="center-link" href="#" data-go="login">Voltar para entrar</a></div>`;
       if (template === "reset") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Escolha uma nova senha.</p><p class="phone-subtitle">Use uma senha nova para recuperar o acesso.</p><div class="soft-card">${formField("Nova senha (mínimo 8 caracteres)", "Nova senha", "", true)}${formField("Confirme a nova senha", "Repita a nova senha", "", true)}${goButton("Atualizar senha", "account", "primary", true)}</div><div class="form-note success" style="margin-top:10px">Senha alterada com sucesso.</div></div>`;
-      if (template === "account") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Seu próximo capítulo começa aqui.</p><p class="phone-subtitle">Seu espaço está pronto. Suas escolhas podem mudar quando quiser.</p><div class="soft-card"><p class="phone-kicker">SEU REELIX</p><strong>usuario@exemplo.com</strong><p>Conta conectada</p><div class="stat-row"><div class="stat-box"><strong>—</strong><span>GÊNEROS</span></div><div class="stat-box"><strong>—</strong><span>FILMES</span></div><div class="stat-box"><strong>—</strong><span>SÉRIES</span></div></div></div><div class="form-note">As contagens reais vêm de GET /api/v1/onboarding; o wireframe não exibe valores reais.</div>${goButton("Editar preferências", "preferences", "primary", true)}<div style="margin-top:8px">${goButton("Acompanhamento", "tracking", "secondary", true)}</div><div style="margin-top:8px">${goButton("Favoritos e listas", "lists", "secondary", true)}</div><div style="margin-top:8px">${goButton("Meu perfil", "profile", "secondary", true)}</div><div style="margin-top:8px">${goButton("Sair da conta", "login", "ghost", true)}</div>${future ? '<div class="soft-card"><strong>Próxima dependência</strong><p>Home &amp; Discovery substituirá esta tela quando o módulo for especificado e implementado.</p></div>' : ""}</div>`;
+      if (template === "account") inner = `${iconLogo}${phoneTop}<div class="phone-content"><p class="phone-title">Descubra sua próxima história.</p><div class="choice-row">${choice("Filmes", true)}${choice("Séries")}</div><div class="soft-card"><p class="phone-kicker">FILMES EM DESTAQUE</p>${resultCard("Título do catálogo", "Pôster e metadados disponíveis")}${resultCard("Título do catálogo", "Lançamento informado pelo provedor")}</div><div class="soft-card"><p class="phone-kicker">SEUS FAVORITOS</p><p>Seus títulos salvos aparecem nesta seção.</p></div><div class="soft-card"><p class="phone-kicker">SUGESTÕES PARA VOCÊ</p><p>Seleção baseada nos gêneros escolhidos no onboarding.</p></div><div class="soft-card"><p class="phone-kicker">SÉRIES EM ACOMPANHAMENTO</p><p>Resumo autenticado do total; a lista detalhada continua na tela de tracking.</p></div>${goButton("Pesquisar no catálogo", "search", "primary", true)}<div style="margin-top:8px">${goButton("Meu perfil", "profile", "secondary", true)}</div><div style="margin-top:8px">${goButton("Favoritos e listas", "lists", "secondary", true)}</div><div style="margin-top:8px">${goButton("Acompanhamento", "tracking", "secondary", true)}</div><div style="margin-top:8px">${goButton("Sair da conta", "login", "ghost", true)}</div></div>`;
       if (template === "session-init") inner = `${iconLogo}<div class="phone-content" style="text-align:center"><p class="phone-title">Iniciando Reelix</p><p class="phone-subtitle">Estamos verificando sua sessão salva.</p><div class="soft-card" style="padding:22px"><span style="display:inline-grid;width:34px;height:34px;place-items:center;border:2px solid #29323C;border-top-color:var(--brand);border-radius:50%;color:var(--pink)">◌</span><p style="margin-top:11px">Carregando sua sessão…</p></div><div class="form-note">Se a restauração falhar, o app apresenta erro e opção de tentar novamente.</div>${goButton("Sem sessão: ir ao login","login","primary",true)}<div style="margin-top:8px">${goButton("Sessão válida: conta","account","secondary",true)}</div></div>`;
       if (template === "welcome") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span></span><span class="step-mark">ETAPA 1 DE 5</span></div><div class="progress"><span style="width:20%"></span></div><p class="phone-kicker">SEU REELIX</p><p class="phone-title">Vamos encontrar seu próximo favorito.</p><p class="phone-subtitle">Escolha alguns gêneros e títulos para personalizar seu espaço.</p><div class="progress" style="width:42px"><span style="width:100%"></span></div>${goButton("Começar", "genres", "primary", true)}</div>`;
       if (template === "genres") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="welcome">‹ VOLTAR</span><span class="step-mark">ETAPA 2 DE 5</span></div><div class="progress"><span style="width:40%"></span></div><p class="phone-kicker">PREFERÊNCIAS</p><p class="phone-title">Que tipo de história te prende?</p><div class="tab-row"><span class="tab active">Filmes</span><span class="tab">Séries</span></div><p class="tiny">2 de 20 gêneros selecionados</p><div class="chip-row">${choice("Ação",true)}${choice("Aventura")}${choice("Animação")}${choice("Comédia",true)}${choice("Documentário")}${choice("Drama")}${choice("Terror")}${choice("Romance")}${choice("Ficção científica")}</div>${goButton("Continuar","fav-movies","primary",true)}<a class="center-link" href="#" data-go="fav-movies">Pular esta etapa</a></div>`;
@@ -1279,7 +1281,7 @@
         {
           title: "Authentication", status: "done", caption: "Implementado no app; comportamento planejado mantém o login independente do onboarding.",
           paths: [
-            [["Início / sessão","session-init"],["Entrar","login"],["Home autenticada","account"],["Sair","login"]],
+            [["Início / sessão","session-init"],["Entrar","login"],["Home","account"],["Sair","login"]],
             [["Criar conta","signup"],["Callback (se habilitado)","callback"],["Entrar","login"]],
             [["Recuperar acesso","forgot"],["Callback","callback"],["Nova senha","reset"],["Conta","account"]],
           ], label: "AS IS + continuidade planejada",
@@ -1294,23 +1296,30 @@
           ], label: "AS IS · implementado",
         },
         {
-          title: "Catalog · API e consumo visual", status: "partial", caption: "API atual disponível; sequência mobile abaixo é apenas proposta, pois telas foram excluídas do escopo do plano.",
+          title: "Home & Discovery", status: "done", caption: "Home de filmes e séries integrada ao catálogo, preferências e favoritos do usuário.",
           paths: [
-            [["Buscar","search"],["Resultados","results"],["Detalhes de filme","movie"]],
-            [["Resultados","results"],["Detalhes de série","series"],["Temporada / episódios","season"]],
-          ], label: "AS IS: API · TO BE: UI não especificada",
+            [["Home","account"],["Filmes / Séries","account"],["Destaques e sugestões","account"],["Detalhes","movie"]],
+            [["Home","account"],["Pesquisa","search"],["Resultados","results"],["Detalhes","series"]],
+            [["Home","account"],["Favoritos e listas","lists"]],
+          ], label: "AS IS · implementado",
+        },
+        {
+          title: "Catalog · API e temporadas", status: "partial", caption: "Busca e detalhes agora são consumidos pela Home & Discovery; consultas de temporada permanecem disponíveis na API.",
+          paths: [
+            [["Detalhes de série","series"],["Temporada / episódios","season"]],
+          ], label: "AS IS · busca/detalhes mobile",
         },
         {
           title: "Tracking", status: "done", caption: "Histórico e progresso autenticados, com paginação e sem estimar episódios indisponíveis.",
           paths: [
-            [["Home autenticada","account"],["Acompanhamento","tracking"],["Histórico paginado","tracking"]],
+            [["Home","account"],["Acompanhamento","tracking"],["Histórico paginado","tracking"]],
             [["Acompanhamento","tracking"],["Séries acompanhadas","tracking"]],
           ], label: "AS IS · implementado",
         },
         {
           title: "Favoritos e listas", status: "done", caption: "Favoritos, watchlist e coleções privadas mantêm relações separadas.",
           paths: [
-            [["Home autenticada","account"],["Favoritos e listas","lists"],["Favoritos","lists"]],
+            [["Home","account"],["Favoritos e listas","lists"],["Favoritos","lists"]],
             [["Favoritos e listas","lists"],["Watchlist","lists"],["Listas privadas","lists"]],
           ], label: "AS IS · implementado",
         },

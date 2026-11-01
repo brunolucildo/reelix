@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Reelix.Application.Catalog;
@@ -9,6 +10,113 @@ namespace Reelix.UnitTests.Catalog;
 
 public sealed class CatalogProviderTests
 {
+    [Fact]
+    public async Task TmdbDiscovery_MapsMovieResultsAndGenreFilter()
+    {
+        using var client = CreateClient(request =>
+        {
+            Assert.StartsWith("/3/discover/movie?", request.RequestUri!.PathAndQuery);
+            Assert.Contains("language=pt-BR", request.RequestUri.PathAndQuery);
+            Assert.Contains("page=2", request.RequestUri.PathAndQuery);
+            Assert.Contains(
+                "with_genres=12,28",
+                Uri.UnescapeDataString(request.RequestUri.PathAndQuery));
+            Assert.Contains("sort_by=popularity.desc", request.RequestUri.PathAndQuery);
+            return JsonResponse(
+                """
+                {
+                  "page": 2,
+                  "results": [{
+                    "id": 11,
+                    "title": "Popular movie",
+                    "overview": "A story.",
+                    "release_date": "2026-02-01",
+                    "genre_ids": [12, 28],
+                    "poster_path": "/poster.jpg"
+                  }],
+                  "total_pages": 3,
+                  "total_results": 41
+                }
+                """);
+        });
+        var provider = new TmdbCatalogProvider(
+            client,
+            Options.Create(new TmdbCatalogOptions { AccessToken = "test-token" }),
+            NullLogger<TmdbCatalogProvider>.Instance);
+
+        var page = await provider.DiscoverAsync(
+            CatalogContentType.Movie,
+            CatalogDiscoveryCategory.Popular,
+            [28, 12],
+            2,
+            "pt-BR",
+            CancellationToken.None);
+
+        var title = Assert.Single(page.Items);
+        Assert.Equal("11", title.ExternalId);
+        Assert.Equal(CatalogContentType.Movie, title.ContentType);
+        Assert.Equal("Popular movie", title.Title);
+        Assert.Equal("https://image.tmdb.org/t/p/w500/poster.jpg", title.PosterUrl);
+        Assert.Equal(3, page.TotalPages);
+    }
+
+    [Fact]
+    public async Task TmdbUpcomingDiscoveryUsesProviderReleaseDateWindow()
+    {
+        using var client = CreateClient(request =>
+        {
+            Assert.StartsWith("/3/discover/tv?", request.RequestUri!.PathAndQuery);
+            Assert.Contains("first_air_date.gte=", request.RequestUri.PathAndQuery);
+            Assert.Contains("first_air_date.lte=", request.RequestUri.PathAndQuery);
+            Assert.Contains("sort_by=first_air_date.asc", request.RequestUri.PathAndQuery);
+            return JsonResponse("""{"page":1,"results":[],"total_pages":1,"total_results":0}""");
+        });
+        var provider = new TmdbCatalogProvider(
+            client,
+            Options.Create(new TmdbCatalogOptions { AccessToken = "test-token" }),
+            NullLogger<TmdbCatalogProvider>.Instance);
+
+        var page = await provider.DiscoverAsync(
+            CatalogContentType.Series,
+            CatalogDiscoveryCategory.Upcoming,
+            [],
+            1,
+            "pt-BR",
+            CancellationToken.None);
+
+        Assert.Empty(page.Items);
+    }
+
+    [Fact]
+    public async Task TmdbDiscovery_CachesProviderPages()
+    {
+        var requestCount = 0;
+        using var client = CreateClient(_ =>
+        {
+            requestCount++;
+            return JsonResponse("""{"page":1,"results":[],"total_pages":1,"total_results":0}""");
+        });
+        using var cache = new MemoryCache(new MemoryCacheOptions { SizeLimit = 200 });
+        var provider = new TmdbCatalogProvider(
+            client,
+            Options.Create(new TmdbCatalogOptions { AccessToken = "test-token" }),
+            NullLogger<TmdbCatalogProvider>.Instance,
+            cache);
+
+        for (var call = 0; call < 2; call++)
+        {
+            await provider.DiscoverAsync(
+                CatalogContentType.Movie,
+                CatalogDiscoveryCategory.Popular,
+                [],
+                1,
+                "pt-BR",
+                CancellationToken.None);
+        }
+
+        Assert.Equal(1, requestCount);
+    }
+
     [Fact]
     public async Task TmdbSearch_MapsNormalizedFieldsAndUsesBearerAuthentication()
     {

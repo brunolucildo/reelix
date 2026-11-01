@@ -31,6 +31,44 @@ public sealed class CatalogService(
             provider);
     }
 
+    public async Task<CatalogDiscoveryPage> DiscoverAsync(
+        CatalogProvider provider,
+        CatalogContentType contentType,
+        CatalogDiscoveryCategory category,
+        IReadOnlyCollection<int> genreIds,
+        int page,
+        string language,
+        CancellationToken cancellationToken)
+    {
+        ValidateDiscoveryRequest(contentType, category, genreIds, page, language);
+        var catalogProvider = GetProvider(provider);
+        if (catalogProvider is not ICatalogDiscoveryProvider discoveryProvider)
+        {
+            throw new CatalogProviderException(
+                "catalog_discovery_not_supported",
+                "A descoberta não está disponível para este provedor de catálogo.",
+                (int)HttpStatusCode.BadRequest);
+        }
+
+        var result = await discoveryProvider.DiscoverAsync(
+            contentType,
+            category,
+            genreIds,
+            page,
+            language,
+            cancellationToken);
+        var ids = await ResolveIdsAsync(provider, result.Items, cancellationToken);
+
+        return new CatalogDiscoveryPage(
+            result.Items.Select(item => ToTitle(provider, item, ids)).ToArray(),
+            result.Page,
+            result.TotalPages,
+            result.TotalResults,
+            provider,
+            contentType,
+            category);
+    }
+
     public async Task<CatalogTitle?> GetDetailsAsync(
         CatalogProvider provider,
         CatalogContentType contentType,
@@ -174,6 +212,33 @@ public sealed class CatalogService(
         if (page is < 1 or > 100)
         {
             throw new ArgumentOutOfRangeException(nameof(page), "A página deve estar entre 1 e 100.");
+        }
+
+        ValidateLanguage(language);
+    }
+
+    private static void ValidateDiscoveryRequest(
+        CatalogContentType contentType,
+        CatalogDiscoveryCategory category,
+        IReadOnlyCollection<int> genreIds,
+        int page,
+        string language)
+    {
+        ArgumentNullException.ThrowIfNull(genreIds);
+        if (!Enum.IsDefined(contentType) || !Enum.IsDefined(category))
+        {
+            throw new ArgumentException("Informe um tipo de conteúdo e uma seção válidos.");
+        }
+
+        if (page is < 1 or > 100)
+        {
+            throw new ArgumentOutOfRangeException(nameof(page), "A página deve estar entre 1 e 100.");
+        }
+
+        if (genreIds.Count > 20 || genreIds.Any(id => id <= 0) ||
+            genreIds.Distinct().Count() != genreIds.Count)
+        {
+            throw new ArgumentException("Informe até 20 gêneros válidos e sem repetições.", nameof(genreIds));
         }
 
         ValidateLanguage(language);

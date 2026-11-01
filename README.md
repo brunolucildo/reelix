@@ -6,7 +6,8 @@ O repositório reúne o aplicativo mobile em React Native/Expo e uma API ASP.NET
 
 ## Etapas entregues
 
-O projeto já inclui autenticação, consulta de catálogo, onboarding e perfil:
+O projeto já inclui autenticação, catálogo, onboarding, perfil, Home de descoberta,
+acompanhamento e favoritos/listas:
 
 - Cadastro, login, confirmação de e-mail, recuperação de senha e logout pelo Supabase Auth.
 - Callback de autenticação por deep link, compatível com Expo.
@@ -14,11 +15,14 @@ O projeto já inclui autenticação, consulta de catálogo, onboarding e perfil:
 - Integração com TMDB e OMDb, com referências externas persistidas no PostgreSQL.
 - Onboarding retomável com preferências de gêneros e títulos favoritos validados pelo catálogo.
 - Perfil próprio com nome, biografia e privacidade, além de consulta de perfil público conforme as permissões do usuário.
+- Home autenticada com áreas separadas para filmes e séries, destaques e lançamentos do catálogo, favoritos, sugestões por gênero, pesquisa e detalhes de títulos.
+- Acompanhamento de filmes/séries assistidos e gerenciamento de favoritos, watchlist e listas privadas.
 - API autenticada para onboarding e perfil; veja [configuração e contratos](docs/onboarding-profile-setup.md).
+- Regras e contratos da Home de descoberta estão em [docs/home-discovery-setup.md](docs/home-discovery-setup.md).
 - Swagger para testar a API localmente e uma página exclusiva de desenvolvimento para obter um token de usuário diretamente pelo Supabase Auth.
 - Migrations e testes automatizados para autenticação, catálogo, onboarding, perfil e configuração CORS de desenvolvimento web.
 
-Home de descoberta, acompanhamento de títulos, avaliações, listas e recursos sociais permanecem para etapas futuras. A migration de onboarding/perfil está no repositório, mas precisa ser aplicada a um banco local/de desenvolvimento antes de usar esses recursos nesse ambiente.
+Avaliações, comentários e recursos sociais permanecem para etapas futuras. As migrations estão no repositório, mas precisam ser aplicadas a um banco local/de desenvolvimento antes de usar os recursos nesse ambiente.
 
 ## Tecnologias
 
@@ -109,6 +113,14 @@ npx expo lint
 - [Configuração do catálogo, provedores e teste no Swagger](docs/catalog-setup.md)
 - [Avaliação de tecnologias adicionais](docs/technology-stack-evaluation.md)
 - [Configuração e contratos de onboarding e perfil](docs/onboarding-profile-setup.md)
+- [Regras e contratos da Home de descoberta](docs/home-discovery-setup.md)
+- [Plano aprovado de Home e descoberta](docs/plans/05-home-discovery-development-plan.html)
+- Planos propostos para as próximas etapas (implementação depende de aprovação):
+  - [6 — Avaliações, comentários e spoilers](docs/plans/06-ratings-comments-development-plan.html)
+  - [7 — Amizades e compartilhamento controlado](docs/plans/07-social-development-plan.html)
+  - [8 — Notificações e integração de eventos](docs/plans/08-notifications-development-plan.html)
+  - [9 — Conquistas, estatísticas e rankings](docs/plans/09-gamification-development-plan.html)
+  - [10 — Widgets e validação nativa](docs/plans/10-mobile-widgets-development-plan.html)
 - [Arquitetura](docs/architecture.md)
 - [Especificações do produto](docs/specs/)
 - [Identidade visual e Brand Assets](mobile/assets/brand/README.md)
