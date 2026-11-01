@@ -92,6 +92,36 @@ public sealed class CatalogProviderTests
     }
 
     [Fact]
+    public async Task TmdbGenreList_MapsOfficialIdsAndLocalizedNames()
+    {
+        using var client = CreateClient(request =>
+        {
+            Assert.Equal("/3/genre/movie/list?language=pt-BR", request.RequestUri!.PathAndQuery);
+            return JsonResponse(
+                """
+                {
+                  "genres": [
+                    { "id": 28, "name": "Ação" },
+                    { "id": 18, "name": "Drama" },
+                    { "id": 0, "name": "" }
+                  ]
+                }
+                """);
+        });
+        var provider = new TmdbCatalogProvider(
+            client,
+            Options.Create(new TmdbCatalogOptions { AccessToken = "test-token" }),
+            NullLogger<TmdbCatalogProvider>.Instance);
+
+        var genres = await provider.GetGenresAsync(
+            CatalogContentType.Movie,
+            "pt-BR",
+            CancellationToken.None);
+
+        Assert.Equal([new CatalogGenre(28, "Ação"), new CatalogGenre(18, "Drama")], genres);
+    }
+
+    [Fact]
     public async Task TmdbRateLimit_ReportsRetryDelayWithoutProviderBody()
     {
         using var client = CreateClient(_ =>

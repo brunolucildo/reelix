@@ -9,6 +9,14 @@ public sealed class ReelixDbContext(DbContextOptions<ReelixDbContext> options)
 {
     public DbSet<UserAccount> UserAccounts => Set<UserAccount>();
 
+    public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
+
+    public DbSet<UserPreferences> UserPreferences => Set<UserPreferences>();
+
+    public DbSet<UserGenrePreference> UserGenrePreferences => Set<UserGenrePreference>();
+
+    public DbSet<UserFavoriteTitle> UserFavoriteTitles => Set<UserFavoriteTitle>();
+
     public DbSet<ExternalCatalogReference> ExternalCatalogReferences =>
         Set<ExternalCatalogReference>();
 
@@ -29,6 +37,91 @@ public sealed class ReelixDbContext(DbContextOptions<ReelixDbContext> options)
             entity.HasIndex(account => account.SupabaseUserId)
                 .HasDatabaseName("IX_user_accounts_supabase_user_id")
                 .IsUnique();
+        });
+
+        modelBuilder.Entity<UserProfile>(entity =>
+        {
+            entity.ToTable("user_profiles");
+            entity.HasKey(profile => profile.AccountId);
+            entity.Property(profile => profile.AccountId).HasColumnName("account_id");
+            entity.Property(profile => profile.DisplayName)
+                .HasColumnName("display_name")
+                .HasMaxLength(50);
+            entity.Property(profile => profile.Biography)
+                .HasColumnName("biography")
+                .HasMaxLength(280);
+            entity.Property(profile => profile.ProfileIsPublic)
+                .HasColumnName("profile_is_public")
+                .HasDefaultValue(false);
+            entity.Property(profile => profile.FavoritesArePublic)
+                .HasColumnName("favorites_are_public")
+                .HasDefaultValue(false);
+            entity.Property(profile => profile.WatchHistoryIsPublic)
+                .HasColumnName("watch_history_is_public")
+                .HasDefaultValue(false);
+            entity.HasOne<UserAccount>()
+                .WithOne()
+                .HasForeignKey<UserProfile>(profile => profile.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserPreferences>(entity =>
+        {
+            entity.ToTable("user_preferences");
+            entity.HasKey(preferences => preferences.AccountId);
+            entity.Property(preferences => preferences.AccountId).HasColumnName("account_id");
+            entity.Property(preferences => preferences.CurrentStep)
+                .HasColumnName("current_step")
+                .HasMaxLength(30)
+                .IsRequired();
+            entity.Property(preferences => preferences.CompletedAt)
+                .HasColumnName("completed_at")
+                .HasColumnType("timestamp with time zone");
+            entity.HasOne<UserAccount>()
+                .WithOne()
+                .HasForeignKey<UserPreferences>(preferences => preferences.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserGenrePreference>(entity =>
+        {
+            entity.ToTable("user_genre_preferences");
+            entity.HasKey(preference => new
+            {
+                preference.AccountId,
+                preference.ContentType,
+                preference.GenreId,
+            });
+            entity.Property(preference => preference.AccountId).HasColumnName("account_id");
+            entity.Property(preference => preference.ContentType)
+                .HasColumnName("content_type")
+                .HasMaxLength(20)
+                .IsRequired();
+            entity.Property(preference => preference.GenreId).HasColumnName("genre_id");
+            entity.HasOne<UserPreferences>()
+                .WithMany(preferences => preferences.GenrePreferences)
+                .HasForeignKey(preference => preference.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserFavoriteTitle>(entity =>
+        {
+            entity.ToTable("user_favorite_titles");
+            entity.HasKey(favorite => new { favorite.AccountId, favorite.TitleId });
+            entity.Property(favorite => favorite.AccountId).HasColumnName("account_id");
+            entity.Property(favorite => favorite.TitleId).HasColumnName("title_id");
+            entity.Property(favorite => favorite.ContentType)
+                .HasColumnName("content_type")
+                .HasMaxLength(20)
+                .IsRequired();
+            entity.HasOne<UserPreferences>()
+                .WithMany(preferences => preferences.FavoriteTitles)
+                .HasForeignKey(favorite => favorite.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<ExternalCatalogReference>()
+                .WithMany()
+                .HasForeignKey(favorite => favorite.TitleId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<ExternalCatalogReference>(entity =>

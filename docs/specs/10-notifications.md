@@ -68,6 +68,10 @@ A existência de uma data de lançamento não garante que o episódio estará di
 - Utilizar a OpenAI para redigir cada notificação rotineira.
 - Considerar que o envio ao serviço de push comprova que o dispositivo recebeu a notificação.
 
+## Decisão de infraestrutura
+
+Não há fila selecionada para o MVP. AWS SQS e LocalStack podem ser avaliados quando o processamento exigir entrega durável, retentativas independentes do processo da API, dead-letter ou workers escalados separadamente. Até lá, não adicionar broker nem uma segunda infraestrutura local; registrar idempotência e política de retentativa no plano da feature quando esses requisitos forem definidos.
+
 ## Tecnologias (Stack)
 
 - React Native

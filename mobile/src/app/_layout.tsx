@@ -59,6 +59,8 @@ function RootNavigator() {
       </Stack.Protected>
       <Stack.Protected guard={isAuthenticated}>
         <Stack.Screen name="home" />
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="profile" />
         <Stack.Screen name="auth/reset-password" />
       </Stack.Protected>
       <Stack.Screen name="auth/callback" />

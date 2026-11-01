@@ -64,6 +64,7 @@ Se a porta `5035` já estiver ocupada, encerre/reinicie a instância antiga da A
 
 | Método | Rota | Descrição |
 |---|---|---|
+| `GET` | `/api/v1/catalog/genres?type=movie&provider=tmdb&language=pt-BR` | Lista oficial de gêneros de filmes ou séries (`type=series`). |
 | `GET` | `/api/v1/catalog/search?query=matrix&provider=tmdb&type=movie&page=1&language=pt-BR` | Pesquisa paginada; `type` é opcional (`movie` ou `series`). |
 | `GET` | `/api/v1/catalog/{provider}/{contentType}/{externalId}?language=pt-BR` | Detalhes normalizados; provedor `tmdb` ou `omdb`. |
 | `GET` | `/api/v1/catalog/{provider}/series/{externalSeriesId}/seasons/{seasonNumber}?language=pt-BR` | Temporada e episódios disponíveis. |
@@ -73,6 +74,7 @@ O identificador externo deve pertencer ao provedor indicado (por exemplo, ID num
 ## Provedores, atribuição e direitos
 
 - TMDB usa os endpoints documentados de pesquisa, detalhes e temporadas, autenticados com o Read Access Token no cabeçalho Bearer.
+- A lista oficial de gêneros TMDB também é consultada pelo backend e mantida em cache em memória por seis horas para alimentar o onboarding.
 - OMDb usa operações documentadas de pesquisa (`s`), detalhes (`i`) e temporadas (`i` + `Season`). Não há fallback automático entre provedores.
 - A resposta OMDb não expõe imagens: a documentação do serviço informa que sua Poster API é restrita a patronos. Para TMDB, a aplicação deve cumprir a atribuição vigente; a documentação oficial exige o logo TMDB e o aviso “This product uses the TMDB API but is not endorsed or certified by TMDB.” em uma área de créditos/sobre. O backend retorna a origem para permitir essa identificação no cliente.
 - A API TMDB gratuita é destinada a uso não comercial e exige atribuição. Confirme licença comercial com TMDB antes de usar em um produto cujo objetivo principal seja gerar receita.
@@ -86,5 +88,7 @@ Documentação oficial consultada:
 - [TMDB API — Movie details](https://developer.themoviedb.org/reference/movie-details)
 - [TMDB API — TV details](https://developer.themoviedb.org/reference/tv-series-details)
 - [TMDB API — TV season details](https://developer.themoviedb.org/reference/tv-season-details)
+- [TMDB API — Movie genre list](https://developer.themoviedb.org/reference/genre-movie-list)
+- [TMDB API — TV genre list](https://developer.themoviedb.org/reference/genre-tv-list)
 - [TMDB FAQ — attribution and commercial use](https://developer.themoviedb.org/docs/faq)
 - [OMDb API](https://www.omdbapi.com/)

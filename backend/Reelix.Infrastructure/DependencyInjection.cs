@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Reelix.Application.Authentication;
 using Reelix.Application.Catalog;
+using Reelix.Application.Users;
 using Reelix.Infrastructure.Catalog;
 using Reelix.Infrastructure.Persistence.Catalog;
 using Reelix.Infrastructure.Persistence;
@@ -26,6 +27,8 @@ public static class DependencyInjection
         services.AddDbContext<ReelixDbContext>(options =>
             options.UseNpgsql(connectionString));
         services.AddScoped<IUserAccountRepository, UserAccountRepository>();
+        services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+        services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository>();
         services.AddScoped<IExternalCatalogReferenceRepository, ExternalCatalogReferenceRepository>();
         services.Configure<TmdbCatalogOptions>(
             configuration.GetSection(TmdbCatalogOptions.SectionName));
@@ -45,6 +48,8 @@ public static class DependencyInjection
             serviceProvider.GetRequiredService<TmdbCatalogProvider>());
         services.AddScoped<ICatalogProvider>(serviceProvider =>
             serviceProvider.GetRequiredService<OmdbCatalogProvider>());
+        services.AddScoped<ICatalogGenreProvider>(serviceProvider =>
+            serviceProvider.GetRequiredService<TmdbCatalogProvider>());
 
         return services;
     }

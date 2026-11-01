@@ -355,7 +355,7 @@ Do not chase a coverage percentage without testing meaningful behavior. Prioriti
 | Web admin (optional) | Next.js + shadcn/ui |
 | Lint/format | Biome where supported; ESLint if needed |
 | Date handling | date-fns |
-| Observability | Structured logs; add OpenTelemetry/Sentry as needed |
+| Observability | Structured logs now; evaluate Prometheus after hosting and scrape access are defined |
 | Automation | n8n for asynchronous integrations, not core API requests |
 | Deployment | Expo EAS for mobile builds; .NET-compatible hosting for API |
 | Architecture | Modular monolith first |
@@ -368,6 +368,12 @@ Do not chase a coverage percentage without testing meaningful behavior. Prioriti
 - No custom authentication or password cryptography.
 - No AI agent framework until a concrete feature benefits from it.
 - No assumption that metadata, posters, or streaming availability data can be reused without checking provider terms.
+
+## 17. Evaluation of additional technologies
+
+The [technology stack evaluation](technology-stack-evaluation.md) records why the reference stack is not copied wholesale. PostgreSQL and strict TypeScript are already in use. Bun, Node16 module mode, NestJS, and MikroORM are not being added because they do not solve a current gap or would duplicate the Expo/npm and ASP.NET Core/EF Core stacks. Money primitives remain out of scope until the product has monetary values.
+
+Prometheus is the most plausible additive candidate, but implementation is deferred until API hosting, scrape networking, and endpoint protection are defined. SQS/LocalStack is deferred until a durable asynchronous workflow requires it. Continue using xUnit; consider Testcontainers for PostgreSQL integration tests when Docker is available in local development and CI. No runtime package or infrastructure is introduced by this evaluation.
 
 ---
 
