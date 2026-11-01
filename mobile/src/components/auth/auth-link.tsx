@@ -1,16 +1,17 @@
 import { Link } from 'expo-router';
 import { StyleSheet } from 'react-native';
 
-import { colors, fontFamily } from '@/theme/tokens';
+import { colors, fontFamily, typography } from '@/theme/tokens';
 
 type AuthLinkProps = {
   href: '/' | '/sign-up' | '/forgot-password';
   label: string;
+  align?: 'left' | 'center' | 'right';
 };
 
-export function AuthLink({ href, label }: AuthLinkProps) {
+export function AuthLink({ href, label, align = 'center' }: AuthLinkProps) {
   return (
-    <Link accessibilityRole="link" href={href} style={styles.link}>
+    <Link accessibilityRole="link" href={href} style={[styles.link, { textAlign: align }]}>
       {label}
     </Link>
   );
@@ -18,12 +19,11 @@ export function AuthLink({ href, label }: AuthLinkProps) {
 
 const styles = StyleSheet.create({
   link: {
-    color: colors.brand,
-    fontSize: 14,
-    fontFamily: fontFamily.bold,
+    color: colors.brandSecondary,
+    fontSize: typography.bodySmall,
+    fontFamily: fontFamily.semiBold,
     minHeight: 44,
     justifyContent: 'center',
-    paddingVertical: 12,
-    textAlign: 'center',
+    paddingVertical: 10,
   },
 });

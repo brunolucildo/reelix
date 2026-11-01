@@ -29,7 +29,7 @@ internal static class CatalogProviderHttp
             logger.LogWarning("Catalog provider {Provider} request timed out.", provider);
             throw new CatalogProviderException(
                 "catalog_provider_timeout",
-                "The catalog provider request timed out.",
+                "O catálogo demorou demais para responder. Tente novamente.",
                 (int)HttpStatusCode.GatewayTimeout);
         }
         catch (HttpRequestException)
@@ -37,7 +37,7 @@ internal static class CatalogProviderHttp
             logger.LogWarning("Catalog provider {Provider} could not be reached.", provider);
             throw new CatalogProviderException(
                 "catalog_provider_unavailable",
-                "The catalog provider is temporarily unavailable.",
+                "O catálogo está temporariamente indisponível. Tente novamente em instantes.",
                 (int)HttpStatusCode.ServiceUnavailable);
         }
     }
@@ -78,7 +78,7 @@ internal static class CatalogProviderHttp
             logger.LogWarning("Catalog provider {Provider} rate limit was reached.", provider);
             return new CatalogProviderException(
                 "catalog_provider_rate_limited",
-                "The catalog provider rate limit was reached. Try again later.",
+                "Muitas consultas ao catálogo em pouco tempo. Tente novamente mais tarde.",
                 (int)HttpStatusCode.TooManyRequests,
                 retryAfter is { } delay && delay > TimeSpan.Zero ? delay : null);
         }
@@ -88,7 +88,7 @@ internal static class CatalogProviderHttp
             logger.LogError("Catalog provider {Provider} rejected its configured credentials.", provider);
             return new CatalogProviderException(
                 "catalog_provider_configuration_error",
-                "The catalog provider rejected its credentials. Check the server configuration.",
+                "O catálogo está indisponível por um problema de configuração do servidor.",
                 (int)HttpStatusCode.ServiceUnavailable);
         }
 
@@ -101,8 +101,8 @@ internal static class CatalogProviderHttp
                 ? "catalog_provider_unavailable"
                 : "catalog_provider_bad_response",
             (int)status >= (int)HttpStatusCode.InternalServerError
-                ? "The catalog provider is temporarily unavailable."
-                : "The catalog provider returned an unexpected response.",
+                ? "O catálogo está temporariamente indisponível. Tente novamente em instantes."
+                : "O catálogo retornou uma resposta inesperada.",
             (int)status >= (int)HttpStatusCode.InternalServerError
                 ? (int)HttpStatusCode.ServiceUnavailable
                 : (int)HttpStatusCode.BadGateway);
@@ -115,7 +115,7 @@ internal static class CatalogProviderHttp
         logger.LogWarning("Catalog provider {Provider} returned an invalid response.", provider);
         return new CatalogProviderException(
             "catalog_provider_invalid_response",
-            "The catalog provider returned an invalid response.",
+            "O catálogo retornou uma resposta inválida.",
             (int)HttpStatusCode.BadGateway);
     }
 }

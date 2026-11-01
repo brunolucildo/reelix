@@ -70,8 +70,8 @@ public static class OnboardingEndpoints
         {
             return Results.Problem(
                 statusCode: StatusCodes.Status400BadRequest,
-                title: "Invalid onboarding preferences.",
-                detail: exception.Message);
+                title: "Preferências de onboarding inválidas.",
+                detail: exception.ToUserMessage());
         }
     }
 

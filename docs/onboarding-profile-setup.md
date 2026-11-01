@@ -42,11 +42,22 @@ Exemplo de progresso:
 
 As etapas aceitas são `welcome`, `genres`, `favoriteMovies`, `favoriteSeries` e `review`. Cada lista aceita IDs únicos: até 20 gêneros e até 10 filmes/séries favoritos. IDs de gêneros são validados contra a lista TMDB; títulos devem existir no catálogo e corresponder ao tipo indicado. Dados inválidos retornam `400` com `ProblemDetails`.
 
+`catalog_external_references` grava `provider` e `content_type` em minúsculas (`tmdb`, `movie`, `series`). A validação de favoritos compara o tipo nesse formato. uma comparação com `Movie`/`Series` rejeitava qualquer título como se ele não estivesse no catálogo; esse problema foi corrigido. As mensagens de `ProblemDetails` são exibidas no toast do app e estão em português, por exemplo: “Um ou mais filmes favoritos não estão no catálogo.”
+
 No perfil, `displayName` aceita até 50 caracteres e `biography` até 280. Os campos são opcionais. `profileIsPublic`, `favoritesArePublic` e `watchHistoryIsPublic` começam como `false`. A rota de perfil público não retorna e-mail; favoritos só são incluídos quando `favoritesArePublic` está ligado. A configuração de histórico é salva, mas histórico não é exposto enquanto o módulo Tracking não existir.
 
 ## Mobile e atribuição
 
 O onboarding salva o rascunho no backend ao avançar ou pular uma etapa. A conclusão só é marcada depois da resposta bem-sucedida da API; o app consulta esse estado ao entrar e encaminha contas incompletas para retomar o fluxo.
+
+- O fluxo tem 5 etapas (`ETAPA X DE 5`) com barra de progresso. Gêneros usam abas Filmes/Séries e contador `X de 20`.
+- As etapas de favoritos buscam somente o tipo da etapa (`movie` ou `series`), exigem ao menos 2 caracteres, mostram `X de 10 selecionados` e oferecem “Remover seleções desta etapa”.
+- A Home mostra as contagens reais de gêneros, filmes e séries e o atalho “Editar preferências”. O Perfil também leva a esse modo. `onboarding?edit=1` reabre o fluxo a partir de Gêneros e termina com “Salvar preferências”.
+- O Perfil reúne Informações (nome até 50, biografia até 280), Privacidade, Preferências e Créditos em uma única tela.
+
+### Feedback de erros
+
+Erros de API, carregamento, busca, salvamento e logout aparecem em toast (`mobile/src/providers/toast-provider.tsx`, hooks `useToast` e `useErrorToast`). O toast aparece no topo, fecha automaticamente após 5 s e pode ser fechado pelo botão “Fechar aviso”. Telas bloqueantes mantêm “Tentar novamente”. Validação por campo, avisos de limite de seleção e mensagens de sucesso continuam inline, junto ao controle.
 
 O Perfil inclui o logo aprovado e o aviso de atribuição oficial do TMDB na seção Créditos. A API TMDB gratuita é destinada a uso não comercial; confirme licença com TMDB antes de usar em produto cujo objetivo principal seja gerar receita.
 

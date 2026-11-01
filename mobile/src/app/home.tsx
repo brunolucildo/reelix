@@ -1,18 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, useRouter } from 'expo-router';
-import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { AuthScreen } from '@/components/auth/auth-screen';
 import { PrimaryButton } from '@/components/auth/primary-button';
 import { fetchAuthenticatedAccount, fetchOnboarding } from '@/services/api-client';
 import { useAuthSession } from '@/providers/auth-provider';
-import { colors, fontFamily, radii } from '@/theme/tokens';
+import { useErrorToast, useToast } from '@/providers/toast-provider';
+import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 
 export default function AuthenticatedHomeScreen() {
   const router = useRouter();
   const { session, signOut } = useAuthSession();
-  const [signOutError, setSignOutError] = useState<string | null>(null);
+  const { showError } = useToast();
   const account = useQuery({
     queryKey: ['auth', 'account'],
     queryFn: fetchAuthenticatedAccount,
@@ -21,13 +21,19 @@ export default function AuthenticatedHomeScreen() {
     queryKey: ['onboarding'],
     queryFn: fetchOnboarding,
   });
+  useErrorToast(
+    account.error,
+    account.error instanceof Error && 'status' in account.error && account.error.status === 401
+      ? 'A API não aceitou a sessão. Encerre a sessão e entre novamente.'
+      : 'Não foi possível consultar sua conta. Verifique a conexão e tente novamente.',
+  );
+  useErrorToast(onboarding.error, 'Não foi possível carregar suas preferências. Verifique sua conexão e tente novamente.');
 
   const handleSignOut = async () => {
-    setSignOutError(null);
     try {
       await signOut();
     } catch {
-      setSignOutError('A sessão foi removida da interface, mas o armazenamento local não pôde ser confirmado. Feche o app e tente novamente.');
+      showError('A sessão foi removida da interface, mas o armazenamento local não pôde ser confirmado. Feche o app e tente novamente.');
     }
   };
 
@@ -53,40 +59,47 @@ export default function AuthenticatedHomeScreen() {
 
   return (
     <AuthScreen
-      title="Tudo pronto."
-      subtitle="Sua conta Reelix está autenticada."
+      title="Seu próximo capítulo começa aqui."
+      subtitle="Seu espaço está pronto. Suas escolhas podem mudar quando quiser."
     >
       <View style={styles.accountCard}>
-        <Text style={styles.cardLabel}>CONTA AUTENTICADA</Text>
+        <Text style={styles.cardLabel}>SEU REELIX</Text>
         <Text style={styles.email}>{session?.user.email ?? 'E-mail não disponível'}</Text>
         {account.isPending ? (
-          <ActivityIndicator color={colors.brand} />
+          <View style={styles.accountStatus}>
+            <ActivityIndicator color={colors.brand} size="small" />
+            <Text style={styles.statusText}>Conferindo sua conta...</Text>
+          </View>
         ) : account.isError ? (
           <View style={styles.queryError}>
-            <Text accessibilityRole="alert" style={styles.error}>
-              {account.error instanceof Error && 'status' in account.error && account.error.status === 401
-                ? 'A API não aceitou a sessão. Encerre a sessão e entre novamente.'
-                : 'Não foi possível consultar sua conta. Verifique a conexão e tente novamente.'}
-            </Text>
+            <Text style={styles.statusText}>Conta não verificada</Text>
             <PrimaryButton label="Tentar novamente" onPress={() => void account.refetch()} variant="secondary" />
           </View>
         ) : account.data ? (
-          <Text style={styles.accountId}>ID Reelix: {account.data.id}</Text>
+          <Text style={styles.statusText}>Conta conectada</Text>
         ) : null}
+        <View style={styles.stats}>
+          <PreferenceCount label="Gêneros" value={onboarding.data.movieGenreIds.length + onboarding.data.seriesGenreIds.length} />
+          <PreferenceCount label="Filmes" value={onboarding.data.favoriteMovieIds.length} />
+          <PreferenceCount label="Séries" value={onboarding.data.favoriteSeriesIds.length} />
+        </View>
       </View>
-      {signOutError ? (
-        <Text accessibilityRole="alert" style={styles.error}>
-          {signOutError}
-        </Text>
-      ) : null}
-      <PrimaryButton label="Meu perfil" onPress={() => router.push('/profile')} variant="secondary" />
       <PrimaryButton
         label="Editar preferências"
         onPress={() => router.push({ pathname: '/onboarding', params: { edit: '1' } })}
-        variant="secondary"
       />
-      <PrimaryButton label="Sair da conta" onPress={() => void handleSignOut()} variant="secondary" />
+      <PrimaryButton label="Meu perfil" onPress={() => router.push('/profile')} variant="secondary" />
+      <PrimaryButton label="Sair da conta" onPress={() => void handleSignOut()} variant="quiet" />
     </AuthScreen>
+  );
+}
+
+function PreferenceCount({ label, value }: { label: string; value: number }) {
+  return (
+    <View style={styles.stat}>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
   );
 }
 
@@ -99,36 +112,56 @@ const styles = StyleSheet.create({
   },
   accountCard: {
     width: '100%',
-    gap: 12,
-    padding: 18,
+    gap: spacing.medium,
+    padding: spacing.medium,
     borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: radii.medium,
+    borderRadius: radii.large,
     backgroundColor: colors.surface,
   },
   cardLabel: {
     color: colors.textSecondary,
-    fontSize: 11,
+    fontSize: typography.eyebrow,
     fontFamily: fontFamily.bold,
-    letterSpacing: 1.6,
+    letterSpacing: 1.2,
   },
   email: {
     color: colors.textPrimary,
-    fontSize: 17,
+    fontSize: typography.body,
+    fontFamily: fontFamily.semiBold,
+  },
+  accountStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.small,
+  },
+  statusText: {
+    color: colors.textSecondary,
+    fontSize: typography.caption,
+    fontFamily: fontFamily.regular,
+  },
+  stats: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: spacing.medium,
+  },
+  stat: {
+    flex: 1,
+    alignItems: 'center',
+    gap: spacing.extraSmall,
+  },
+  statValue: {
+    color: colors.textPrimary,
+    fontSize: typography.section,
     fontFamily: fontFamily.bold,
   },
-  accountId: {
+  statLabel: {
     color: colors.textSecondary,
-    fontSize: 12,
+    fontSize: typography.caption,
     fontFamily: fontFamily.regular,
   },
   queryError: {
-    gap: 12,
-  },
-  error: {
-    color: colors.error,
-    fontSize: 14,
-    fontFamily: fontFamily.regular,
-    lineHeight: 21,
+    gap: spacing.small,
   },
 });

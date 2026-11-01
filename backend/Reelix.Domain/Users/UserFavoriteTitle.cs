@@ -23,7 +23,7 @@ public sealed class UserFavoriteTitle
     {
         if (accountId == Guid.Empty || titleId == Guid.Empty || string.IsNullOrWhiteSpace(contentType))
         {
-            throw new ArgumentException("A valid account, title, and content type are required.");
+            throw new ArgumentException("Informe conta, título e tipo de conteúdo válidos.");
         }
 
         return new UserFavoriteTitle(accountId, titleId, contentType);

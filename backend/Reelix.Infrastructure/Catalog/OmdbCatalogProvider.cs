@@ -179,9 +179,10 @@ public sealed class OmdbCatalogProvider(
         var apiKey = options.Value.ApiKey;
         if (string.IsNullOrWhiteSpace(apiKey))
         {
+            logger.LogError("Catalog provider {Provider} is not configured. Set Catalog:Omdb:ApiKey on the server.", Provider);
             throw new CatalogProviderException(
                 "catalog_provider_not_configured",
-                "OMDb is not configured. Set Catalog:Omdb:ApiKey on the server.",
+                "O catálogo não está configurado no servidor.",
                 (int)HttpStatusCode.ServiceUnavailable);
         }
 
@@ -212,7 +213,7 @@ public sealed class OmdbCatalogProvider(
             logger.LogWarning("Catalog provider {Provider} rate limit was reached.", Provider);
             throw new CatalogProviderException(
                 "catalog_provider_rate_limited",
-                "The catalog provider rate limit was reached. Try again later.",
+                "Muitas consultas ao catálogo em pouco tempo. Tente novamente mais tarde.",
                 (int)HttpStatusCode.TooManyRequests);
         }
 
@@ -221,7 +222,7 @@ public sealed class OmdbCatalogProvider(
             logger.LogError("Catalog provider {Provider} rejected its configured credentials.", Provider);
             throw new CatalogProviderException(
                 "catalog_provider_configuration_error",
-                "OMDb rejected its API key. Check the server configuration.",
+                "O catálogo está indisponível por um problema de configuração do servidor.",
                 (int)HttpStatusCode.ServiceUnavailable);
         }
 
@@ -234,14 +235,14 @@ public sealed class OmdbCatalogProvider(
 
             throw new CatalogProviderException(
                 "catalog_title_not_found",
-                "The requested title was not found.",
+                "O título solicitado não foi encontrado.",
                 (int)HttpStatusCode.NotFound);
         }
 
         logger.LogWarning("Catalog provider {Provider} returned an unsuccessful API response.", Provider);
         throw new CatalogProviderException(
             "catalog_provider_bad_response",
-            "The catalog provider could not complete the request.",
+            "O catálogo não conseguiu concluir a solicitação.",
             (int)HttpStatusCode.BadGateway);
     }
 

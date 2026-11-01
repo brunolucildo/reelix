@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { useErrorToast, useToast } from '@/providers/toast-provider';
 import {
   completeOnboarding,
   fetchCatalogGenres,
@@ -16,7 +17,7 @@ import {
   type OnboardingPreferences,
   type OnboardingProgress,
 } from '@/services/api-client';
-import { colors, fontFamily, radii, spacing } from '@/theme/tokens';
+import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 
 const steps: Exclude<OnboardingPreferences['currentStep'], 'completed'>[] = [
   'welcome',
@@ -30,6 +31,7 @@ export default function OnboardingScreen() {
   const params = useLocalSearchParams<{ edit?: string }>();
   const isEditing = params.edit === '1';
   const preferences = useQuery({ queryKey: ['onboarding'], queryFn: fetchOnboarding });
+  useErrorToast(preferences.error, 'Não foi possível carregar suas preferências. Verifique sua conexão e tente novamente.');
 
   if (preferences.isError) {
     return (
@@ -79,8 +81,12 @@ function OnboardingFlow({
   const [genreType, setGenreType] = useState<'movie' | 'series'>('movie');
   const [searchText, setSearchText] = useState('');
   const [submittedSearch, setSubmittedSearch] = useState('');
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const { showError } = useToast();
+  const [selectionNotice, setSelectionNotice] = useState<string | null>(null);
 
+  const isFavoriteStep = step === 'favoriteMovies' || step === 'favoriteSeries';
+  const favoriteType = step === 'favoriteSeries' ? 'series' : 'movie';
   const movieGenres = useQuery({
     queryKey: ['catalog', 'genres', 'movie'],
     queryFn: () => fetchCatalogGenres('movie'),
@@ -91,10 +97,12 @@ function OnboardingFlow({
   });
 
   const search = useQuery({
-    queryKey: ['catalog', 'search', genreType, submittedSearch],
-    queryFn: () => searchCatalog(submittedSearch, genreType),
-    enabled: submittedSearch.trim().length >= 2,
+    queryKey: ['catalog', 'search', favoriteType, submittedSearch],
+    queryFn: () => searchCatalog(submittedSearch, favoriteType),
+    enabled: isFavoriteStep && submittedSearch.trim().length >= 2,
   });
+  useErrorToast(step === 'genres' ? (genreType === 'movie' ? movieGenres.error : seriesGenres.error) : null, 'Não foi possível carregar os gêneros. Tente novamente.');
+  useErrorToast(search.error, search.error?.message ?? 'Não foi possível buscar no catálogo.');
 
   const saveMutation = useMutation({
     mutationFn: saveOnboardingProgress,
@@ -105,10 +113,9 @@ function OnboardingFlow({
         ...progress,
         currentStep: progress.currentStep === 'completed' ? 'review' : progress.currentStep,
       });
-      setSaveError(null);
     },
     onError: (error) => {
-      setSaveError(error instanceof Error ? error.message : 'Não foi possível salvar suas escolhas.');
+      showError(error instanceof Error ? error.message : 'Não foi possível salvar suas escolhas.');
     },
   });
 
@@ -119,7 +126,7 @@ function OnboardingFlow({
       router.replace(isEditing ? '/profile' : '/home');
     },
     onError: (error) => {
-      setSaveError(error instanceof Error ? error.message : 'Não foi possível concluir o onboarding.');
+      showError(error instanceof Error ? error.message : 'Não foi possível concluir o onboarding.');
     },
   });
 
@@ -127,19 +134,21 @@ function OnboardingFlow({
   const safeIndex = currentIndex < 0 ? 0 : currentIndex;
   const selectedGenres = genreType === 'movie' ? draft.movieGenreIds : draft.seriesGenreIds;
   const genres = genreType === 'movie' ? movieGenres : seriesGenres;
-  const isFavoriteStep = step === 'favoriteMovies' || step === 'favoriteSeries';
-  const favoriteType = step === 'favoriteSeries' ? 'series' : 'movie';
   const favoriteIds = favoriteType === 'movie' ? draft.favoriteMovieIds : draft.favoriteSeriesIds;
   const selectedGenresTotal = draft.movieGenreIds.length + draft.seriesGenreIds.length;
   const updateDraft = (changes: Partial<OnboardingProgress>) => {
     setDraft((current) => current ? { ...current, ...changes } : current);
-    setSaveError(null);
+    setSelectionNotice(null);
   };
 
   const continueTo = async (nextStep: (typeof steps)[number]) => {
     const progress = { ...draft, currentStep: nextStep };
-    await saveMutation.mutateAsync(progress);
-    setStep(nextStep);
+    try {
+      await saveMutation.mutateAsync(progress);
+      setStep(nextStep);
+    } catch {
+      return;
+    }
   };
 
   const goBack = () => {
@@ -152,6 +161,10 @@ function OnboardingFlow({
 
   const toggleGenre = (genre: CatalogGenre) => {
     const currentIds = genreType === 'movie' ? draft.movieGenreIds : draft.seriesGenreIds;
+    if (!currentIds.includes(genre.id) && currentIds.length >= 20) {
+      setSelectionNotice('Você já selecionou o limite de 20 gêneros para esta categoria.');
+      return;
+    }
     const nextIds = currentIds.includes(genre.id)
       ? currentIds.filter((id) => id !== genre.id)
       : [...currentIds, genre.id];
@@ -161,11 +174,13 @@ function OnboardingFlow({
   };
 
   const toggleFavorite = (title: CatalogTitle) => {
+    if (!favoriteIds.includes(title.id) && favoriteIds.length >= 10) {
+      setSelectionNotice(`Você já selecionou o limite de 10 ${favoriteType === 'movie' ? 'filmes' : 'séries'}.`);
+      return;
+    }
     const nextIds = favoriteIds.includes(title.id)
       ? favoriteIds.filter((id) => id !== title.id)
-      : favoriteIds.length < 10
-        ? [...favoriteIds, title.id]
-        : favoriteIds;
+      : [...favoriteIds, title.id];
     updateDraft(favoriteType === 'movie'
       ? { favoriteMovieIds: nextIds }
       : { favoriteSeriesIds: nextIds });
@@ -191,10 +206,16 @@ function OnboardingFlow({
     >
       <View style={styles.container}>
         <View style={styles.topBar}>
-          <Pressable accessibilityRole="button" onPress={goBack} style={styles.backButton}>
-            <Text style={styles.backLabel}>Voltar</Text>
-          </Pressable>
-          <Text style={styles.stepCount}>{isEditing ? 'PREFERÊNCIAS' : `${safeIndex + 1} / ${steps.length}`}</Text>
+          {step === 'welcome' && !isEditing ? (
+            <View style={styles.backButton} />
+          ) : (
+            <Pressable accessibilityRole="button" onPress={goBack} style={styles.backButton}>
+              <Text style={styles.backLabel}>Voltar</Text>
+            </Pressable>
+          )}
+          <Text style={styles.stepCount}>
+            {isEditing ? 'EDITANDO PREFERÊNCIAS' : `ETAPA ${safeIndex + 1} DE ${steps.length}`}
+          </Text>
         </View>
 
         <View accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: steps.length, now: safeIndex + 1 }} style={styles.progressTrack}>
@@ -218,10 +239,13 @@ function OnboardingFlow({
               <SegmentButton label="Filmes" selected={genreType === 'movie'} onPress={() => setGenreType('movie')} />
               <SegmentButton label="Séries" selected={genreType === 'series'} onPress={() => setGenreType('series')} />
             </View>
+            <Text style={styles.selectedCount}>
+              {selectedGenres.length} de 20 gêneros selecionados
+            </Text>
             {genres.isPending ? <ActivityIndicator color={colors.brand} /> : null}
             {genres.isError ? (
               <View style={styles.messageBlock}>
-                <Text accessibilityRole="alert" style={styles.errorText}>Não foi possível carregar os gêneros.</Text>
+                <Text style={styles.emptyText}>Gêneros indisponíveis no momento.</Text>
                 <PrimaryButton label="Tentar novamente" variant="secondary" onPress={() => void genres.refetch()} />
               </View>
             ) : (
@@ -250,24 +274,38 @@ function OnboardingFlow({
               <TextInput
                 accessibilityLabel={`Buscar ${favoriteType === 'movie' ? 'filmes' : 'séries'}`}
                 autoCapitalize="sentences"
+                onBlur={() => setIsSearchFocused(false)}
                 onChangeText={setSearchText}
+                onFocus={() => setIsSearchFocused(true)}
                 onSubmitEditing={() => setSubmittedSearch(searchText.trim())}
                 placeholder="Buscar no catálogo"
                 placeholderTextColor={colors.textSecondary}
                 returnKeyType="search"
-                style={styles.searchInput}
+                style={[styles.searchInput, isSearchFocused ? styles.searchInputFocused : null]}
                 value={searchText}
               />
               <Pressable
                 accessibilityRole="button"
+                disabled={searchText.trim().length < 2 || search.isFetching}
                 onPress={() => setSubmittedSearch(searchText.trim())}
-                style={styles.searchButton}
+                style={({ pressed }) => [
+                  styles.searchButton,
+                  (searchText.trim().length < 2 || search.isFetching) ? styles.disabled : null,
+                  pressed && searchText.trim().length >= 2 && !search.isFetching ? styles.pressed : null,
+                ]}
               >
                 <Text style={styles.searchButtonLabel}>Buscar</Text>
               </Pressable>
             </View>
-            {search.isFetching ? <ActivityIndicator color={colors.brand} /> : null}
-            {search.isError ? <Text accessibilityRole="alert" style={styles.errorText}>{search.error.message}</Text> : null}
+            {search.isFetching ? (
+              <View accessibilityLiveRegion="polite" style={styles.loadingRow}>
+                <ActivityIndicator color={colors.brand} />
+                <Text style={styles.emptyText}>Buscando no catálogo...</Text>
+              </View>
+            ) : null}
+            {submittedSearch.trim().length < 2 ? (
+              <Text style={styles.emptyText}>Digite ao menos 2 caracteres para buscar no catálogo.</Text>
+            ) : null}
             {search.data?.length === 0 && !search.isFetching ? (
               <Text style={styles.emptyText}>Nenhum título encontrado.</Text>
             ) : null}
@@ -282,7 +320,19 @@ function OnboardingFlow({
               ))}
             </View>
             {favoriteIds.length > 0 ? (
-              <Text style={styles.selectedCount}>{favoriteIds.length} de 10 selecionados</Text>
+              <>
+                <Text style={styles.selectedCount}>{favoriteIds.length} de 10 selecionados</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={isBusy}
+                  onPress={() => updateDraft(favoriteType === 'movie'
+                    ? { favoriteMovieIds: [] }
+                    : { favoriteSeriesIds: [] })}
+                  style={({ pressed }) => [styles.skipButton, pressed ? styles.pressed : null]}
+                >
+                  <Text style={styles.skipLabel}>Remover seleções desta etapa</Text>
+                </Pressable>
+              </>
             ) : null}
           </View>
         ) : null}
@@ -307,7 +357,9 @@ function OnboardingFlow({
           </View>
         ) : null}
 
-        {saveError ? <Text accessibilityRole="alert" style={styles.errorText}>{saveError}</Text> : null}
+        {selectionNotice ? (
+          <Text accessibilityLiveRegion="polite" style={styles.selectionNotice}>{selectionNotice}</Text>
+        ) : null}
 
         <View style={styles.actions}>
           {step === 'review' ? (
@@ -328,13 +380,17 @@ function OnboardingFlow({
               accessibilityRole="button"
               disabled={isBusy}
               onPress={() => nextStep && void continueTo(nextStep)}
-              style={styles.skipButton}
+              style={({ pressed }) => [styles.skipButton, pressed ? styles.pressed : null]}
             >
               <Text style={styles.skipLabel}>Pular esta etapa</Text>
             </Pressable>
           ) : null}
           {isEditing ? (
-            <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.skipButton}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.back()}
+              style={({ pressed }) => [styles.skipButton, pressed ? styles.pressed : null]}
+            >
               <Text style={styles.skipLabel}>Cancelar edição</Text>
             </Pressable>
           ) : null}
@@ -350,7 +406,11 @@ function SegmentButton({ label, selected, onPress }: { label: string; selected: 
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
-      style={[styles.segment, selected ? styles.segmentSelected : null]}
+      style={({ pressed }) => [
+        styles.segment,
+        selected ? styles.segmentSelected : null,
+        pressed ? styles.pressed : null,
+      ]}
     >
       <Text style={[styles.segmentLabel, selected ? styles.segmentLabelSelected : null]}>{label}</Text>
     </Pressable>
@@ -363,7 +423,11 @@ function SelectionChip({ label, selected, onPress }: { label: string; selected: 
       accessibilityRole="checkbox"
       accessibilityState={{ checked: selected }}
       onPress={onPress}
-      style={[styles.chip, selected ? styles.chipSelected : null]}
+      style={({ pressed }) => [
+        styles.chip,
+        selected ? styles.chipSelected : null,
+        pressed ? styles.pressed : null,
+      ]}
     >
       <Text style={[styles.chipLabel, selected ? styles.chipLabelSelected : null]}>{label}</Text>
     </Pressable>
@@ -376,7 +440,11 @@ function TitleResult({ title, selected, onPress }: { title: CatalogTitle; select
       accessibilityRole="checkbox"
       accessibilityState={{ checked: selected }}
       onPress={onPress}
-      style={[styles.titleResult, selected ? styles.titleResultSelected : null]}
+      style={({ pressed }) => [
+        styles.titleResult,
+        selected ? styles.titleResultSelected : null,
+        pressed ? styles.pressed : null,
+      ]}
     >
       {title.posterUrl ? (
         <Image contentFit="cover" source={title.posterUrl} style={styles.poster} />
@@ -398,7 +466,7 @@ const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
     backgroundColor: colors.background,
-    paddingHorizontal: spacing.large,
+    paddingHorizontal: spacing.medium,
     paddingVertical: spacing.extraLarge,
   },
   container: {
@@ -427,13 +495,15 @@ const styles = StyleSheet.create({
   },
   backLabel: {
     color: colors.textPrimary,
-    fontSize: 14,
+    fontSize: typography.bodySmall,
     fontFamily: fontFamily.semiBold,
   },
   stepCount: {
     color: colors.textSecondary,
-    fontSize: 11,
+    fontSize: typography.eyebrow,
     fontFamily: fontFamily.bold,
+    letterSpacing: 0.8,
+    textAlign: 'right',
   },
   progressTrack: {
     height: 4,
@@ -447,7 +517,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand,
   },
   intro: {
-    gap: 16,
+    gap: spacing.medium,
     paddingTop: 24,
     paddingBottom: 8,
   },
@@ -459,49 +529,50 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand,
   },
   section: {
-    gap: 16,
+    gap: spacing.medium,
     paddingTop: 12,
   },
   eyebrow: {
     color: colors.brandSecondary,
-    fontSize: 11,
+    fontSize: typography.eyebrow,
     fontFamily: fontFamily.extraBold,
+    letterSpacing: 1,
   },
   title: {
     color: colors.textPrimary,
-    fontSize: 28,
-    lineHeight: 36,
+    fontSize: typography.title,
+    lineHeight: 37,
     fontFamily: fontFamily.extraBold,
   },
   secondaryText: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: typography.bodySmall,
     lineHeight: 21,
     fontFamily: fontFamily.regular,
   },
   segmented: {
     flexDirection: 'row',
-    gap: 8,
+    gap: spacing.small,
     marginTop: 6,
   },
   segment: {
-    minHeight: 44,
-    minWidth: 104,
+    flex: 1,
+    minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radii.small,
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.medium,
     backgroundColor: colors.surface,
   },
   segmentSelected: {
     borderColor: colors.brand,
-    backgroundColor: '#35131D',
+    backgroundColor: colors.brandSurface,
   },
   segmentLabel: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: typography.bodySmall,
     fontFamily: fontFamily.semiBold,
   },
   segmentLabelSelected: {
@@ -510,24 +581,24 @@ const styles = StyleSheet.create({
   genreGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 9,
+    gap: spacing.small,
   },
   chip: {
-    minHeight: 42,
+    minHeight: 44,
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radii.small,
-    paddingHorizontal: 15,
+    paddingHorizontal: spacing.medium,
     backgroundColor: colors.surface,
   },
   chipSelected: {
     borderColor: colors.brand,
-    backgroundColor: '#35131D',
+    backgroundColor: colors.brandSurface,
   },
   chipLabel: {
     color: colors.textSecondary,
-    fontSize: 13,
+    fontSize: typography.bodySmall,
     fontFamily: fontFamily.semiBold,
   },
   chipLabelSelected: {
@@ -535,42 +606,51 @@ const styles = StyleSheet.create({
   },
   searchRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: spacing.small,
   },
   searchInput: {
     flex: 1,
-    minHeight: 50,
+    minHeight: 52,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radii.small,
-    paddingHorizontal: 14,
+    paddingHorizontal: spacing.medium,
     backgroundColor: colors.surface,
     color: colors.textPrimary,
-    fontSize: 15,
+    fontSize: typography.body,
     fontFamily: fontFamily.regular,
   },
+  searchInputFocused: {
+    borderColor: colors.brandSecondary,
+  },
   searchButton: {
-    minHeight: 50,
-    minWidth: 82,
+    minHeight: 52,
+    minWidth: 84,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radii.small,
     paddingHorizontal: 12,
     backgroundColor: colors.brand,
   },
+  disabled: {
+    opacity: 0.5,
+  },
+  pressed: {
+    opacity: 0.78,
+  },
   searchButtonLabel: {
     color: colors.white,
-    fontSize: 13,
+    fontSize: typography.bodySmall,
     fontFamily: fontFamily.bold,
   },
   titleList: {
-    gap: 8,
+    gap: spacing.small,
   },
   titleResult: {
-    minHeight: 90,
+    minHeight: 96,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.small,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radii.small,
@@ -581,9 +661,9 @@ const styles = StyleSheet.create({
     borderColor: colors.brand,
   },
   poster: {
-    width: 48,
-    height: 70,
-    borderRadius: 4,
+    width: 52,
+    height: 76,
+    borderRadius: radii.extraSmall,
     backgroundColor: colors.surfaceElevated,
   },
   posterFallback: {
@@ -592,46 +672,51 @@ const styles = StyleSheet.create({
   },
   posterFallbackLabel: {
     color: colors.brandSecondary,
-    fontSize: 20,
+    fontSize: typography.section,
     fontFamily: fontFamily.extraBold,
   },
   titleInfo: {
     flex: 1,
-    gap: 5,
+    gap: spacing.extraSmall,
   },
   resultTitle: {
     color: colors.textPrimary,
-    fontSize: 14,
+    fontSize: typography.bodySmall,
     fontFamily: fontFamily.semiBold,
   },
   releaseDate: {
     color: colors.textSecondary,
-    fontSize: 12,
+    fontSize: typography.caption,
     fontFamily: fontFamily.regular,
   },
   selectionMark: {
     color: colors.brandSecondary,
-    fontSize: 11,
+    fontSize: typography.eyebrow,
     fontFamily: fontFamily.bold,
   },
   selectedCount: {
     color: colors.textSecondary,
-    fontSize: 12,
+    fontSize: typography.caption,
     fontFamily: fontFamily.medium,
   },
   emptyText: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: typography.bodySmall,
     fontFamily: fontFamily.regular,
   },
-  messageBlock: {
-    gap: 12,
+  loadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.small,
   },
-  errorText: {
-    color: colors.error,
-    fontSize: 13,
-    lineHeight: 19,
+  selectionNotice: {
+    color: colors.warning,
+    fontSize: typography.bodySmall,
+    lineHeight: 21,
     fontFamily: fontFamily.medium,
+  },
+  messageBlock: {
+    gap: spacing.small,
   },
   summaryRow: {
     minHeight: 52,
@@ -643,27 +728,27 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: typography.bodySmall,
     fontFamily: fontFamily.medium,
   },
   summaryValue: {
     color: colors.textPrimary,
-    fontSize: 16,
+    fontSize: typography.body,
     fontFamily: fontFamily.bold,
   },
   actions: {
-    gap: 8,
+    gap: spacing.small,
     marginTop: 8,
   },
   skipButton: {
     minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.small,
   },
   skipLabel: {
     color: colors.textSecondary,
-    fontSize: 13,
+    fontSize: typography.bodySmall,
     fontFamily: fontFamily.semiBold,
   },
 });

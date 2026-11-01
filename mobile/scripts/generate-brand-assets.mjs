@@ -10,7 +10,7 @@ const brandDirectory = path.join(mobileDirectory, 'assets', 'brand');
 const colors = {
   red: '#FF2D55',
   pink: '#FF6688',
-  black: '#0F0F10',
+  black: '#080B0F',
   surface: '#1A1A1E',
   raised: '#2A2A2E',
   white: '#FFFFFF',
@@ -251,7 +251,7 @@ writeSvg(
       [
         ['BRAND RED', colors.red],
         ['PINK', colors.pink],
-        ['BLACK', colors.black],
+        ['BACKGROUND', colors.black],
         ['SURFACE', colors.surface],
         ['RAISED', colors.raised],
         ['WHITE', colors.white],

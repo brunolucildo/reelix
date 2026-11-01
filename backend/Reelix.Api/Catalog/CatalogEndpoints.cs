@@ -91,8 +91,8 @@ public static class CatalogEndpoints
         {
             return Results.Problem(
                 statusCode: StatusCodes.Status400BadRequest,
-                title: "Invalid catalog request.",
-                detail: exception.Message);
+                title: "Solicitação de catálogo inválida.",
+                detail: exception.ToUserMessage());
         }
     }
 
@@ -211,8 +211,8 @@ public static class CatalogEndpoints
             var problem = new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
-                Title = "Invalid catalog request.",
-                Detail = exception.Message,
+                Title = "Solicitação de catálogo inválida.",
+                Detail = exception.ToUserMessage(),
             };
             return Results.Problem(problem);
         }
@@ -229,6 +229,6 @@ public static class CatalogEndpoints
     private static IResult InvalidParameter() =>
         Results.Problem(
             statusCode: StatusCodes.Status400BadRequest,
-            title: "Invalid provider or content type.",
-            detail: "Use provider 'tmdb' or 'omdb' and content type 'movie' or 'series'.");
+            title: "Provedor ou tipo de conteúdo inválido.",
+            detail: "Use o provedor 'tmdb' ou 'omdb' e o tipo de conteúdo 'movie' ou 'series'.");
 }

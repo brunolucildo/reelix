@@ -34,6 +34,18 @@ Run lint and typecheck before declaring any task done.
 Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
 Docs: https://docs.expo.dev/eas/index.md
 
+## Reelix UI standards (mandatory)
+
+Before creating or changing any screen, read the "UI and design system" and "UX standards for every mobile screen" sections of `../docs/architecture.md`. In short:
+
+- API, network, loading, and save errors use the toast in `src/providers/toast-provider.tsx` (`useToast().showError` or `useErrorToast`). Never render them inline.
+- Field validation, selection limits, and success messages stay inline.
+- Use only tokens from `src/theme/tokens.ts`. Do not hard-code colors, sizes, or spacing.
+- Password inputs use `AuthInput`, which includes the Mostrar/Ocultar toggle.
+- Touch targets must be at least 44 px and need accessibility labels. User-facing copy is pt-BR.
+- Do not use fake data or simulate modules that are not implemented.
+- Update `../docs/wireframes/reelix-visual-wireframes.html` whenever a screen changes.
+
 ## Rules
 
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.

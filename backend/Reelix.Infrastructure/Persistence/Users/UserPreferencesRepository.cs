@@ -84,7 +84,7 @@ public sealed class UserPreferencesRepository(ReelixDbContext dbContext)
             return true;
         }
 
-        var expectedType = contentType == CatalogContentType.Movie ? "Movie" : "Series";
+        var expectedType = contentType.ToString().ToLowerInvariant();
         var count = await dbContext.ExternalCatalogReferences
             .Where(reference => uniqueIds.Contains(reference.Id) && reference.ContentType == expectedType)
             .Select(reference => reference.Id)

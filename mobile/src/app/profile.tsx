@@ -4,8 +4,9 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, Tex
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { useErrorToast, useToast } from '@/providers/toast-provider';
 import { fetchProfile, saveProfile, type ProfileData } from '@/services/api-client';
-import { colors, fontFamily, radii, spacing } from '@/theme/tokens';
+import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import TmdbLogo from '../../assets/brand/logos/tmdb-logo-blue.svg';
 
 type ProfileDraft = Omit<ProfileData, 'avatarUrl' | 'displayName' | 'biography'> & {
@@ -15,6 +16,7 @@ type ProfileDraft = Omit<ProfileData, 'avatarUrl' | 'displayName' | 'biography'>
 
 export default function ProfileScreen() {
   const profile = useQuery({ queryKey: ['profile'], queryFn: fetchProfile });
+  useErrorToast(profile.error, 'Não foi possível carregar o perfil. Verifique sua conexão e tente novamente.');
 
   if (profile.isError) {
     return (
@@ -40,6 +42,7 @@ export default function ProfileScreen() {
 function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { showError } = useToast();
   const [draft, setDraft] = useState<ProfileDraft>(() => ({
     displayName: initialProfile.displayName ?? '',
     biography: initialProfile.biography ?? '',
@@ -48,6 +51,7 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
     watchHistoryIsPublic: initialProfile.watchHistoryIsPublic,
   }));
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [focusedField, setFocusedField] = useState<'displayName' | 'biography' | null>(null);
 
   const saveMutation = useMutation({
     mutationFn: saveProfile,
@@ -63,7 +67,7 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
       setFeedback('Perfil atualizado.');
     },
     onError: (error) => {
-      setFeedback(error instanceof Error ? error.message : 'Não foi possível salvar o perfil.');
+      showError(error instanceof Error ? error.message : 'Não foi possível salvar o perfil.');
     },
   });
 
@@ -101,10 +105,12 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
               accessibilityLabel="Nome de exibição"
               autoCapitalize="words"
               maxLength={50}
+              onBlur={() => setFocusedField(null)}
               onChangeText={(displayName) => update({ displayName })}
+              onFocus={() => setFocusedField('displayName')}
               placeholder="Como você quer aparecer"
               placeholderTextColor={colors.textSecondary}
-              style={styles.input}
+              style={[styles.input, focusedField === 'displayName' ? styles.inputFocused : null]}
               value={draft.displayName}
             />
             <Text style={styles.counter}>{draft.displayName.length}/50</Text>
@@ -115,10 +121,16 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
               accessibilityLabel="Biografia"
               maxLength={280}
               multiline
+              onBlur={() => setFocusedField(null)}
               onChangeText={(biography) => update({ biography })}
+              onFocus={() => setFocusedField('biography')}
               placeholder="Uma frase sobre você"
               placeholderTextColor={colors.textSecondary}
-              style={[styles.input, styles.biographyInput]}
+              style={[
+                styles.input,
+                styles.biographyInput,
+                focusedField === 'biography' ? styles.inputFocused : null,
+              ]}
               textAlignVertical="top"
               value={draft.biography}
             />
@@ -130,16 +142,19 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
           <Text style={styles.sectionTitle}>Privacidade</Text>
           <PrivacyToggle
             label="Perfil visível"
+            description="Seus dados básicos podem aparecer quando alguém consulta seu perfil."
             value={draft.profileIsPublic}
             onValueChange={(profileIsPublic) => update({ profileIsPublic })}
           />
           <PrivacyToggle
             label="Favoritos visíveis"
+            description="Exibe seus títulos favoritos no perfil público."
             value={draft.favoritesArePublic}
             onValueChange={(favoritesArePublic) => update({ favoritesArePublic })}
           />
           <PrivacyToggle
             label="Histórico visível"
+            description="A configuração será aplicada quando o histórico estiver disponível."
             value={draft.watchHistoryIsPublic}
             onValueChange={(watchHistoryIsPublic) => update({ watchHistoryIsPublic })}
           />
@@ -149,6 +164,7 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
           <Text style={styles.sectionTitle}>Preferências</Text>
           <Pressable
             accessibilityRole="button"
+            accessibilityHint="Abre a edição de gêneros, filmes e séries favoritos"
             onPress={() => router.push({ pathname: '/onboarding', params: { edit: '1' } })}
             style={styles.preferenceButton}
           >
@@ -170,7 +186,7 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
         </View>
 
         {feedback ? (
-          <Text accessibilityRole={saveMutation.isError ? 'alert' : 'text'} style={saveMutation.isError ? styles.errorText : styles.successText}>
+          <Text accessibilityLiveRegion="polite" style={styles.successText}>
             {feedback}
           </Text>
         ) : null}
@@ -193,18 +209,24 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
 
 function PrivacyToggle({
   label,
+  description,
   value,
   onValueChange,
 }: {
   label: string;
+  description: string;
   value: boolean;
   onValueChange: (value: boolean) => void;
 }) {
   return (
     <View style={styles.toggleRow}>
-      <Text style={styles.toggleLabel}>{label}</Text>
+      <View style={styles.toggleCopy}>
+        <Text style={styles.toggleLabel}>{label}</Text>
+        <Text style={styles.toggleDescription}>{description}</Text>
+      </View>
       <Switch
         accessibilityLabel={label}
+        accessibilityHint={description}
         onValueChange={onValueChange}
         thumbColor={colors.white}
         trackColor={{ false: colors.surfaceElevated, true: colors.brand }}
@@ -247,13 +269,14 @@ const styles = StyleSheet.create({
   },
   backLabel: {
     color: colors.textPrimary,
-    fontSize: 14,
+    fontSize: typography.bodySmall,
     fontFamily: fontFamily.semiBold,
   },
   eyebrow: {
     color: colors.brandSecondary,
-    fontSize: 11,
+    fontSize: typography.eyebrow,
     fontFamily: fontFamily.extraBold,
+    letterSpacing: 1,
   },
   heading: {
     flexDirection: 'row',
@@ -273,33 +296,33 @@ const styles = StyleSheet.create({
   },
   avatarInitial: {
     color: colors.brandSecondary,
-    fontSize: 27,
+    fontSize: typography.title,
     fontFamily: fontFamily.extraBold,
   },
   headingText: {
     flex: 1,
-    gap: 5,
+    gap: spacing.extraSmall,
   },
   title: {
     color: colors.textPrimary,
-    fontSize: 28,
+    fontSize: typography.title,
     lineHeight: 36,
     fontFamily: fontFamily.extraBold,
   },
   secondaryText: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: typography.bodySmall,
     lineHeight: 21,
     fontFamily: fontFamily.regular,
   },
   formSection: {
-    gap: 14,
+    gap: spacing.medium,
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
   creditsSection: {
-    gap: 12,
+    gap: spacing.small,
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: colors.border,
@@ -311,33 +334,36 @@ const styles = StyleSheet.create({
   },
   creditNotice: {
     color: colors.textSecondary,
-    fontSize: 11,
+    fontSize: typography.eyebrow,
     lineHeight: 16,
     fontFamily: fontFamily.regular,
   },
   sectionTitle: {
     color: colors.textPrimary,
-    fontSize: 16,
+    fontSize: typography.section,
     fontFamily: fontFamily.bold,
   },
   field: {
-    gap: 7,
+    gap: spacing.small,
   },
   label: {
     color: colors.textPrimary,
-    fontSize: 13,
+    fontSize: typography.bodySmall,
     fontFamily: fontFamily.semiBold,
   },
   input: {
-    minHeight: 50,
+    minHeight: 52,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radii.small,
-    paddingHorizontal: 14,
+    paddingHorizontal: spacing.medium,
     backgroundColor: colors.surface,
     color: colors.textPrimary,
-    fontSize: 15,
+    fontSize: typography.body,
     fontFamily: fontFamily.regular,
+  },
+  inputFocused: {
+    borderColor: colors.brandSecondary,
   },
   biographyInput: {
     minHeight: 104,
@@ -346,28 +372,40 @@ const styles = StyleSheet.create({
   counter: {
     alignSelf: 'flex-end',
     color: colors.textSecondary,
-    fontSize: 11,
+    fontSize: typography.eyebrow,
     fontFamily: fontFamily.regular,
   },
   toggleRow: {
-    minHeight: 52,
+    minHeight: 72,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: spacing.medium,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
+  toggleCopy: {
+    flex: 1,
+    gap: spacing.extraSmall,
+    paddingVertical: spacing.small,
+  },
   toggleLabel: {
     color: colors.textPrimary,
-    fontSize: 14,
+    fontSize: typography.bodySmall,
     fontFamily: fontFamily.medium,
+  },
+  toggleDescription: {
+    color: colors.textSecondary,
+    fontSize: typography.caption,
+    lineHeight: 17,
+    fontFamily: fontFamily.regular,
   },
   preferenceButton: {
     minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 14,
+    paddingHorizontal: spacing.medium,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radii.small,
@@ -375,23 +413,17 @@ const styles = StyleSheet.create({
   },
   preferenceLabel: {
     color: colors.textPrimary,
-    fontSize: 13,
+    fontSize: typography.bodySmall,
     fontFamily: fontFamily.medium,
   },
   preferenceAction: {
     color: colors.brandSecondary,
-    fontSize: 13,
+    fontSize: typography.bodySmall,
     fontFamily: fontFamily.bold,
-  },
-  errorText: {
-    color: colors.error,
-    fontSize: 13,
-    lineHeight: 19,
-    fontFamily: fontFamily.medium,
   },
   successText: {
     color: colors.success,
-    fontSize: 13,
+    fontSize: typography.bodySmall,
     fontFamily: fontFamily.medium,
   },
 });

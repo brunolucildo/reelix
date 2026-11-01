@@ -19,7 +19,7 @@ public sealed class UserAccount
     {
         if (supabaseUserId == Guid.Empty)
         {
-            throw new ArgumentException("A valid Supabase user identifier is required.", nameof(supabaseUserId));
+            throw new ArgumentException("Informe um identificador de usuário Supabase válido.", nameof(supabaseUserId));
         }
 
         return new UserAccount(Guid.NewGuid(), supabaseUserId, DateTimeOffset.UtcNow);

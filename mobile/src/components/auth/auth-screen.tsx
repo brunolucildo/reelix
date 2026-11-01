@@ -2,7 +2,7 @@ import type { PropsWithChildren } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import ReelixLogo from '../../../assets/brand/logos/logo-horizontal.svg';
-import { colors, fontFamily, spacing } from '@/theme/tokens';
+import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 
 type AuthScreenProps = PropsWithChildren<{
   title: string;
@@ -17,12 +17,22 @@ export function AuthScreen({ title, subtitle, children }: AuthScreenProps) {
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.container}>
-        <ReelixLogo accessibilityLabel="Reelix — filmes, séries e amigos" width={320} height={96} />
+        <View style={styles.brandBlock}>
+          <ReelixLogo
+            accessibilityLabel="Reelix — filmes e séries"
+            style={styles.logo}
+            width="100%"
+            height={88}
+          />
+          <View style={styles.brandRule} />
+        </View>
         <View style={styles.heading}>
           <Text accessibilityRole="header" style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>{subtitle}</Text>
         </View>
-        <View style={styles.form}>{children}</View>
+        <View style={styles.formCard}>
+          <View style={styles.form}>{children}</View>
+        </View>
       </View>
     </ScrollView>
   );
@@ -33,34 +43,55 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     backgroundColor: colors.background,
-    paddingHorizontal: spacing.large,
+    paddingHorizontal: spacing.medium,
     paddingVertical: spacing.extraLarge,
   },
   container: {
     width: '100%',
-    maxWidth: 480,
+    maxWidth: 440,
     alignSelf: 'center',
-    gap: 12,
+    gap: spacing.large,
+  },
+  brandBlock: {
+    alignItems: 'center',
+    gap: spacing.medium,
+  },
+  logo: {
+    width: '100%',
+    maxWidth: 280,
+    height: 88,
+    alignSelf: 'center',
+  },
+  brandRule: {
+    width: 40,
+    height: 3,
+    borderRadius: radii.pill,
+    backgroundColor: colors.brand,
   },
   heading: {
-    gap: 8,
-    marginTop: 28,
+    gap: spacing.small,
   },
   title: {
     color: colors.textPrimary,
-    fontSize: 32,
+    fontSize: typography.display,
     fontFamily: fontFamily.extraBold,
-    letterSpacing: -1.1,
-    lineHeight: 39,
+    letterSpacing: -0.8,
+    lineHeight: 40,
   },
   subtitle: {
     color: colors.textSecondary,
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: typography.body,
+    lineHeight: 24,
+  },
+  formCard: {
+    padding: spacing.medium,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.large,
+    backgroundColor: colors.surface,
   },
   form: {
-    gap: 16,
-    marginTop: 12,
+    gap: spacing.medium,
   },
 });

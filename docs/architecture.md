@@ -74,6 +74,7 @@ A change should not be considered complete until relevant checks pass:
 5. Dependency/security scanning and secret scanning in CI.
 6. Review for readability, duplicated logic, accidental data exposure, and unnecessary complexity.
 7. Documentation updates for changed contracts, configuration, or architectural decisions.
+8. For mobile UI changes, compliance with the [UX standards](#ux-standards-for-every-mobile-screen) and an updated visual wireframe.
 
 ## 2. Architecture decisions
 
@@ -116,17 +117,32 @@ A change should not be considered complete until relevant checks pass:
   - `primary`: `#FF2D55`
   - `secondary`: `#FF6688`
   - `background`: `#080B0F`
-  - `surface`: `#10141B`
-  - `surface-raised`: `#202D36`
+  - `surface`: `#1A1A1E`
+  - `surface-raised`: `#2A2A2E`
   - `text`: `#FFFFFF`
-  - `text-muted`: `#A1A1AA`
-  - `success`: `#B7F34A`
+  - `text-muted`: `#B8B8BD`
+  - `success`: `#9ADDAA`
   - `warning`: `#FBBF24`
   - `info`: `#38BDF8`
+- Text on the primary (`#FF2D55`) button uses the `background` color, not white, to reach 5.41:1 contrast.
 - Use the supplied SVG assets through the existing Expo SVG integration or convert them to typed React Native components where needed. Keep platform-required raster exports, such as the Expo app icon and splash image, in sync with the supplied logo artwork.
 - Use the provided navigation, genre, and badge icons where appropriate; preserve their intended stroke/fill behavior and avoid substituting unrelated emoji or platform glyphs for brand assets.
 - Build reusable components that follow these tokens and assets: poster card, show/movie row, progress indicator, rating control, watchlist button, empty state, loading skeleton, error state, and confirmation dialog.
 - Use accessibility labels, adequate contrast, dynamic text sizing, and touch targets appropriate for mobile.
+### UX standards for every mobile screen
+
+These rules are mandatory for all new and changed screens. Every feature spec in `docs/specs/` inherits them, and a screen is not complete until it follows them.
+
+- **Error feedback:** Show API, network, loading, save, and sign-out failures in a toast with `useToast().showError` or `useErrorToast(error, message)` from `mobile/src/providers/toast-provider.tsx`. Do not render API errors as inline text. Do not create another toast, snackbar, or alert mechanism.
+- **Inline feedback:** Keep per-field validation, selection-limit warnings, and success confirmations inline, next to the related control.
+- **Blocking failures:** When a screen cannot render without data, show a toast and keep an in-place empty/error state with a “Tentar novamente” action. Never leave a blank screen or an infinite spinner.
+- **Messages:** User-facing copy is Brazilian Portuguese and must not reveal sensitive information, such as whether an e-mail address has an account, internal IDs, or stack traces. For 401 responses, ask the user to sign in again.
+- **Password fields:** Use `AuthInput` with `secureTextEntry`. It includes the Mostrar/Ocultar toggle with accessible labels.
+- **Accessibility:** Touch targets must be at least 44×44 px. Use `accessibilityRole` and `accessibilityLabel` on icon-only and toggle controls. Selected and pressed states must not rely on color alone. Show a visible focus state on inputs (`brandSecondary` border).
+- **Tokens only:** Use `colors`, `spacing`, `typography`, `radii`, and `fontFamily` from `mobile/src/theme/tokens.ts`. Do not hard-code hex values, font sizes, or spacing in screens.
+- **Real data only:** Do not use placeholder titles, counts, statistics, or simulated modules. When a module does not exist yet, omit its UI or show an explicit empty state.
+- **Wireframes:** When adding or changing a screen, update `docs/wireframes/reelix-visual-wireframes.html`, including its current/to-be status, notes, states, and flows, in the same change.
+
 - **shadcn/ui is designed for web React, not React Native.** Do not assume its components can be reused directly in the mobile app. If a web admin is added, shadcn/ui is a good option there.
 
 ### Client state boundaries
@@ -157,6 +173,7 @@ A change should not be considered complete until relevant checks pass:
 - Version the public API when necessary, for example `/api/v1`.
 - Use resource-oriented REST endpoints and appropriate HTTP status codes.
 - Return consistent problem details for errors (`ProblemDetails`).
+- `ProblemDetails` `title` and `detail` are shown to end users, so write them in Brazilian Portuguese. Do not include configuration keys, internal identifiers, or stack traces. Use `ArgumentException.ToUserMessage()` (`backend/Reelix.Api/ArgumentExceptionExtensions.cs`) to remove the `(Parameter '…')` suffix. Logs and OpenAPI summaries stay in English for developers.
 - Add pagination, filtering, sorting, and limits to collection endpoints.
 - Use idempotency where retryable operations could otherwise create duplicates.
 - Use cancellation tokens for I/O-bound operations.

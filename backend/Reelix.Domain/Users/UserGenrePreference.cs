@@ -23,7 +23,7 @@ public sealed class UserGenrePreference
     {
         if (accountId == Guid.Empty || string.IsNullOrWhiteSpace(contentType) || genreId <= 0)
         {
-            throw new ArgumentException("A valid account, content type, and genre are required.");
+            throw new ArgumentException("Informe conta, tipo de conteúdo e gênero válidos.");
         }
 
         return new UserGenrePreference(accountId, contentType, genreId);

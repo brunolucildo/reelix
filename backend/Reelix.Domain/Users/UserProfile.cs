@@ -27,7 +27,7 @@ public sealed class UserProfile
     {
         if (accountId == Guid.Empty)
         {
-            throw new ArgumentException("A valid account identifier is required.", nameof(accountId));
+            throw new ArgumentException("Informe um identificador de conta válido.", nameof(accountId));
         }
 
         return new UserProfile(accountId);
@@ -44,12 +44,12 @@ public sealed class UserProfile
         var normalizedBiography = NormalizeOptional(biography);
         if (normalizedName is { Length: > 50 })
         {
-            throw new ArgumentException("Display name cannot exceed 50 characters.", nameof(displayName));
+            throw new ArgumentException("O nome de exibição pode ter no máximo 50 caracteres.", nameof(displayName));
         }
 
         if (normalizedBiography is { Length: > 280 })
         {
-            throw new ArgumentException("Biography cannot exceed 280 characters.", nameof(biography));
+            throw new ArgumentException("A biografia pode ter no máximo 280 caracteres.", nameof(biography));
         }
 
         DisplayName = normalizedName;

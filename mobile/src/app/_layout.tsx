@@ -11,7 +11,8 @@ import { Stack } from 'expo-router';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { AuthProvider, useAuthSession } from '@/providers/auth-provider';
-import { colors, fontFamily } from '@/theme/tokens';
+import { ToastProvider } from '@/providers/toast-provider';
+import { colors, fontFamily, spacing, typography } from '@/theme/tokens';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -97,9 +98,11 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <RootNavigator />
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <RootNavigator />
+        </AuthProvider>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }
@@ -112,30 +115,30 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 14,
+    gap: spacing.small,
     padding: 28,
     backgroundColor: colors.background,
   },
   loadingText: {
     color: colors.textSecondary,
-    fontSize: 15,
+    fontSize: typography.body,
     fontFamily: fontFamily.regular,
   },
   errorTitle: {
     color: colors.textPrimary,
-    fontSize: 20,
+    fontSize: typography.section,
     fontFamily: fontFamily.bold,
     textAlign: 'center',
   },
   errorText: {
     color: colors.textSecondary,
-    fontSize: 15,
+    fontSize: typography.body,
     fontFamily: fontFamily.regular,
     textAlign: 'center',
   },
   retry: {
     color: colors.brand,
-    fontSize: 16,
+    fontSize: typography.body,
     fontFamily: fontFamily.bold,
     padding: 12,
   },
