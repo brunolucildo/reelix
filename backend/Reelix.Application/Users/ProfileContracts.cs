@@ -6,14 +6,22 @@ public sealed record UserProfileData(
     string? AvatarUrl,
     bool ProfileIsPublic,
     bool FavoritesArePublic,
-    bool WatchHistoryIsPublic);
+    bool WatchHistoryIsPublic,
+    bool IsDiscoverable = false,
+    bool WatchHistorySharedWithFriends = false,
+    bool FavoritesSharedWithFriends = false,
+    bool RatingsSharedWithFriends = false);
 
 public sealed record UpdateUserProfile(
     string? DisplayName,
     string? Biography,
     bool ProfileIsPublic,
     bool FavoritesArePublic,
-    bool WatchHistoryIsPublic);
+    bool WatchHistoryIsPublic,
+    bool? IsDiscoverable = null,
+    bool? WatchHistorySharedWithFriends = null,
+    bool? FavoritesSharedWithFriends = null,
+    bool? RatingsSharedWithFriends = null);
 
 public sealed record PublicUserProfileData(
     string? DisplayName,

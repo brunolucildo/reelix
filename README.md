@@ -1,6 +1,6 @@
 # Reelix
 
-Aplicativo para descobrir e acompanhar filmes e séries, registrar o que você assistiu e, em etapas futuras, compartilhar atividade com amigos.
+Aplicativo para descobrir e acompanhar filmes e séries, registrar o que você assistiu e compartilhar atividades autorizadas com amigos.
 
 O repositório reúne o aplicativo mobile em React Native/Expo e uma API ASP.NET Core. A autenticação usa Supabase Auth; os dados da conta Reelix são armazenados em PostgreSQL.
 
@@ -17,12 +17,17 @@ acompanhamento e favoritos/listas:
 - Perfil próprio com nome, biografia e privacidade, além de consulta de perfil público conforme as permissões do usuário.
 - Home autenticada com áreas separadas para filmes e séries, destaques e lançamentos do catálogo, favoritos, sugestões por gênero, pesquisa e detalhes de títulos.
 - Acompanhamento de filmes/séries assistidos e gerenciamento de favoritos, watchlist e listas privadas.
+- Avaliações de 0 a 5 em passos de meia estrela e comentários privados ou públicos, com sinalização e revelação explícita de spoilers para filmes, séries e episódios.
+- Análise opcional de possíveis spoilers, desativada por padrão e executada no backend somente com consentimento explícito por comentário.
+- Amizades, solicitações, busca protegida e feed paginado, com consentimentos separados para histórico, avaliações e favoritos.
+- Caixa de entrada de notificações sociais com preferências, registro privado de dispositivos e processamento persistente de tickets/receipts Expo.
+- Conquistas determinísticas, estatísticas com estimativa de runtime e ranking mensal entre amigos com opt-in e paginação.
 - API autenticada para onboarding e perfil; veja [configuração e contratos](docs/onboarding-profile-setup.md).
 - Regras e contratos da Home de descoberta estão em [docs/home-discovery-setup.md](docs/home-discovery-setup.md).
 - Swagger para testar a API localmente e uma página exclusiva de desenvolvimento para obter um token de usuário diretamente pelo Supabase Auth.
-- Migrations e testes automatizados para autenticação, catálogo, onboarding, perfil e configuração CORS de desenvolvimento web.
+- Migrations e testes automatizados para autenticação, catálogo, onboarding, perfil, notificações, gamificação e configuração CORS de desenvolvimento web.
 
-Avaliações, comentários e recursos sociais permanecem para etapas futuras. As migrations estão no repositório, mas precisam ser aplicadas a um banco local/de desenvolvimento antes de usar os recursos nesse ambiente.
+Notificações sociais estão implementadas na API e no app; push remoto permanece desativado até configurar projeto EAS, credenciais APNs/FCM, segredo Expo e hosting continuamente ativo. Alertas de episódios/estreias ainda dependem de uma fonte confiável de atualização do catálogo. Gamificação está implementada na API e no app; suas conquistas são reconciliadas ao consultar o dashboard, e a migration precisa ser aplicada ao banco antes do uso. O spike de widgets ainda depende de validação em builds nativos por plataforma; não declaramos suporte iOS/Android sem essa evidência. Veja as [especificações de avaliações e comentários](docs/specs/07-ratings-comments.md), [Social](docs/specs/09-social.md), [Notificações](docs/specs/10-notifications.md) e [Gamificação](docs/specs/11-gamification.md).
 
 ## Tecnologias
 
@@ -53,6 +58,8 @@ dotnet user-secrets set "ConnectionStrings:Reelix" "Host=SEU_HOST;Port=5432;Data
 Use os valores de conexão PostgreSQL exibidos no painel do seu projeto Supabase. A connection string precisa estar no formato `Host=...;Database=...;Username=...;Password=...`.
 
 ### 2. Configure e inicie a API
+
+A análise opcional de spoilers permanece desativada por padrão. Para habilitá-la no backend, configure `OpenAI:SpoilerAnalysis:Enabled`, `OpenAI:SpoilerAnalysis:ApiKey` e, opcionalmente, `OpenAI:SpoilerAnalysis:Model` e `OpenAI:SpoilerAnalysis:TimeoutSeconds` com User Secrets ou um gerenciador de segredos do ambiente de hospedagem. O usuário também precisa solicitar a análise ao criar ou editar cada comentário. Nunca configure a chave OpenAI no app mobile.
 
 ```powershell
 dotnet restore Reelix.sln
@@ -92,6 +99,8 @@ dotnet ef database update --project backend\Reelix.Infrastructure\Reelix.Infrast
 
 A tabela `public.user_accounts` e as tabelas de preferências/perfil têm RLS habilitado e não concedem acesso direto aos papéis da API Data; o backend acessa o PostgreSQL com sua própria connection string. Veja a [documentação de onboarding e perfil](docs/onboarding-profile-setup.md#banco-de-dados) antes de aplicar a nova migration.
 
+Push remoto é opcional e vem desativado por padrão. Para habilitá-lo, configure `extra.eas.projectId` no app e as credenciais APNs/FCM em EAS; no backend, defina `ExpoPush__Enabled=true`, `ExpoPush__ProjectId`, `ExpoPush__AccessToken` e, opcionalmente, `ExpoPush__MaxAttempts` (1–10). `ExpoPush__AccessToken` é segredo de servidor e nunca deve ser colocado no app. A API e o worker de entrega precisam ficar continuamente ativos; sem essa configuração, a inbox social continua funcionando, mas o registro push responde indisponível.
+
 ## Verificações
 
 Na raiz do repositório:
@@ -115,10 +124,11 @@ npx expo lint
 - [Configuração e contratos de onboarding e perfil](docs/onboarding-profile-setup.md)
 - [Regras e contratos da Home de descoberta](docs/home-discovery-setup.md)
 - [Plano aprovado de Home e descoberta](docs/plans/05-home-discovery-development-plan.html)
-- Planos propostos para as próximas etapas (implementação depende de aprovação):
-  - [6 — Avaliações, comentários e spoilers](docs/plans/06-ratings-comments-development-plan.html)
-  - [7 — Amizades e compartilhamento controlado](docs/plans/07-social-development-plan.html)
-  - [8 — Notificações e integração de eventos](docs/plans/08-notifications-development-plan.html)
+- [Especificação implementada de avaliações e comentários](docs/specs/07-ratings-comments.md)
+- [Plano implementado de avaliações, comentários e spoilers](docs/plans/06-ratings-comments-development-plan.html)
+- [Especificação implementada de amizades e compartilhamento](docs/specs/09-social.md)
+- [Plano de notificações e integração de eventos](docs/plans/08-notifications-development-plan.html)
+- Próximas etapas:
   - [9 — Conquistas, estatísticas e rankings](docs/plans/09-gamification-development-plan.html)
   - [10 — Widgets e validação nativa](docs/plans/10-mobile-widgets-development-plan.html)
 - [Arquitetura](docs/architecture.md)

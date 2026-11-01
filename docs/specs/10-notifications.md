@@ -72,6 +72,14 @@ A existência de uma data de lançamento não garante que o episódio estará di
 
 Não há fila selecionada para o MVP. AWS SQS e LocalStack podem ser avaliados quando o processamento exigir entrega durável, retentativas independentes do processo da API, dead-letter ou workers escalados separadamente. Até lá, não adicionar broker nem uma segunda infraestrutura local; registrar idempotência e política de retentativa no plano da feature quando esses requisitos forem definidos.
 
+## Estado de implementação
+
+- Implementados: preferências por categoria com padrão desligado, inbox paginada, leitura idempotente, registro/removal autenticados de dispositivos sem retornar tokens, processamento idempotente de solicitações/aceitações sociais, persistência de tickets e receipts Expo, backoff limitado, desativação de `DeviceNotRegistered` e deep links apenas para rotas internas permitidas.
+- O push remoto permanece desativado por padrão. Para habilitar, são necessários `extra.eas.projectId` no app, credenciais APNs/FCM e build nativo compatível, além de `ExpoPush__Enabled`, `ExpoPush__ProjectId` e `ExpoPush__AccessToken` no backend. A API/worker precisa de hosting continuamente ativo. Nenhum segredo deve ser distribuído no app.
+- A etapa não consulta ainda alterações de catálogo para novos episódios/estreias; a tela informa essa indisponibilidade e não cria notificações fictícias. Esses avisos exigem uma fonte confiável e scheduling durável, além de integração com tracking/watchlist.
+- O logout tenta revogar o dispositivo no servidor antes de encerrar a sessão. Se estiver offline, a sessão local ainda é encerrada e o app informa que a revogação remota falhou; uma conexão será necessária para remover o vínculo.
+- A migration `20261101191005_AddNotifications` foi gerada e testada pelo modelo EF, mas não foi aplicada a um PostgreSQL real.
+
 ## Tecnologias (Stack)
 
 - React Native
@@ -99,4 +107,4 @@ Não há fila selecionada para o MVP. AWS SQS e LocalStack podem ser avaliados q
 
 ## Resultado
 
-Sistema de notificações implementado, com preferências configuráveis, integração push e processamento controlado dos eventos relevantes.
+Fluxo social de notificações e infraestrutura de inbox/entrega implementados. Push remoto e alertas de catálogo seguem bloqueados até a configuração operacional e a integração de fonte descritas acima.

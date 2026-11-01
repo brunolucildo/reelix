@@ -56,6 +56,7 @@ public sealed class CatalogProviderTests
         Assert.Equal("11", title.ExternalId);
         Assert.Equal(CatalogContentType.Movie, title.ContentType);
         Assert.Equal("Popular movie", title.Title);
+        Assert.Equal([12, 28], title.GenreIds);
         Assert.Equal("https://image.tmdb.org/t/p/w500/poster.jpg", title.PosterUrl);
         Assert.Equal(3, page.TotalPages);
     }
@@ -195,6 +196,7 @@ public sealed class CatalogProviderTests
 
         Assert.NotNull(title);
         Assert.Equal(["Adventure"], title.Genres);
+        Assert.Equal([12], title.GenreIds);
         Assert.Null(title.ReleaseDate);
         Assert.Equal(121, title.RuntimeMinutes);
     }

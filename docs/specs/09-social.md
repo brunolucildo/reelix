@@ -94,3 +94,16 @@ A primeira versão deverá priorizar amizades e atividades entre usuários autor
 ## Resultado
 
 Módulo social implementado, com amizades, solicitações e compartilhamento controlado de atividades.
+
+## Decisões implementadas na versão inicial
+
+- A busca não diferencia maiúsculas/minúsculas, exige ao menos dois caracteres e procura nomes que começam pelo termo informado. Ela retorna somente nome e ID Reelix de perfis públicos ou que habilitaram descoberta; e-mail, ID Supabase, biografia e contagens não são retornados.
+- Uma relação canônica por par impede pedidos duplicados. Pedidos inversos enquanto existe uma solicitação pendente retornam conflito e exigem resposta explícita do destinatário. Solicitações recusadas, canceladas ou amizades removidas podem ser iniciadas novamente, respeitando o limite de escrita da API.
+- Perfil público não ativa compartilhamento social automaticamente. O histórico e as avaliações só entram no feed entre amigos quando o respectivo consentimento está ativo; a consulta usa a data de ativação para não importar atividades antigas. Desativar a opção remove imediatamente as atividades das consultas seguintes.
+- Favoritos de amigos só aparecem com consentimento próprio, com limite de 100 itens. Biografia só aparece no perfil contextual se o perfil também for público. Histórico, comentários privados, watchlist e listas privadas nunca são expostos pelo vínculo de amizade.
+- O feed usa cursor composto por data/ID e lote fixo de 20 atividades. Amigos e solicitações também usam cursor; os cartões recebem dados de catálogo em lote, sem uma chamada por atividade.
+- Eventos `friend.requested` e `friend.accepted` são gravados na mesma transação que a mudança de relação, com ID, versão, ator, destinatário e horário. A etapa Social não entrega notificações nem push.
+- Busca e mutações de amizade têm limites por usuário. A tabela de relações e a tabela de eventos ficam com RLS habilitado e sem privilégios para os papéis da Data API; o backend usa sua conexão PostgreSQL.
+- Bloqueio, seguidores públicos, chat e histórico retroativo não fazem parte desta entrega.
+
+Os endpoints autenticados estão em `/api/v1/social`: `GET /users`, `POST /friend-requests`, `GET /friend-requests`, ações `PUT .../{id}/accept|decline`, cancelamento `DELETE /friend-requests/{id}`, `GET /friends`, perfil contextual `GET /friends/{accountId}/profile`, remoção `DELETE /friends/{relationshipId}` e `GET /feed`. A migration EF Core precisa ser aplicada ao banco antes de usar os endpoints.

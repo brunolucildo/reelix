@@ -7,12 +7,15 @@ import {
   Sora_800ExtraBold,
 } from '@expo-google-fonts/sora';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import * as Notifications from 'expo-notifications';
 
 import { AuthProvider, useAuthSession } from '@/providers/auth-provider';
 import { ToastProvider } from '@/providers/toast-provider';
 import { colors, fontFamily, spacing, typography } from '@/theme/tokens';
+import { markNotificationRead } from '@/services/api-client';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,8 +26,55 @@ const queryClient = new QueryClient({
   },
 });
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
 function RootNavigator() {
   const { session, isLoading, initializationError, retryInitialization } = useAuthSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!session) {
+      return;
+    }
+
+    const openNotification = (response: Notifications.NotificationResponse) => {
+      const data = response.notification.request.content.data;
+      if (!data) {
+        return;
+      }
+
+      const notificationId = data.notificationId;
+      if (typeof notificationId === 'string') {
+        void markNotificationRead(notificationId).catch((error: unknown) => {
+          console.warn('Unable to mark the opened notification as read.', error);
+        });
+      }
+
+      const deepLink = data.deepLink;
+      if (deepLink === '/social' || deepLink === '/notifications') {
+        router.push(deepLink);
+      }
+    };
+    const subscription = Notifications.addNotificationResponseReceivedListener(openNotification);
+    void Notifications.getLastNotificationResponseAsync()
+      .then((response) => {
+        if (response) {
+          openNotification(response);
+        }
+      })
+      .catch((error: unknown) => {
+        console.warn('Unable to read the last notification response.', error);
+      });
+
+    return () => subscription.remove();
+  }, [router, session]);
 
   if (isLoading) {
     return (
@@ -65,6 +115,10 @@ function RootNavigator() {
         <Stack.Screen name="lists" />
         <Stack.Screen name="tracking" />
         <Stack.Screen name="search" />
+        <Stack.Screen name="social" />
+        <Stack.Screen name="notifications" />
+        <Stack.Screen name="gamification" />
+        <Stack.Screen name="social-profile/[accountId]" />
         <Stack.Screen name="title/[provider]/[contentType]/[externalId]" />
         <Stack.Screen name="auth/reset-password" />
       </Stack.Protected>

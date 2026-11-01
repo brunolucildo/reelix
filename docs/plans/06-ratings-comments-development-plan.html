@@ -25,7 +25,7 @@
           <p class="eyebrow">Etapa 6 · especificação 07</p>
           <h1>Avaliações e comentários <span>sem revelar spoilers.</span></h1>
           <p>Plano para notas independentes dos comentários, autorização por recurso e publicação com moderação explícita. A análise por IA será opcional e isolada das operações de avaliação.</p>
-          <span class="status">Proposto em 01/11/2026 · aguardando aprovação</span>
+          <span class="status">Aprovado · implementação concluída</span>
         </div>
       </header>
       <main>
@@ -78,12 +78,12 @@
           </div>
         </section>
         <section aria-labelledby="phases">
-          <h2 id="phases">Sequência de execução após aprovação</h2>
+          <h2 id="phases">Execução concluída</h2>
           <div class="phase-grid">
-            <article class="card"><h3>01 · Regras e experiência</h3><p>Fechar escala, audiência, limites, política de IA e revisão. Atualizar wireframes de detalhes e episódios, editor, aviso de spoiler e estado pendente. Saída: contratos e matriz de visibilidade aprovados.</p></article>
-            <article class="card"><h3>02 · Domínio e persistência</h3><p>Implementar invariantes, configurações EF, migration e repositórios. Cobrir unicidade concorrente, exclusão e média elegível. Saída: testes de domínio e integração PostgreSQL passando.</p></article>
-            <article class="card"><h3>03 · API e moderação</h3><p>Implementar CRUD, consultas e revelação; adicionar processamento opcional com controle de versão, estados e retentativas limitadas. Preparar evento de publicação/alteração sem acoplar envio push. Saída: OpenAPI e testes de autorização/falhas externas.</p></article>
-            <article class="card"><h3>04 · Mobile e aceite</h3><p>Integrar estrelas acessíveis, editor, audiência, listagem e revelação por comentário/versão. Invalidar nota própria, média e comentários após mutações; limpar conteúdo revelado na troca de sessão. Saída: navegação completa, documentação e validações relevantes.</p></article>
+            <article class="card"><h3>01 · Regras e experiência</h3><p>Escala de meia estrela, audiência privada por padrão, limite de comentário, consentimento e limites da análise estão documentados. O wireframe cobre avaliação, editor, spoiler e acesso episódico.</p></article>
+            <article class="card"><h3>02 · Domínio e persistência</h3><p>Entidades, configurações EF, migration e repositórios implementados. A gravação concorrente mantém unicidade por conta/alvo; médias incluem somente notas públicas. A migration foi gerada, mas não aplicada a um banco.</p></article>
+            <article class="card"><h3>03 · API e moderação</h3><p>CRUD autenticado, paginação, validação de associação episódio/série e revelação reautorizada implementados. Classificação opcional no servidor exige configuração e consentimento, com lease, controle de versão e até três tentativas.</p></article>
+            <article class="card"><h3>04 · Mobile e aceite</h3><p>Notas acessíveis, privacidade, comentários, edição/exclusão, ocultação/revelação de spoilers e navegação temporada/episódio integrados. Typecheck e lint mobile passaram; 102 testes backend passaram.</p></article>
           </div>
         </section>
         <section aria-labelledby="acceptance">
@@ -93,10 +93,10 @@
             <li>Editar/excluir nota altera média e contagem; nota zero participa da média e alvo sem votos retorna média nula. Audiências diferentes não vazam notas privadas.</li>
             <li>Conta B não modifica recursos de A; spoiler não aparece na resposta inicial, acessibilidade, preview ou logs. Revelação não permite ler comentários privados, bloqueados ou pendentes.</li>
             <li>Testar edição durante análise, resposta malformada, timeout, limite de requisições, IA desabilitada e bloqueio explícito; falhas não afetam CRUD de notas.</li>
-            <li>Executar testes .NET de Ratings/Comments e integração PostgreSQL, typecheck e lint mobile; validar manualmente filmes, séries e episódios e atualizar regras/configuração de moderação.</li>
+            <li>Executados: 102 testes .NET, typecheck TypeScript e lint mobile. A integração real com PostgreSQL e o teste manual em dispositivo dependem de ambiente/banco configurado.</li>
           </ul></article>
         </section>
-        <section aria-labelledby="approval"><h2 id="approval">Marco de aprovação</h2><article class="card decision"><p>Aprovar as regras propostas e o alcance da revisão/IA antes de iniciar. Este documento planeja a implementação; não ativa chamadas externas, cria tabelas ou declara a etapa concluída.</p></article></section>
+        <section aria-labelledby="approval"><h2 id="approval">Encerramento e implantação</h2><article class="card"><p>A etapa está implementada. Para usar os recursos em um ambiente, aplique a migration EF Core e configure a conexão PostgreSQL. A análise externa continua desativada por padrão; veja a <a href="../specs/07-ratings-comments.md">especificação de privacidade e configuração</a>. Denúncias e revisão administrativa permanecem fora do escopo.</p></article></section>
       </main>
       <footer>Referências: <a href="../specs/07-ratings-comments.md">especificação 07</a>, <a href="../architecture.md">arquitetura</a>, <a href="../wireframes/reelix-visual-wireframes.html">wireframes</a>, <a href="./03-catalog-development-plan.html">catálogo</a> e <a href="./07-social-development-plan.html">próxima etapa: social</a>.</footer>
     </div>

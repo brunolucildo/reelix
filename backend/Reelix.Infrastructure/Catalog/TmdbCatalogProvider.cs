@@ -289,7 +289,15 @@ public sealed class TmdbCatalogProvider(
             EmptyToNull(item.OriginalLanguage),
             item.Runtime is > 0 ? item.Runtime : null,
             GetImageUrl(item.PosterPath, "w500"),
-            GetImageUrl(item.BackdropPath, "w1280"));
+            GetImageUrl(item.BackdropPath, "w1280"))
+        {
+            GenreIds = (item.GenreIds.Count > 0
+                    ? item.GenreIds
+                    : item.Genres.Select(genre => genre.Id).ToList())
+                .Where(id => id > 0)
+                .Distinct()
+                .ToArray(),
+        };
     }
 
     private static int ParseNumericId(string value)

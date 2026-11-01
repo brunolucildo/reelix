@@ -608,18 +608,19 @@
       </div>
     </div>
     <section class="hero">
-      <p class="eyebrow">Product experience · 3 módulos</p>
+      <p class="eyebrow">Product experience · 7 módulos</p>
       <h1>Visual <span>Wireframes</span></h1>
       <p class="hero-copy">
         Comparação navegável entre as telas confirmadas no repositório e a experiência visual
-        prevista para autenticação, onboarding, perfil, catálogo, tracking e listas. Cada status AS IS
+        prevista para autenticação, onboarding, perfil, catálogo, tracking, listas e avaliações. Cada status AS IS
         foi confrontado com o código; o que não existe aparece como lacuna, nunca como tela entregue.
       </p>
       <div class="hero-meta">
         <span class="status done">Autenticação mobile implementada</span>
-        <span class="status partial">Catálogo: API implementada, sem UI mobile</span>
+        <span class="status done">Catálogo: detalhes, temporadas e episódios no mobile</span>
         <span class="status done">Onboarding e perfil implementados (API + mobile)</span>
         <span class="status done">Tracking e listas implementados (API + mobile)</span>
+        <span class="status done">Avaliações e comentários implementados</span>
       </div>
     </section>
     <div class="summary-grid" aria-label="Resumo de implementação">
@@ -628,6 +629,7 @@
       <article class="summary-card"><strong>03 · Catalog</strong><span>A API autenticada pesquisa e consulta detalhes/temporadas; no mobile, a busca só é usada no onboarding. Não há telas de catálogo.</span></article>
       <article class="summary-card"><strong>05 · Tracking</strong><span>Histórico paginado, filmes assistidos, episódios acompanhados e progresso sem estimar totais ausentes do catálogo.</span></article>
       <article class="summary-card"><strong>08 · Favoritos e listas</strong><span>Favoritos, watchlist e listas personalizadas privadas, com paginação e estado persistido.</span></article>
+      <article class="summary-card"><strong>06 · Avaliações e comentários</strong><span>Notas de meia estrela, audiência privada por padrão, spoilers ocultos e navegação de avaliações por episódio.</span></article>
     </div>
   </header>
 
@@ -636,6 +638,7 @@
     <button class="module-button" role="tab" aria-selected="false" data-module="onboarding">Onboarding &amp; Profile <span class="nav-count">09</span></button>
     <button class="module-button" role="tab" aria-selected="false" data-module="home-discovery">Home &amp; Discovery <span class="nav-count">05</span></button>
     <button class="module-button" role="tab" aria-selected="false" data-module="catalog">Catalog <span class="nav-count">01</span></button>
+    <button class="module-button" role="tab" aria-selected="false" data-module="ratings">Avaliações e comentários <span class="nav-count">01</span></button>
     <button class="module-button" role="tab" aria-selected="false" data-module="tracking">Tracking <span class="nav-count">01</span></button>
     <button class="module-button" role="tab" aria-selected="false" data-module="lists">Favoritos e listas <span class="nav-count">01</span></button>
   </nav>
@@ -648,7 +651,7 @@
           <h2 id="screen-section-title">Selecione uma tela</h2>
           <p>As molduras simulam proporções mobile. Os botões no wireframe navegam pelo protótipo, sem autenticação, API ou persistência real.</p>
         </div>
-        <span class="tag">23 telas · 5 módulos</span>
+        <span class="tag">24 telas · 7 módulos</span>
       </div>
       <div class="toolbar">
         <label class="toolbar-label" for="screen-select">Tela</label>
@@ -708,8 +711,8 @@
       </div>
       <div class="observations-grid">
         <article class="observation">
-          <strong>Catálogo tem backend; a experiência mobile não está no plano</strong>
-          <p>O backend já registra TMDB e OMDb e expõe pesquisa paginada, detalhes e temporadas/episódios atrás de autorização. A especificação do catálogo coloca telas e navegação mobile fora do módulo. Por isso, as telas de busca/detalhes abaixo são apenas uma proposta de consumo, não um requisito aprovado nem uma implementação existente.</p>
+          <strong>Catálogo e navegação episódica integrados</strong>
+          <p>O backend autenticado expõe busca paginada, detalhes e temporadas/episódios. A Home e os detalhes usam os contratos do catálogo; a série permite consultar uma temporada e abrir um episódio. As avaliações episódicas usam IDs internos e validam a associação com a série no servidor.</p>
         </article>
         <article class="observation">
           <strong>Onboarding &amp; perfil implementados</strong>
@@ -1085,7 +1088,7 @@
         stateCopy: { "Carregando": ["", "Carregando detalhes do título…"], "Detalhes": ["success", "Exiba apenas os metadados que o provedor retornar."], "Não encontrado": ["", "Título não encontrado no provedor selecionado."], "Erro provedor": ["error", "Falha do provedor. Mostre estado recuperável sem título substituto."] },
         description: "Detalhes limitados aos metadados disponíveis no catálogo.",
         scope: "04 · Home / Discovery", flow: "Resultados ou Home → Detalhes do filme → Voltar",
-        changes: "Exibir somente campos existentes; ações de tracking, avaliações e listas permanecem nos módulos responsáveis.",
+        changes: "Exibir somente campos existentes; avaliações e comentários ficam integrados aos detalhes e mantêm sua própria audiência.",
         template: "movie", next: "search", prev: "results",
       },
       {
@@ -1097,19 +1100,31 @@
         stateCopy: { "Carregando": ["", "Carregando dados da série…"], "Detalhes": ["success", "Temporadas e metadados aparecem apenas quando disponíveis."], "Não encontrado": ["", "Série não encontrada no provedor."], "Erro provedor": ["error", "Não foi possível consultar detalhes. Tente novamente."] },
         description: "Detalhes de série limitados aos metadados existentes; episódios e tracking permanecem nos módulos correspondentes.",
         scope: "04 · Home / Discovery", flow: "Resultados ou Home → Detalhes da série → Voltar",
-        changes: "Não inferir metadados ausentes nem incluir regras de acompanhamento neste módulo.",
+        changes: "Informar o número da temporada para navegar pelos episódios; manter as avaliações independentes do tracking.",
         template: "series", next: "search", prev: "results",
       },
       {
-        id: "season", module: "catalog", name: "Temporada e episódios", objective: "Consultar episódios retornados para uma temporada da série.", route: "Proposta de UI — GET /api/v1/catalog/{provider}/series/{externalId}/seasons/{seasonNumber}",
-        current: "partial", tobe: "unknown", currentCaption: "Consulta disponível na API; UI mobile ausente",
-        currentNotes: ["Backend possui endpoint autenticado para temporada e episódios disponíveis.", "Número, título, sinopse, data e duração podem ser opcionais.", "Não inferir episódios/datas que o provedor não fornece."],
-        currentStates: ["API funcional", "UI ausente"],
+        id: "reviews", module: "ratings", name: "Avaliações e comentários", objective: "Avaliar filmes, séries e episódios e publicar comentários com audiência e controles de spoiler.", route: "components/reviews/rating-review-section.tsx · /api/v1/ratings · /api/v1/comments",
+        current: "done", tobe: "kept", currentCaption: "Experiência implementada nos detalhes de títulos e episódios",
+        currentNotes: ["Notas de 0 a 5 em passos de 0,5; 0 é válido, e cada usuário possui uma nota por alvo.", "Notas e comentários são privados por padrão; médias e contagens usam somente notas públicas.", "Comentários próprios podem ser editados/excluídos; spoilers ficam ocultos e são revelados por ação explícita.", "Análise opcional de spoiler é desativada no servidor por padrão e depende de consentimento por comentário."],
+        currentStates: ["Avaliação", "Comentários", "Spoiler oculto", "Pendente", "Erro"],
+        states: ["Avaliação", "Comentários", "Spoiler oculto", "Pendente", "Erro"],
+        stateCopy: { "Avaliação": ["success", "Média pública separada da nota privada do usuário."], "Comentários": ["success", "Comentários públicos e próprios respeitam a audiência escolhida."], "Spoiler oculto": ["", "O conteúdo só aparece depois da ação explícita de revelar."], "Pendente": ["", "O autor vê o estado; análise só é executada quando habilitada e consentida."], "Erro": ["error", "Falhas de rede são recuperáveis e não substituem o conteúdo da API."] },
+        description: "Notas, comentários, privacidade e spoilers integrados às telas de detalhes de filmes/séries e à tela de episódio.",
+        scope: "06 · Ratings and comments", flow: "Detalhes de título → Avaliação/comentário → Revelar spoiler ou navegar a episódio",
+        changes: "Manter nota e comentário independentes; não expor conteúdo privado, pendente ou spoiler sem autorização explícita.",
+        template: "reviews", next: "season", prev: "series",
+      },
+      {
+        id: "season", module: "catalog", name: "Temporada e episódios", objective: "Consultar episódios retornados para uma temporada da série.", route: "title/[provider]/[contentType]/[externalId].tsx · GET /api/v1/catalog/{provider}/series/{externalId}/seasons/{seasonNumber}",
+        current: "done", tobe: "kept", currentCaption: "Navegação mobile de temporada e episódio implementada",
+        currentNotes: ["Detalhes de série consultam temporada e apresentam os episódios disponíveis.", "A rota do episódio busca novamente a temporada e valida o ID interno antes de mostrar avaliações.", "Número, título, sinopse, data e duração permanecem opcionais; não são inferidos."],
+        currentStates: ["Carregando", "Episódios", "Temporada vazia", "Erro"],
         states: ["Carregando", "Episódios", "Temporada vazia", "Não encontrado", "Erro"],
         stateCopy: { "Carregando": ["", "Consultando temporada e episódios…"], "Episódios": ["success", "Exiba somente episódios disponíveis na resposta."], "Temporada vazia": ["", "Nenhum episódio disponível para esta temporada."], "Não encontrado": ["", "Temporada não encontrada."], "Erro": ["error", "Falha na consulta. Tente novamente sem inventar resultados."] },
-        description: "Exemplo conceitual de listagem de episódios retornados pelo endpoint de temporada.",
-        scope: "03 · Catalog · proposta visual", flow: "Detalhe de série → Temporada → Episódios",
-        changes: "Não representa interface aprovada pelo plano, tracking de progresso nem reprodução de conteúdo.",
+        description: "Lista os episódios retornados pelo catálogo e permite abrir sua tela de avaliação.",
+        scope: "03 · Catalog", flow: "Detalhe de série → Temporada → Episódio → Avaliações",
+        changes: "Manter a relação de IDs internos episódio/série validada no servidor; não registrar progresso automaticamente.",
         template: "season", next: "series", prev: "series",
       },
       {
@@ -1143,6 +1158,7 @@
       onboarding: { label: "Onboarding & Profile", ids: ["welcome", "genres", "fav-movies", "fav-series", "complete", "profile", "profile-edit", "preferences", "privacy"] },
       "home-discovery": { label: "Home & Discovery", ids: ["account", "search", "results", "movie", "series"] },
       catalog: { label: "Catalog", ids: ["season"] },
+      ratings: { label: "Avaliações e comentários", ids: ["reviews"] },
       tracking: { label: "Tracking", ids: ["tracking"] },
       lists: { label: "Favoritos e listas", ids: ["lists"] },
     };
@@ -1182,11 +1198,12 @@
       if (template === "privacy") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="account">‹ VOLTAR</span><span class="step-mark">CONTA REELIX</span></div><p class="mini-section">PRIVACIDADE</p><div class="row"><span>Perfil visível<small>Seus dados básicos podem aparecer quando alguém consulta seu perfil.</small></span><span class="toggle"></span></div><div class="row"><span>Favoritos visíveis<small>Exibe seus títulos favoritos no perfil público.</small></span><span class="toggle"></span></div><div class="row"><span>Histórico visível<small>A configuração será aplicada quando o histórico estiver disponível.</small></span><span class="toggle"></span></div><div class="form-note">Todas as opções começam desligadas e são salvas junto com o perfil.</div>${goButton("Salvar alterações","profile","primary",true)}</div>`;
       if (template === "search") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Descobrir</p><span class="tiny">⌕</span></div><p class="phone-subtitle">Pesquise filmes e séries no catálogo disponível.</p><div class="input search"><span>⌕ &nbsp; Título, filme ou série</span><span class="icon">↵</span></div><div class="chip-row">${choice("Todos",true)}${choice("Filmes")}${choice("Séries")}</div><div class="soft-card"><strong>Busca autenticada</strong><p>Termo, tipo, página e idioma seguem o contrato Reelix; provedor disponível no backend.</p></div><div class="phone-actions">${goButton("Buscar","results","primary")}${goButton("Ver séries","series","secondary")}</div><p class="tiny" style="margin-top:13px">PROPOSTA DE INTERFACE · NÃO ESPECIFICADA PELO PLANO DE CATÁLOGO</p></div>`;
       if (template === "results") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Resultados</p><span class="tiny">FILTRO</span></div><div class="input search"><span>⌕ &nbsp; Busca atual</span><span class="icon">×</span></div><div class="chip-row">${choice("Todos",true)}${choice("Filmes")}${choice("Séries")}</div><p class="tiny">RESULTADOS · PROVEDOR / PÁGINA DISPONÍVEIS</p>${resultCard("Resultado do catálogo","Filme · metadados disponíveis")}${resultCard("Resultado do catálogo","Série · metadados disponíveis","cool")}${resultCard("Resultado do catálogo","Filme · data opcional","gold")}<div class="phone-actions">${goButton("‹ Anterior","search","secondary")}${goButton("Próxima página","movie","primary")}</div><p class="tiny" style="margin-top:10px">Resultados ilustrativos, não retornados por API.</p></div>`;
-      if (template === "movie") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="results">‹ VOLTAR</span><span class="tiny">DETALHES</span></div><div class="title-art"><small>Filme · provedor de origem</small><strong>Título do catálogo</strong></div><div class="inline-metadata">${chip("Data opcional")}${chip("Duração opcional")}${chip("Idioma opcional")}</div><div class="chip-row">${choice("Gênero disponível")}${choice("Outro gênero")}</div><p class="mini-section">SINOPSE</p><p class="phone-subtitle">Sinopse fornecida pelo provedor, quando disponível. Este campo permanece opcional.</p><div class="soft-card"><strong>Origem identificável</strong><p>ID interno Reelix + provedor + ID externo.</p></div><div class="form-note">Sem ação de tracking, avaliação, lista, recomendação ou streaming: fora do plano de catálogo.</div>${goButton("Voltar aos resultados","results","secondary",true)}</div>`;
-      if (template === "series") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="results">‹ VOLTAR</span><span class="tiny">DETALHES</span></div><div class="title-art series-art"><small>Série · provedor de origem</small><strong>Título do catálogo</strong></div><div class="inline-metadata">${chip("Estreia opcional")}${chip("Idioma opcional")}</div><div class="chip-row">${choice("Gênero disponível")}${choice("Gênero disponível")}</div><p class="mini-section">SOBRE</p><p class="phone-subtitle">Sinopse e dados de estreia quando fornecidos pelo provedor.</p><p class="mini-section">TEMPORADAS DISPONÍVEIS</p><div class="row"><span>Temporada disponível<small>Consultar episódios no catálogo</small></span><span>›</span></div>${goButton("Ver temporada","season","primary",true)}<p class="tiny" style="margin-top:10px">A interface é conceitual; o contrato do catálogo fornece consulta de temporada.</p></div>`;
-      if (template === "season") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="series">‹ SÉRIE</span><span class="tiny">TEMPORADA</span></div><p class="phone-kicker">SÉRIE · TEMPORADA DISPONÍVEL</p><p class="phone-title">Temporada</p><p class="phone-subtitle">Episódios retornados pelo provedor. Dados ausentes não são inferidos.</p>${["Episódio disponível","Episódio disponível","Episódio disponível"].map((item, index) => `<div class="row"><span>${String(index + 1).padStart(2,"0")} · ${item}<small>Data / duração quando disponíveis</small></span><span>›</span></div>`).join("")}<div class="form-note">Consulta de catálogo não registra progresso de visualização.</div>${goButton("Voltar aos detalhes","series","secondary",true)}</div>`;
+      if (template === "movie") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="results">‹ VOLTAR</span><span class="tiny">DETALHES</span></div><div class="title-art"><small>Filme · provedor de origem</small><strong>Título do catálogo</strong></div><div class="inline-metadata">${chip("Data opcional")}${chip("Duração opcional")}${chip("Idioma opcional")}</div><div class="chip-row">${choice("Gênero disponível")}${choice("Outro gênero")}</div><p class="mini-section">SINOPSE</p><p class="phone-subtitle">Sinopse fornecida pelo provedor, quando disponível. Este campo permanece opcional.</p><div class="soft-card"><strong>Origem identificável</strong><p>ID interno Reelix + provedor + ID externo.</p></div><div class="form-note">Avaliações e comentários privados ou públicos aparecem abaixo dos detalhes, no módulo correspondente.</div>${goButton("Voltar aos resultados","results","secondary",true)}</div>`;
+      if (template === "series") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="results">‹ VOLTAR</span><span class="tiny">DETALHES</span></div><div class="title-art series-art"><small>Série · provedor de origem</small><strong>Título do catálogo</strong></div><div class="inline-metadata">${chip("Estreia opcional")}${chip("Idioma opcional")}</div><div class="chip-row">${choice("Gênero disponível")}${choice("Gênero disponível")}</div><p class="mini-section">SOBRE</p><p class="phone-subtitle">Sinopse e dados de estreia quando fornecidos pelo provedor.</p><p class="mini-section">TEMPORADAS DISPONÍVEIS</p><div class="row"><span>Informe o número da temporada<small>Consultar episódios no catálogo</small></span><span>›</span></div>${goButton("Ver temporada","season","primary",true)}<p class="tiny" style="margin-top:10px">Notas e comentários também ficam disponíveis nos detalhes da série.</p></div>`;
+      if (template === "season") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="series">‹ SÉRIE</span><span class="tiny">TEMPORADA</span></div><p class="phone-kicker">SÉRIE · TEMPORADA DISPONÍVEL</p><p class="phone-title">Temporada</p><p class="phone-subtitle">Episódios retornados pelo provedor. Dados ausentes não são inferidos.</p>${["Episódio disponível","Episódio disponível","Episódio disponível"].map((item, index) => `<div class="row"><span>${String(index + 1).padStart(2,"0")} · ${item}<small>Data / duração quando disponíveis</small></span>${goButton("Avaliar episódio","reviews","secondary")}</div>`).join("")}<div class="form-note">Avaliar um episódio não registra progresso de visualização.</div>${goButton("Voltar aos detalhes","series","secondary",true)}</div>`;
       if (template === "tracking") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Acompanhamento</p><span class="tiny">HISTÓRICO</span></div><div class="tab-row"><span class="tab active">Histórico</span><span class="tab">Séries</span></div><p class="mini-section">SEU HISTÓRICO · PÁGINA 1</p><div class="row"><span>Registro do seu histórico<small>Data de visualização · filme ou episódio</small></span><span>✓</span></div><div class="row"><span>Série acompanhada<small>Contagem real de episódios assistidos</small></span><span>›</span></div><div class="form-note">Total, percentual e conclusão ficam indisponíveis se o inventário completo da série não for fornecido pelo catálogo.</div><div class="phone-actions">${goButton("Página anterior","account","secondary")}${goButton("Próxima página","lists","primary")}</div><p class="tiny">Wireframe conceitual; conteúdo vem da API autenticada e paginada.</p></div>`;
       if (template === "lists") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Seus títulos e listas</p><span class="tiny">PRIVADO</span></div><div class="tab-row"><span class="tab active">Favoritos</span><span class="tab">Watchlist</span><span class="tab">Minhas listas</span></div><div class="input search"><span>Buscar filmes e séries no catálogo</span><span class="icon">⌕</span></div><div class="row"><span>Título salvo<small>Dados carregados do catálogo</small></span>${goButton("Remover","tracking","secondary")}</div><div class="soft-card"><strong>Lista privada</strong><p>Acesso owner-only · quantidade real de títulos · ordem editável</p>${goButton("Criar ou editar lista","tracking","primary",true)}</div><div class="form-note">Favoritos, watchlist, listas e histórico são relações independentes. Conteúdo ilustrativo, sem dados reais.</div></div>`;
+      if (template === "reviews") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="series">‹ DETALHES</span><span class="tiny">AVALIAÇÕES</span></div><p class="phone-title">Avaliações e comentários</p><div class="soft-card"><p class="phone-kicker">MÉDIA PÚBLICA</p><p class="phone-title">4,5 <span class="tiny">/ 5 · 12 avaliações</span></p><p class="phone-subtitle">Sua nota continua privada até você escolher publicá-la.</p><div class="chip-row">${choice("0")}${choice("0,5 ★")}${choice("1 ★")}${choice("1,5 ★", true)}${choice("2 ★")}</div><div class="choice-row">${choice("Privada", true)}${choice("Pública")}</div>${goButton("Salvar avaliação","reviews","primary",true)}</div><div class="soft-card"><p class="phone-kicker">SEU COMENTÁRIO</p><div class="input"><span>Compartilhe sua opinião · até 2.000 caracteres</span></div><div class="choice-row">${choice("Privada", true)}${choice("Pública")}</div><div class="choice-row">${choice("Marcar como spoiler")}${choice("Solicitar análise opcional")}</div><div class="form-note">Análise externa só quando habilitada no servidor e solicitada pelo autor.</div>${goButton("Publicar comentário","reviews","primary",true)}</div><div class="soft-card"><p class="phone-kicker">COMENTÁRIO · PÚBLICO</p><p>Leitor · data</p><div class="form-note">Spoiler oculto até a ação explícita do leitor.</div>${goButton("Revelar spoiler","reviews","secondary",true)}<div class="tiny">O autor também pode editar ou excluir seu comentário.</div></div><div class="form-note">Mesma experiência para filmes, séries e episódios; o destino do episódio é validado no servidor.</div>${goButton("Ver episódio","season","secondary",true)}</div>`;
 
       const auth = screen.module === "auth";
       if (auth) return `<div class="device"><div class="device-screen auth-screen">${inner}${bannerMarkup(screen)}</div></div>`;
@@ -1304,10 +1321,18 @@
           ], label: "AS IS · implementado",
         },
         {
-          title: "Catalog · API e temporadas", status: "partial", caption: "Busca e detalhes agora são consumidos pela Home & Discovery; consultas de temporada permanecem disponíveis na API.",
+          title: "Catalog · API e temporadas", status: "done", caption: "Detalhes, consulta de temporada e abertura de episódios disponíveis no mobile.",
           paths: [
-            [["Detalhes de série","series"],["Temporada / episódios","season"]],
-          ], label: "AS IS · busca/detalhes mobile",
+            [["Detalhes de série","series"],["Temporada / episódios","season"],["Avaliar episódio","reviews"]],
+          ], label: "AS IS · detalhes e episódios mobile",
+        },
+        {
+          title: "Avaliações e comentários", status: "done", caption: "Notas e comentários privados por padrão, com publicação pública explícita e proteção contra spoilers.",
+          paths: [
+            [["Detalhes de filme","movie"],["Avaliações","reviews"]],
+            [["Detalhes de série","series"],["Temporada / episódios","season"],["Avaliar episódio","reviews"]],
+            [["Comentário oculto","reviews"],["Revelar spoiler","reviews"]],
+          ], label: "AS IS · implementado",
         },
         {
           title: "Tracking", status: "done", caption: "Histórico e progresso autenticados, com paginação e sem estimar episódios indisponíveis.",

@@ -72,8 +72,8 @@ export default function HomeScreen() {
   const handleSignOut = async () => {
     try {
       await signOut();
-    } catch {
-      showError('Não foi possível confirmar o encerramento da sessão. Feche o app e tente novamente.');
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'Não foi possível encerrar a sessão.');
     }
   };
 
@@ -134,6 +134,27 @@ export default function HomeScreen() {
           style={styles.quickLink}
         >
           <Text style={styles.quickLinkText}>Acompanhamento</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/social')}
+          style={styles.quickLink}
+        >
+          <Text style={styles.quickLinkText}>Amigos e atividades</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/notifications')}
+          style={styles.quickLink}
+        >
+          <Text style={styles.quickLinkText}>Notificações</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/gamification')}
+          style={styles.quickLink}
+        >
+          <Text style={styles.quickLinkText}>Conquistas e estatísticas</Text>
         </Pressable>
       </View>
 

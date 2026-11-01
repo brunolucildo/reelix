@@ -23,6 +23,17 @@ public sealed class UserProfile
 
     public bool WatchHistoryIsPublic { get; private set; }
 
+    public bool IsDiscoverable { get; private set; }
+
+    public bool WatchHistorySharedWithFriends { get; private set; }
+
+    public DateTimeOffset? WatchHistorySharedWithFriendsSince { get; private set; }
+
+    public bool FavoritesSharedWithFriends { get; private set; }
+
+    public bool RatingsSharedWithFriends { get; private set; }
+
+    public DateTimeOffset? RatingsSharedWithFriendsSince { get; private set; }
     public static UserProfile Create(Guid accountId)
     {
         if (accountId == Guid.Empty)
@@ -38,7 +49,11 @@ public sealed class UserProfile
         string? biography,
         bool profileIsPublic,
         bool favoritesArePublic,
-        bool watchHistoryIsPublic)
+        bool watchHistoryIsPublic,
+        bool isDiscoverable = false,
+        bool watchHistorySharedWithFriends = false,
+        bool favoritesSharedWithFriends = false,
+        bool ratingsSharedWithFriends = false)
     {
         var normalizedName = NormalizeOptional(displayName);
         var normalizedBiography = NormalizeOptional(biography);
@@ -52,11 +67,26 @@ public sealed class UserProfile
             throw new ArgumentException("A biografia pode ter no máximo 280 caracteres.", nameof(biography));
         }
 
+        var now = DateTimeOffset.UtcNow;
+        if (watchHistorySharedWithFriends != WatchHistorySharedWithFriends)
+        {
+            WatchHistorySharedWithFriendsSince = watchHistorySharedWithFriends ? now : null;
+        }
+
+        if (ratingsSharedWithFriends != RatingsSharedWithFriends)
+        {
+            RatingsSharedWithFriendsSince = ratingsSharedWithFriends ? now : null;
+        }
+
         DisplayName = normalizedName;
         Biography = normalizedBiography;
         ProfileIsPublic = profileIsPublic;
         FavoritesArePublic = favoritesArePublic;
         WatchHistoryIsPublic = watchHistoryIsPublic;
+        IsDiscoverable = isDiscoverable;
+        WatchHistorySharedWithFriends = watchHistorySharedWithFriends;
+        FavoritesSharedWithFriends = favoritesSharedWithFriends;
+        RatingsSharedWithFriends = ratingsSharedWithFriends;
     }
 
     private static string? NormalizeOptional(string? value)

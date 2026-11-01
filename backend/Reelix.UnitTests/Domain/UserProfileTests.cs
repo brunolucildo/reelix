@@ -28,6 +28,31 @@ public sealed class UserProfileTests
         Assert.False(profile.WatchHistoryIsPublic);
     }
 
+    [Fact]
+    public void FriendSharingConsent_RecordsActivationAndClearsItWhenRevoked()
+    {
+        var profile = UserProfile.Create(Guid.NewGuid());
+
+        profile.Update(
+            null,
+            null,
+            false,
+            false,
+            false,
+            watchHistorySharedWithFriends: true,
+            ratingsSharedWithFriends: true);
+
+        Assert.NotNull(profile.WatchHistorySharedWithFriendsSince);
+        Assert.NotNull(profile.RatingsSharedWithFriendsSince);
+
+        profile.Update(null, null, false, false, false);
+
+        Assert.False(profile.WatchHistorySharedWithFriends);
+        Assert.False(profile.RatingsSharedWithFriends);
+        Assert.Null(profile.WatchHistorySharedWithFriendsSince);
+        Assert.Null(profile.RatingsSharedWithFriendsSince);
+    }
+
     [Theory]
     [InlineData(51, 0)]
     [InlineData(0, 281)]

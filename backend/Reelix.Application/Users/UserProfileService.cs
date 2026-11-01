@@ -29,7 +29,11 @@ public sealed class UserProfileService(
             update.Biography,
             update.ProfileIsPublic,
             update.FavoritesArePublic,
-            update.WatchHistoryIsPublic);
+            update.WatchHistoryIsPublic,
+            update.IsDiscoverable ?? profile.IsDiscoverable,
+            update.WatchHistorySharedWithFriends ?? profile.WatchHistorySharedWithFriends,
+            update.FavoritesSharedWithFriends ?? profile.FavoritesSharedWithFriends,
+            update.RatingsSharedWithFriends ?? profile.RatingsSharedWithFriends);
         await profiles.SaveAsync(profile, cancellationToken);
         return ToData(profile);
     }
@@ -61,5 +65,9 @@ public sealed class UserProfileService(
         null,
         profile.ProfileIsPublic,
         profile.FavoritesArePublic,
-        profile.WatchHistoryIsPublic);
+        profile.WatchHistoryIsPublic,
+        profile.IsDiscoverable,
+        profile.WatchHistorySharedWithFriends,
+        profile.FavoritesSharedWithFriends,
+        profile.RatingsSharedWithFriends);
 }

@@ -91,6 +91,10 @@ public sealed class CatalogService(
 
         var key = new CatalogReferenceKey(item.ExternalId, ToReferenceType(item.ContentType));
         var ids = await references.GetOrCreateIdsAsync(provider, [key], cancellationToken);
+        await references.UpdateMetadataAsync(
+            provider,
+            [ToMetadataSnapshot(item)],
+            cancellationToken);
         return ToTitle(provider, item, ids);
     }
 
@@ -133,6 +137,18 @@ public sealed class CatalogService(
             provider,
             [seriesKey, seasonKey, .. episodeKeys],
             cancellationToken);
+        var episodeIds = episodeKeys.Select(key => ids[key]).ToArray();
+        await references.UpdateMetadataAsync(
+            provider,
+            result.Episodes.Select(episode => new CatalogMetadataSnapshot(
+                new CatalogReferenceKey(episode.ExternalId, CatalogReferenceType.Episode),
+                episode.RuntimeMinutes,
+                [])).ToArray(),
+            cancellationToken);
+        await references.LinkEpisodesToSeriesAsync(
+            ids[seriesKey],
+            episodeIds,
+            cancellationToken);
 
         return new CatalogSeason(
             ids[seasonKey],
@@ -143,7 +159,7 @@ public sealed class CatalogService(
             result.SeasonNumber,
             result.ReleaseDate,
             result.Episodes.Select((episode, index) => new CatalogEpisode(
-                ids[episodeKeys[index]],
+                episodeIds[index],
                 episode.ExternalId,
                 episode.EpisodeNumber,
                 episode.Title,
@@ -170,10 +186,24 @@ public sealed class CatalogService(
                 ToReferenceType(item.ContentType)))
             .Distinct()
             .ToArray();
-        return keys.Length == 0
-            ? new Dictionary<CatalogReferenceKey, Guid>()
-            : await references.GetOrCreateIdsAsync(provider, keys, cancellationToken);
+        if (keys.Length == 0)
+        {
+            return new Dictionary<CatalogReferenceKey, Guid>();
+        }
+
+        var ids = await references.GetOrCreateIdsAsync(provider, keys, cancellationToken);
+        await references.UpdateMetadataAsync(
+            provider,
+            items.Select(ToMetadataSnapshot).ToArray(),
+            cancellationToken);
+        return ids;
     }
+
+    private static CatalogMetadataSnapshot ToMetadataSnapshot(ProviderCatalogTitle item) =>
+        new(
+            new CatalogReferenceKey(item.ExternalId, ToReferenceType(item.ContentType)),
+            item.RuntimeMinutes,
+            item.GenreIds);
 
     private static CatalogTitle ToTitle(
         CatalogProvider provider,

@@ -90,6 +90,19 @@ A biblioteca e a estratégia nativa deverão ser selecionadas após a análise d
 - As limitações de plataforma são documentadas.
 - Os testes relevantes passam.
 
-## Resultado
+## Resultado do spike (01/11/2026)
 
-Widgets implementados nas plataformas suportadas, permitindo consultar episódios pendentes e estreias com navegação integrada ao Reelix.
+A documentação oficial consultada identifica `expo-widgets` como candidato para iOS e Android no SDK 58. O módulo não funciona no Expo Go e exige development builds. A documentação também exige App Group/bundle identifier no iOS e `android.package` com `enableAndroid` no Android; o widget roda em runtime isolado, não usa hooks nem chamadas de rede próprias, e recebe dados via snapshots/timelines.
+
+| Plataforma | Evidência disponível | Resultado |
+|---|---|---|
+| iOS | Documentação Expo/WidgetKit consultada; projeto sem `ios.bundleIdentifier`; ambiente Windows sem Xcode | Não validado; build, assinatura, App Group, renderização e deep link pendentes |
+| Android | Documentação Expo/Android consultada; projeto sem `android.package`; ambiente sem Java, Android SDK/ADB ou Gradle | Não validado; build, instalação, launcher, renderização e deep link pendentes |
+
+Nenhuma biblioteca foi instalada nem plugin/configuração nativa foi adicionada, pois os identificadores de distribuição não estão definidos e os builds compatíveis não podem ser executados neste ambiente. Não há widgets funcionais nem plataforma declarada como suportada. Próximo passo: definir bundle/package IDs e repetir o spike em ambiente com Xcode e Android SDK; só então aprovar snapshots, consentimento/limpeza por conta, dois layouts e navegação nativa.
+
+Referências oficiais verificadas:
+
+- [Expo Widgets SDK 58](https://docs.expo.dev/versions/latest/sdk/widgets/)
+- [WidgetKit: keeping a widget up to date](https://developer.apple.com/documentation/widgetkit/keeping-a-widget-up-to-date)
+- [Android App Widgets overview](https://developer.android.com/develop/ui/views/appwidgets/overview)

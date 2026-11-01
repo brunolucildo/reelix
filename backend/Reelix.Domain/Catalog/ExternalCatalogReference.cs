@@ -30,6 +30,12 @@ public sealed class ExternalCatalogReference
 
     public DateTimeOffset CreatedAt { get; private set; }
 
+    public int? RuntimeMinutes { get; private set; }
+
+    public DateTimeOffset? MetadataUpdatedAt { get; private set; }
+
+    public int MetadataVersion { get; private set; }
+
     public static ExternalCatalogReference Create(
         string provider,
         string externalId,
@@ -56,5 +62,24 @@ public sealed class ExternalCatalogReference
             externalId.Trim(),
             contentType.Trim().ToLowerInvariant(),
             DateTimeOffset.UtcNow);
+    }
+
+    public void UpdateMetadata(int? runtimeMinutes, bool hasGenreIds, bool hasChanged)
+    {
+        if (runtimeMinutes is <= 0 or > 1440)
+        {
+            runtimeMinutes = null;
+        }
+
+        if (runtimeMinutes is not null)
+        {
+            RuntimeMinutes = runtimeMinutes;
+        }
+
+        if (hasChanged && (runtimeMinutes is not null || hasGenreIds))
+        {
+            MetadataUpdatedAt = DateTimeOffset.UtcNow;
+            MetadataVersion++;
+        }
     }
 }

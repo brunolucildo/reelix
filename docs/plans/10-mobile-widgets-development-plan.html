@@ -23,7 +23,7 @@
         <p class="eyebrow">Etapa 10 · especificação 12</p>
         <h1>Widgets <span>depois da validação nativa.</span></h1>
         <p>Exibir episódios pendentes e próximas estreias com dados mínimos sincronizados. A implementação funcional só começa após comprovar build, armazenamento, navegação e limitações em cada plataforma.</p>
-        <span class="status">Proposto em 01/11/2026 · aguardando aprovação</span>
+        <span class="status">Spike pesquisado · builds nativos bloqueados pelo ambiente</span>
       </div></header>
       <main>
         <section aria-labelledby="baseline"><h2 id="baseline">Ponto de partida e dependências</h2><article class="card"><ul>
@@ -47,6 +47,16 @@
             <li>Se o candidato não atender aos critérios, comparar alternativa mantida/módulo nativo mínimo; registrar impacto de CNG/EAS e manutenção antes de instalar outra biblioteca.</li>
           </ul></article>
         </div><p class="callout"><strong>Saída obrigatória do spike:</strong> matriz por plataforma com versões, dois layouts demonstráveis, build reproduzível, armazenamento/limpeza, deep links, atualização observada e limitações. Documentação atual indica suporte nas duas plataformas, mas isso não comprova compatibilidade do projeto. Não funciona no Expo Go.</p></section>
+        <section aria-labelledby="spike-result"><h2 id="spike-result">Resultado do spike · 01/11/2026</h2><div class="columns">
+          <article class="card"><h3>iOS · não validado</h3><ul>
+            <li>A documentação Expo SDK 58 lista <code>expo-widgets</code> para iOS, mas exige development build, bundle identifier e App Group.</li>
+            <li>O app não define <code>ios.bundleIdentifier</code>; este ambiente Windows não tem Xcode. Build, assinatura, storage compartilhado, reload e deep link permanecem sem evidência.</li>
+          </ul></article>
+          <article class="card"><h3>Android · não validado</h3><ul>
+            <li>O candidato exige opt-in via <code>enableAndroid</code>, <code>android.package</code> e um subconjunto de componentes Expo UI.</li>
+            <li>O app não define <code>android.package</code>; Java, Android SDK/ADB e Gradle não estão disponíveis. Instalação, launcher, cliques e atualização permanecem sem evidência.</li>
+          </ul></article>
+        </div><p class="callout">Decisão: não instalar a biblioteca nem configurar plugin/bundle IDs sem identificadores de distribuição e builds reproduzíveis. Expo documenta que widgets não funcionam no Expo Go e executam isolados; dados devem chegar por snapshots/timelines, sem tokens nem rede dentro do widget. Nenhuma plataforma está aprovada para suporte.</p></section>
         <section aria-labelledby="scope"><h2 id="scope">Widgets e UX propostos</h2><article class="card"><ul>
           <li><strong>Episódios pendentes:</strong> até 3 itens de séries acompanhadas, com título, série/número quando conhecidos e navegação ao episódio. Nunca inferir temporada ou data ausentes.</li>
           <li><strong>Próximas estreias:</strong> até 3 filmes relevantes por watchlist/favoritos com data conhecida, ordenados por data/ID. Não garantir disponibilidade regional ou em uma plataforma.</li>
@@ -85,7 +95,7 @@
           <li>Registrar chamadas de rede e atualizações observadas sob restrições do SO; aprovar orçamento de bateria/rede no spike e demonstrar ausência de serviço permanente.</li>
           <li>Build nativo e validação compatível passam em cada plataforma declarada. Se iOS não for testado, o resultado continua pendente para iOS, mesmo que Android funcione.</li>
         </ul></article></section>
-        <section aria-labelledby="approval"><h2 id="approval">Dois marcos de aprovação</h2><article class="card decision"><p>Primeiro aprovar o spike e os critérios. Depois aprovar sua evidência e estratégia por plataforma para iniciar implementação funcional. Nenhuma biblioteca será considerada escolhida apenas porque a documentação anuncia suporte.</p></article></section>
+        <section aria-labelledby="approval"><h2 id="approval">Bloqueio e próximo passo</h2><article class="card decision"><p>A pesquisa documental foi concluída, mas o gate de compatibilidade não passou. Definir bundle/package IDs e executar builds em um Mac com Xcode e em ambiente Android com SDK/ADB/Gradle; comprovar storage/limpeza, layouts, deep links e atualização observada. Implementação funcional permanece bloqueada até essa evidência.</p></article></section>
       </main>
       <footer>Referências: <a href="../specs/12-mobile-widgets.md">especificação 12</a>, <a href="../architecture.md">arquitetura</a>, <a href="https://docs.expo.dev/versions/latest/sdk/widgets/">Expo Widgets SDK 58</a>, <a href="https://developer.apple.com/documentation/widgetkit/keeping-a-widget-up-to-date">WidgetKit: atualização</a> e <a href="https://developer.android.com/develop/ui/views/appwidgets/overview">Android App Widgets</a> (consultados em 01/11/2026). <a href="./08-notifications-development-plan.html">Plano de notificações</a>.</footer>
     </div>

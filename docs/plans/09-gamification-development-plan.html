@@ -23,7 +23,7 @@
         <p class="eyebrow">Etapa 9 · especificação 11</p>
         <h1>Conquistas e estatísticas <span>reproduzíveis.</span></h1>
         <p>Calcular progresso a partir dos registros existentes, com regras determinísticas, metadados identificáveis e correções consistentes. Nenhum resultado será decidido por IA.</p>
-        <span class="status">Proposto em 01/11/2026 · aguardando aprovação</span>
+        <span class="status">Implementado · migration pendente de aplicação em banco</span>
       </div></header>
       <main>
         <section aria-labelledby="baseline"><h2 id="baseline">Ponto de partida e dependências</h2><article class="card"><ul>
@@ -61,14 +61,14 @@
         <section aria-labelledby="implementation"><h2 id="implementation">Persistência, cálculo e contratos</h2><div class="columns">
           <article class="card"><h3>Recalcular sem dupla contagem</h3><ul>
             <li>Tabelas separadas para definição, obtenção única conta/conquista e projeção de progresso/estatísticas com versão de regra e fonte. FK, unicidade e índices por conta/período.</li>
-            <li>Reusar processamento persistente da etapa 8, se aprovado, para marcar contas afetadas por criação, correção, exclusão e mudança relevante no catálogo; não criar outro broker.</li>
-            <li>Recalcular a partir da fonte de verdade em lote por conta/período, em vez de incrementar cegamente contadores. Versionamento evita que cálculo antigo sobrescreva resultado recente.</li>
-            <li>Executar backfill do histórico existente e reconciliação repetível. Gravar concessão e evento de primeira obtenção atomicamente; chave única impede duplicação por concorrência.</li>
+            <li>O dashboard e a consulta de badges recalculam a partir do tracking atual; correções e remoções podem revogar ou reativar a mesma obtenção sem duplicar registros.</li>
+            <li>Não há broker ou worker adicional: a reconciliação é síncrona ao consultar o dashboard; backfill assíncrono e notificações de conquista ficam fora desta implementação.</li>
+            <li>A chave composta por conta/conquista impede duplicação; o bloqueio transacional da conta serializa reconciliações simultâneas.</li>
             <li>Alteração de regra exige versão e política de recomputação explícita. Metadados ausentes deixam progresso dependente do catálogo incompleto, sem invalidar contagens básicas.</li>
-            <li>Migration EF Core, RLS e ausência de grants Data API; no backend, escopo da conta e autorização de rankings/badges públicos continuam obrigatórios.</li>
+            <li>A migration EF Core cria catálogo, obtenções, preferências e gêneros; RLS e revogação de grants protegem as tabelas privadas. A migration precisa ser aplicada antes da implantação.</li>
           </ul></article>
           <article class="card"><h3>Metadados e superfícies</h3><ul>
-            <li>Adicionar somente o snapshot mínimo necessário por referência: duração/gêneros normalizados, provedor, data e versão. Enriquecer em lotes com cache e limites, sem chamada externa por badge no perfil.</li>
+            <li>O snapshot persistido inclui runtime, IDs TMDB de gênero, provedor, data e versão. Metadados desconhecidos preservam valores existentes; mudança de gêneros substitui o conjunto.</li>
             <li>Correção de duração/gênero invalida projeções afetadas e produz resultados reproduzíveis com a versão do snapshot. Não atribuir rewatch que o tracking não registra.</li>
             <li>API proposta em <code>/api/v1/gamification</code>: catálogo, conquistas/progresso próprios, estatísticas por período, badges públicos permitidos e ranking consentido paginado.</li>
             <li>Não aceitar pontuação, horas ou conquista obtida do cliente. Expor origem, versão e updatedAt para explicar atualização assíncrona.</li>
@@ -90,7 +90,7 @@
           <li>Ranking exclui não participantes/não amigos e respeita empate/paginação. Badge público não libera histórico privado e não permite enviar pontuação própria.</li>
           <li>Executar testes .NET de Gamification/integração e regressões de tracking, lint/typecheck mobile; medir consultas para evitar recálculo integral em cada acesso ao perfil.</li>
         </ul></article></section>
-        <section aria-labelledby="approval"><h2 id="approval">Marco de aprovação</h2><article class="card decision"><p>Aprovar regras e política de correção antes da implementação. O histórico existente basta para contagens, mas estatísticas de horas/gêneros exigem completar a origem dos metadados, sem inventá-los.</p></article></section>
+        <section aria-labelledby="approval"><h2 id="approval">Status e limites de implantação</h2><article class="card decision"><p>Regras, API, persistência e telas foram implementadas conforme a aprovação. Os testes não aplicam a migration a um banco real; o PostgreSQL precisa receber a migration antes do uso. O enriquecimento histórico de runtime/gêneros ocorre conforme itens do catálogo são consultados, e a reconciliação de badges acontece ao abrir dashboard/perfil, sem worker de backfill ou notificação de conquista.</p></article></section>
       </main>
       <footer>Referências: <a href="../specs/11-gamification.md">especificação 11</a>, <a href="../architecture.md">arquitetura</a>, <a href="./04-tracking-and-lists-development-plan.html">tracking/listas</a>, <a href="./07-social-development-plan.html">social</a>, <a href="./08-notifications-development-plan.html">notificações</a> e <a href="./10-mobile-widgets-development-plan.html">próxima etapa: widgets</a>.</footer>
     </div>

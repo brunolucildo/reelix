@@ -16,6 +16,18 @@ Os comentários poderão conter spoilers. A plataforma deverá permitir que o au
 
 A moderação automática poderá auxiliar na análise, mas não deverá ser considerada infalível.
 
+## Regras implementadas
+
+- Notas aceitam incrementos de 0,5; 0 é válido. Cada conta tem uma nota por alvo. Notas e comentários são privados por padrão; torná-los públicos é uma escolha separada do perfil público.
+- A média e a contagem consideram somente notas públicas. A nota privada própria pode ser consultada pelo autor e não aparece na agregação pública.
+- Comentários têm de 1 a 2.000 caracteres após normalização. O autor pode editar e excluir os próprios comentários.
+- Filmes, séries e episódios usam IDs internos Reelix. Comentários e notas de episódios também validam a associação persistida entre episódio e série.
+- Conteúdo sinalizado manualmente ou classificado como possível spoiler é retornado como `content: null`; o leitor usa a ação autenticada de revelação. Comentários pendentes ou bloqueados não são reveláveis.
+- A análise por IA fica desativada por padrão. Se o servidor a habilitar, cada comentário ainda exige consentimento explícito. Falhas e respostas inválidas são retentadas até três vezes; ao esgotar as tentativas, o comentário é publicado com ocultação conservadora.
+- Denúncias e revisão administrativa não fazem parte deste módulo; não há fluxo de denúncia ou painel de moderação manual disponível.
+
+Para habilitar a integração no backend, configure `OpenAI:SpoilerAnalysis:Enabled=true` e `OpenAI:SpoilerAnalysis:ApiKey` em User Secrets ou no gerenciador de segredos do ambiente. `Model` usa `gpt-4o-mini` por padrão; `TimeoutSeconds` usa 10 e aceita valores de 1 a 30. Não configure a chave no app mobile. Com a integração desativada, o consentimento do cliente não dispara chamadas externas e os comentários seguem as regras manuais.
+
 ## Requisitos Funcionais
 
 1. Permitir registrar uma avaliação de 0 a 5 estrelas.
@@ -31,8 +43,8 @@ A moderação automática poderá auxiliar na análise, mas não deverá ser con
 11. Exibir autor, data e conteúdo conforme as regras de privacidade.
 12. Calcular médias de avaliações a partir dos registros válidos.
 13. Diferenciar avaliações de filmes, séries e episódios.
-14. Impedir duplicação de avaliações para o mesmo usuário e alvo, salvo se a regra de negócio permitir múltiplas avaliações.
-15. Permitir denunciar comentários inadequados, caso o fluxo de denúncia seja implementado nesta etapa.
+14. Impedir duplicação de avaliações para o mesmo usuário e alvo.
+15. Denúncias e revisão administrativa estão fora do escopo atual.
 16. Registrar estados de moderação quando houver moderação automática ou manual.
 17. Permitir identificar comentários pendentes de análise.
 18. Não publicar automaticamente comentários que tenham sido bloqueados por uma regra explícita de moderação.
@@ -110,11 +122,11 @@ A moderação automática poderá auxiliar na análise, mas não deverá ser con
 - Comentários sinalizados como spoilers ficam ocultos inicialmente.
 - O leitor pode revelar o conteúdo sinalizado.
 - A API aplica autorização e regras de privacidade.
-- A classificação automática trata respostas inválidas e falhas externas.
+- A classificação automática trata respostas inválidas e falhas externas, quando habilitada no servidor e solicitada pelo autor.
 - Uma indisponibilidade da OpenAI não impede operações que não dependem da IA.
 - A chave da OpenAI não aparece no aplicativo ou nos logs.
 - Os testes de domínio, API e integração passam.
 
 ## Resultado
 
-Sistema de avaliações e comentários implementado, com notas de 0 a 5 estrelas, sinalização de spoilers e suporte opcional à moderação assistida por IA.
+Sistema de avaliações e comentários implementado, com notas de 0 a 5 em incrementos de meia estrela, audiência privada por padrão, associação validada de episódios e suporte opcional à moderação assistida por IA.

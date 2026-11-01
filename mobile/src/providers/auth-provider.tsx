@@ -11,6 +11,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/services/supabase';
+import { revokeRegisteredPushDevice } from '@/services/push-registration';
 
 type AuthContextValue = {
   session: Session | null;
@@ -78,6 +79,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const signOut = useCallback(async () => {
     let signOutError: Error | null = null;
+    let pushCleanupError: Error | null = null;
+    if (session?.user.id) {
+      try {
+        await revokeRegisteredPushDevice(session.user.id);
+      } catch (error) {
+        pushCleanupError = error instanceof Error ? error : new Error('Push cleanup failed.');
+      }
+    }
+
     try {
       const { error } = await supabase.auth.signOut({ scope: 'local' });
       if (error) {
@@ -93,7 +103,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
     if (signOutError) {
       throw signOutError;
     }
-  }, [queryClient]);
+    if (pushCleanupError) {
+      throw new Error(
+        'Você saiu da conta, mas não foi possível revogar o dispositivo para notificações push.',
+      );
+    }
+  }, [queryClient, session?.user.id]);
 
   const value = useMemo(
     () => ({

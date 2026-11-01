@@ -23,7 +23,8 @@
         <p class="eyebrow">Etapa 8 · especificação 10</p>
         <h1>Notificações <span>orientadas a eventos reais.</span></h1>
         <p>Integrar catálogo, tracking, listas e social sem bloquear operações principais. Preferências, processamento persistente, retentativas e navegação são partes do mesmo fluxo.</p>
-        <span class="status">Proposto em 01/11/2026 · aguardando aprovação</span>
+        <span class="status">Aprovado · implementação parcial</span>
+        <p>Já há inbox social persistente, preferências, dispositivos protegidos, consumo idempotente dos eventos de amizade, API mobile e worker Expo com tickets/receipts. O push continua desativado até configurar credenciais/hosting; avisos de catálogo ainda dependem de sincronização confiável.</p>
       </div></header>
       <main>
         <section aria-labelledby="baseline"><h2 id="baseline">Ponto de partida e dependências</h2><article class="card"><ul>
@@ -56,7 +57,7 @@
             <li>Migrations EF Core com FKs/índices por estado/próxima tentativa, RLS e sem grants Data API. Não adicionar AWS SQS, LocalStack ou Redis; só reavaliar com necessidade comprovada.</li>
           </ul></article>
           <article class="card"><h3>Push e agendamento</h3><ul>
-            <li>Expo Push Service por adaptador HTTP no backend; validar documentação e limites, tamanho de lotes e respostas estruturadas. Instalar expo-notifications pelo comando Expo compatível somente na implementação.</li>
+            <li>Expo Push Service foi ligado por adaptador HTTP e worker de backend; a chamada atual envia uma entrega por requisição. expo-notifications e seu plugin foram instalados no app, mas o build nativo não foi validado.</li>
             <li>Guardar ticket e consultar receipt; ticket aceito não comprova recebimento. <code>DeviceNotRegistered</code> desativa o token; erro de credenciais gera alerta operacional, não retentativa infinita.</li>
             <li>Retentar timeout/429/5xx com backoff, jitter e limite, respeitando Retry-After. Falha permanente encerra tentativa; pendências excedidas ficam visíveis para diagnóstico/reprocessamento controlado.</li>
             <li>Timeout após aceitação pode gerar entrega duplicada no provedor; não prometer exactly-once no aparelho. Deduplicar geração interna e limitar reenvios incertos.</li>
@@ -64,6 +65,12 @@
             <li>Configurar identificadores iOS/Android, projeto EAS e credenciais APNs/FCM, canais Android e builds de desenvolvimento/release. Push remoto Android não será validado no Expo Go.</li>
           </ul></article>
         </div><p class="callout">Falhas do provedor são registradas com ID do evento e código, sem token ou mensagem sensível. Nenhum endpoint de tracking, listas, avaliações ou amizade aguarda uma chamada de push.</p></section>
+        <section aria-labelledby="implemented"><h2 id="implemented">Implementado e pendente</h2><article class="card"><ul>
+          <li>Implementado: endpoints autenticados de preferências, dispositivos, inbox e leitura; migration com RLS/revogação de grants; processamento social idempotente com lock transacional; backoff limitado, tickets/receipts e deep links internos.</li>
+          <li>Push remoto permanece desligado até receber `extra.eas.projectId`, credenciais APNs/FCM/EAS, `ExpoPush__ProjectId`/`ExpoPush__AccessToken` no servidor e confirmação de hosting continuamente ativo. A migration não foi aplicada a um PostgreSQL real.</li>
+          <li>Novos episódios e estreias ainda não são produzidos: o provedor não oferece um stream/checkpoint diário confiável configurado para essa finalidade, e os requisitos de inscrição, watchlist e supressão de episódios assistidos precisam ser ligados.</li>
+          <li>O aceite final depende de configurar os serviços e testar registro, push, receipt e deep link em builds nativos iOS/Android; Expo Go não valida o fluxo remoto.</li>
+        </ul></article></section>
         <section aria-labelledby="mobile"><h2 id="mobile">API, sessões e navegação</h2><article class="card"><ul>
           <li>Contratos propostos sob <code>/api/v1/notifications</code>: ler/alterar preferências, registrar/remover instalação, inbox paginada e marcar leitura. Respostas de dispositivo mostram ID/status, não o token.</li>
           <li>Registro/renovação exige sessão atual; mudança de conta desvincula vínculo antigo e vincula nova conta de maneira autenticada. Não permitir que alguém reassocie um token apenas conhecendo seu texto.</li>

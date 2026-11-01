@@ -116,7 +116,10 @@ function useTrackingMutation<TVariables, TData>(
   return useMutation({
     mutationFn,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: trackingQueryKeys.all });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: trackingQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: ['gamification'] }),
+      ]);
     },
     onError: (error) => showError(queryErrorMessage(
       error,

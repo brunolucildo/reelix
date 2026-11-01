@@ -26,6 +26,9 @@ public sealed class CatalogServiceTests
         Assert.Equal(CatalogContentType.Movie, page.ContentType);
         Assert.Equal(CatalogDiscoveryCategory.Popular, page.Category);
         Assert.Equal(2, page.TotalPages);
+        var metadata = Assert.Single(references.LastMetadataSnapshots);
+        Assert.Equal(130, metadata.RuntimeMinutes);
+        Assert.Equal([28, 12], metadata.GenreIds);
     }
 
     [Fact]
@@ -54,6 +57,8 @@ public sealed class CatalogServiceTests
         Assert.Contains(
             new CatalogReferenceKey("1396:1", CatalogReferenceType.Season),
             references.LastRequestedReferences);
+        Assert.Equal(season.SeriesId, references.LinkedSeriesId);
+        Assert.Equal(episode.Id, Assert.Single(references.LinkedEpisodeIds));
     }
 
     private sealed class StubCatalogProvider : ICatalogProvider, ICatalogDiscoveryProvider
@@ -80,7 +85,11 @@ public sealed class CatalogServiceTests
                         null,
                         null,
                         null,
-                        null),
+                        null)
+                    {
+                        RuntimeMinutes = 130,
+                        GenreIds = [28, 12],
+                    },
                 ],
                 page,
                 2,
@@ -128,6 +137,12 @@ public sealed class CatalogServiceTests
 
         public IReadOnlyCollection<CatalogReferenceKey> LastRequestedReferences { get; private set; } = [];
 
+        public IReadOnlyCollection<CatalogMetadataSnapshot> LastMetadataSnapshots { get; private set; } = [];
+
+        public Guid? LinkedSeriesId { get; private set; }
+
+        public IReadOnlyCollection<Guid> LinkedEpisodeIds { get; private set; } = [];
+
         public Guid IdFor(string externalId, CatalogReferenceType type) =>
             _ids[new CatalogReferenceKey(externalId, type)];
 
@@ -144,6 +159,25 @@ public sealed class CatalogServiceTests
 
             return Task.FromResult<IReadOnlyDictionary<CatalogReferenceKey, Guid>>(
                 references.ToDictionary(reference => reference, reference => _ids[reference]));
+        }
+
+        public Task UpdateMetadataAsync(
+            CatalogProvider provider,
+            IReadOnlyCollection<CatalogMetadataSnapshot> snapshots,
+            CancellationToken cancellationToken)
+        {
+            LastMetadataSnapshots = snapshots;
+            return Task.CompletedTask;
+        }
+
+        public Task LinkEpisodesToSeriesAsync(
+            Guid seriesId,
+            IReadOnlyCollection<Guid> episodeIds,
+            CancellationToken cancellationToken)
+        {
+            LinkedSeriesId = seriesId;
+            LinkedEpisodeIds = episodeIds;
+            return Task.CompletedTask;
         }
     }
 }

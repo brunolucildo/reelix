@@ -1,19 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { RatingReviewSection } from '@/components/reviews/rating-review-section';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
-import { fetchCatalogTitleDetails } from '@/services/api-client';
+import { fetchCatalogSeason, fetchCatalogTitleDetails } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 
 export default function CatalogTitleScreen() {
@@ -27,6 +30,8 @@ export default function CatalogTitleScreen() {
   const provider = isCatalogProvider(params.provider) ? params.provider : null;
   const contentType = isCatalogContentType(params.contentType) ? params.contentType : null;
   const externalId = typeof params.externalId === 'string' ? params.externalId : null;
+  const [seasonInput, setSeasonInput] = useState('');
+  const [seasonNumber, setSeasonNumber] = useState<number | null>(null);
   const validParams = provider && contentType && externalId
     ? { provider, contentType, externalId }
     : null;
@@ -49,6 +54,19 @@ export default function CatalogTitleScreen() {
     staleTime: 300_000,
   });
   useErrorToast(details.error, 'Não foi possível carregar os detalhes deste título. Tente novamente.');
+  const season = useQuery({
+    queryKey: ['catalog-season', provider, externalId, seasonNumber],
+    queryFn: ({ signal }) => {
+      if (!provider || !externalId || seasonNumber === null) {
+        throw new Error('Selecione uma temporada válida.');
+      }
+
+      return fetchCatalogSeason(provider, externalId, seasonNumber, signal);
+    },
+    enabled: provider !== null && contentType === 'series' && externalId !== null && seasonNumber !== null,
+    staleTime: 300_000,
+  });
+  useErrorToast(season.error, 'Não foi possível carregar os episódios desta temporada.');
 
   if (!session) {
     return <Redirect href="/" />;
@@ -131,6 +149,76 @@ export default function CatalogTitleScreen() {
           <Text style={styles.body}>{title.overview}</Text>
         </View>
       ) : null}
+      {title.contentType === 'series' ? (
+        <View style={styles.seasons}>
+          <Text accessibilityRole="header" style={styles.sectionTitle}>Temporadas e episódios</Text>
+          <Text style={styles.secondaryText}>
+            Informe o número da temporada para consultar episódios disponíveis.
+          </Text>
+          <TextInput
+            accessibilityLabel="Número da temporada"
+            keyboardType="number-pad"
+            onChangeText={setSeasonInput}
+            placeholder="Ex.: 1"
+            placeholderTextColor={colors.textSecondary}
+            style={styles.seasonInput}
+            value={seasonInput}
+          />
+          <PrimaryButton
+            label="Carregar episódios"
+            disabled={!/^\d{1,3}$/.test(seasonInput.trim())}
+            loading={season.isFetching}
+            variant="secondary"
+            onPress={() => setSeasonNumber(Number(seasonInput.trim()))}
+          />
+          {season.isError ? (
+            <PrimaryButton
+              label="Tentar novamente"
+              variant="secondary"
+              onPress={() => void season.refetch()}
+            />
+          ) : null}
+          {season.data ? (
+            <View style={styles.episodeList}>
+              {season.data.title ? <Text style={styles.secondaryText}>{season.data.title}</Text> : null}
+              {season.data.episodes.length === 0 ? (
+                <Text style={styles.secondaryText}>Nenhum episódio disponível nesta temporada.</Text>
+              ) : season.data.episodes.map((episode) => (
+                <View key={episode.id} style={styles.episodeCard}>
+                  <View style={styles.episodeCopy}>
+                    <Text style={styles.episodeTitle}>
+                      {episode.episodeNumber === null
+                        ? episode.title
+                        : `E${episode.episodeNumber}: ${episode.title}`}
+                    </Text>
+                    {episode.overview ? (
+                      <Text numberOfLines={3} style={styles.secondaryText}>{episode.overview}</Text>
+                    ) : null}
+                  </View>
+                  <PrimaryButton
+                    label="Avaliar episódio"
+                    variant="secondary"
+                    onPress={() => router.push({
+                      pathname: '/episode/[provider]/[externalSeriesId]/[seasonNumber]/[episodeId]',
+                      params: {
+                        provider: title.provider,
+                        externalSeriesId: title.externalId,
+                        seasonNumber: String(season.data.seasonNumber),
+                        episodeId: episode.id,
+                      },
+                    })}
+                  />
+                </View>
+              ))}
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+      <RatingReviewSection
+        key={`${title.contentType}:${title.id}:${session.user.id}`}
+        targetId={title.id}
+        targetType={title.contentType}
+      />
     </ScrollView>
   );
 }
@@ -190,6 +278,40 @@ const styles = StyleSheet.create({
   },
   overview: {
     gap: spacing.small,
+  },
+  seasons: {
+    gap: spacing.small,
+  },
+  seasonInput: {
+    minHeight: dimensions.minimumTouchTarget,
+    paddingHorizontal: spacing.medium,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.small,
+    backgroundColor: colors.surface,
+    color: colors.textPrimary,
+    fontSize: typography.body,
+    fontFamily: fontFamily.regular,
+  },
+  episodeList: {
+    gap: spacing.small,
+    marginTop: spacing.small,
+  },
+  episodeCard: {
+    gap: spacing.small,
+    padding: spacing.medium,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.medium,
+    backgroundColor: colors.surface,
+  },
+  episodeCopy: {
+    gap: spacing.extraSmall,
+  },
+  episodeTitle: {
+    color: colors.textPrimary,
+    fontSize: typography.body,
+    fontFamily: fontFamily.semiBold,
   },
   sectionTitle: {
     color: colors.textPrimary,

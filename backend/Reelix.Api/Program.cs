@@ -1,14 +1,20 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Reelix.Application;
 using Reelix.Application.Authentication;
 using Reelix.Api.Catalog;
 using Reelix.Api.Lists;
 using Reelix.Api.Tracking;
+using Reelix.Api.Ratings;
 using Reelix.Api.Users;
+using Reelix.Api.Social;
+using Reelix.Api.Notifications;
+using Reelix.Api.Gamification;
 using Reelix.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -102,8 +108,75 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("reviews-write", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.User.FindFirst("sub")?.Value ??
+                context.Connection.RemoteIpAddress?.ToString() ??
+                "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            }));
+    options.AddPolicy("social-search", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.User.FindFirst("sub")?.Value ??
+                context.Connection.RemoteIpAddress?.ToString() ??
+                "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 20,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            }));
+    options.AddPolicy("social-write", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.User.FindFirst("sub")?.Value ??
+                context.Connection.RemoteIpAddress?.ToString() ??
+                "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 8,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            }));
+    options.AddPolicy("notifications-write", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.User.FindFirst("sub")?.Value ??
+                context.Connection.RemoteIpAddress?.ToString() ??
+                "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 8,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            }));
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/problem+json";
+        await context.HttpContext.Response.WriteAsJsonAsync(
+            new Microsoft.AspNetCore.Mvc.ProblemDetails
+            {
+                Status = StatusCodes.Status429TooManyRequests,
+                Title = "Limite de solicitações excedido.",
+                Detail = "Aguarde um minuto antes de tentar novamente.",
+            },
+            cancellationToken);
+    };
+});
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHostedService<CommentModerationWorker>();
+builder.Services.AddHostedService<SocialNotificationWorker>();
+builder.Services.AddHostedService<NotificationDeliveryWorker>();
 
 var app = builder.Build();
 
@@ -128,6 +201,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("App");
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapGet("/api/v1/auth/me", async (
@@ -158,6 +232,10 @@ app.MapOnboardingEndpoints();
 app.MapProfileEndpoints();
 app.MapTrackingEndpoints();
 app.MapListsEndpoints();
+app.MapRatingsCommentsEndpoints();
+app.MapSocialEndpoints();
+app.MapNotificationsEndpoints();
+app.MapGamificationEndpoints();
 
 app.Run();
 

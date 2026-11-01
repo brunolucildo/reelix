@@ -91,6 +91,25 @@ O módulo deverá começar com regras determinísticas, sem depender da OpenAI p
 - O sistema não permite que o usuário determine diretamente suas próprias pontuações.
 - Os testes de consistência passam.
 
-## Resultado
+## Implementação
 
-Módulo de gamificação implementado, com conquistas verificáveis, estatísticas e rankings transparentes.
+O módulo inicial está disponível na API e no app:
+
+- `GET /api/v1/gamification/dashboard` reconcilia as conquistas com o tracking atual e devolve regras, progresso e preferências.
+- `GET /api/v1/gamification/statistics?start=...&end=...` aceita intervalos UTC semiabertos `[start, end)` de até 366 dias.
+- `PUT /api/v1/gamification/preferences` controla a visibilidade dos badges e o consentimento independente para o ranking.
+- `GET /api/v1/gamification/users/{accountId}/badges` retorna somente badges obtidos quando públicos; nunca retorna o histórico que os justificou.
+- `GET /api/v1/gamification/friends/ranking?year=...&month=...&limit=...&cursor=...` retorna filmes distintos do mês UTC entre amigos aceitos que também optaram por participar.
+
+O catálogo inicial é persistido e versionado: primeiro filme (1), cinéfilo (10 filmes), maratona inicial (10 episódios), séries em foco (3 séries com episódio visto) e explorador de gêneros (5 IDs canônicos). Uma obtenção única por conta/conquista é atualizada para `Earned` ou `Revoked`; a primeira data é preservada e uma reaquisição atualiza o mesmo registro.
+
+Runtime e IDs de gênero são snapshots do catálogo TMDB; runtime válido do OMDb também pode contribuir para a estimativa. Gêneros só são contados quando há IDs canônicos. Um snapshot ausente não apaga metadados conhecidos; uma alteração confirmada substitui o conjunto de gêneros e incrementa sua versão. Cobertura, provedores, versão e instante do snapshot são expostos. Horas estimadas são nulas sem runtime conhecido; tempo confirmado permanece indisponível.
+
+As telas de perfil e gamificação exibem badges, progresso, estatísticas vitalícias e mensais, cobertura de metadados e o ranking com paginação. Alterações do histórico invalidam os caches de gamificação no app.
+
+## Limites de implantação
+
+- A migration `AddGamification` ainda precisa ser aplicada a um PostgreSQL de desenvolvimento/produção antes de habilitar o módulo. Não foi aplicada a um banco real durante esta implementação.
+- A reconciliação determinística é executada ao consultar o dashboard/badges, e não por um worker de backfill; não há notificação de conquista nesta etapa.
+- O ranking mostra nome, posição e contagem, sem avatar, títulos ou detalhes do histórico. O ranking só inclui participantes com ao menos um filme no mês.
+- A cobertura histórica de horas e gêneros cresce conforme as referências são buscadas/enriquecidas; itens sem metadados não são inventados nem contados como zero duração conhecida.

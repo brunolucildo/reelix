@@ -5,7 +5,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
 import { useErrorToast, useToast } from '@/providers/toast-provider';
-import { fetchProfile, saveProfile, type ProfileData } from '@/services/api-client';
+import {
+  fetchGamificationDashboard,
+  fetchProfile,
+  saveProfile,
+  type ProfileData,
+} from '@/services/api-client';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import TmdbLogo from '../../assets/brand/logos/tmdb-logo-blue.svg';
 
@@ -43,12 +48,21 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { showError } = useToast();
+  const gamification = useQuery({
+    queryKey: ['gamification', 'dashboard'],
+    queryFn: ({ signal }) => fetchGamificationDashboard(signal),
+  });
+  useErrorToast(gamification.error, 'Não foi possível carregar suas conquistas.');
   const [draft, setDraft] = useState<ProfileDraft>(() => ({
     displayName: initialProfile.displayName ?? '',
     biography: initialProfile.biography ?? '',
     profileIsPublic: initialProfile.profileIsPublic,
     favoritesArePublic: initialProfile.favoritesArePublic,
     watchHistoryIsPublic: initialProfile.watchHistoryIsPublic,
+    isDiscoverable: initialProfile.isDiscoverable,
+    watchHistorySharedWithFriends: initialProfile.watchHistorySharedWithFriends,
+    favoritesSharedWithFriends: initialProfile.favoritesSharedWithFriends,
+    ratingsSharedWithFriends: initialProfile.ratingsSharedWithFriends,
   }));
   const [feedback, setFeedback] = useState<string | null>(null);
   const [focusedField, setFocusedField] = useState<'displayName' | 'biography' | null>(null);
@@ -63,6 +77,10 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
         profileIsPublic: saved.profileIsPublic,
         favoritesArePublic: saved.favoritesArePublic,
         watchHistoryIsPublic: saved.watchHistoryIsPublic,
+        isDiscoverable: saved.isDiscoverable,
+        watchHistorySharedWithFriends: saved.watchHistorySharedWithFriends,
+        favoritesSharedWithFriends: saved.favoritesSharedWithFriends,
+        ratingsSharedWithFriends: saved.ratingsSharedWithFriends,
       });
       setFeedback('Perfil atualizado.');
     },
@@ -95,6 +113,38 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
             <Text accessibilityRole="header" style={styles.title}>Seu perfil</Text>
             <Text style={styles.secondaryText}>Sua identidade no Reelix.</Text>
           </View>
+        </View>
+
+        <View style={styles.formSection}>
+          <Text style={styles.sectionTitle}>Conquistas</Text>
+          {gamification.isPending ? (
+            <ActivityIndicator color={colors.brand} />
+          ) : gamification.isError ? (
+            <PrimaryButton
+              label="Tentar carregar"
+              onPress={() => void gamification.refetch()}
+              variant="secondary"
+            />
+          ) : gamification.data.achievements.filter((item) => item.isEarned).length === 0 ? (
+            <Text style={styles.toggleDescription}>Suas conquistas aparecerão aqui.</Text>
+          ) : (
+            gamification.data.achievements
+              .filter((item) => item.isEarned)
+              .map((item) => (
+                <View key={item.code} style={styles.badge}>
+                  <Text style={styles.badgeTitle}>{item.title}</Text>
+                  <Text style={styles.toggleDescription}>{item.description}</Text>
+                </View>
+              ))
+          )}
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push('/gamification')}
+            style={styles.preferenceButton}
+          >
+            <Text style={styles.preferenceLabel}>Ver progresso e estatísticas</Text>
+            <Text style={styles.preferenceAction}>Abrir</Text>
+          </Pressable>
         </View>
 
         <View style={styles.formSection}>
@@ -147,6 +197,12 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
             onValueChange={(profileIsPublic) => update({ profileIsPublic })}
           />
           <PrivacyToggle
+            label="Permitir descoberta"
+            description="Permite encontrar seu nome na busca de pessoas, mesmo com o perfil privado."
+            value={draft.isDiscoverable}
+            onValueChange={(isDiscoverable) => update({ isDiscoverable })}
+          />
+          <PrivacyToggle
             label="Favoritos visíveis"
             description="Exibe seus títulos favoritos no perfil público."
             value={draft.favoritesArePublic}
@@ -154,9 +210,27 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
           />
           <PrivacyToggle
             label="Histórico visível"
-            description="A configuração será aplicada quando o histórico estiver disponível."
+            description="A configuração será aplicada quando o histórico público estiver disponível."
             value={draft.watchHistoryIsPublic}
             onValueChange={(watchHistoryIsPublic) => update({ watchHistoryIsPublic })}
+          />
+          <PrivacyToggle
+            label="Compartilhar histórico com amigos"
+            description="Compartilha apenas atividades registradas depois de ativar esta opção."
+            value={draft.watchHistorySharedWithFriends}
+            onValueChange={(watchHistorySharedWithFriends) => update({ watchHistorySharedWithFriends })}
+          />
+          <PrivacyToggle
+            label="Compartilhar favoritos com amigos"
+            description="Permite que seus amigos vejam os títulos favoritos."
+            value={draft.favoritesSharedWithFriends}
+            onValueChange={(favoritesSharedWithFriends) => update({ favoritesSharedWithFriends })}
+          />
+          <PrivacyToggle
+            label="Compartilhar avaliações com amigos"
+            description="Compartilha somente avaliações criadas ou atualizadas após ativar esta opção."
+            value={draft.ratingsSharedWithFriends}
+            onValueChange={(ratingsSharedWithFriends) => update({ ratingsSharedWithFriends })}
           />
         </View>
 
@@ -417,6 +491,19 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.medium,
   },
   preferenceAction: {
+    color: colors.brandSecondary,
+    fontSize: typography.bodySmall,
+    fontFamily: fontFamily.bold,
+  },
+  badge: {
+    gap: spacing.extraSmall,
+    padding: spacing.medium,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.small,
+    backgroundColor: colors.surface,
+  },
+  badgeTitle: {
     color: colors.brandSecondary,
     fontSize: typography.bodySmall,
     fontFamily: fontFamily.bold,

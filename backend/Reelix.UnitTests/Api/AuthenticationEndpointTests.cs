@@ -52,6 +52,9 @@ public sealed class AuthenticationEndpointTests
         Assert.Contains("/api/v1/onboarding", document);
         Assert.Contains("/api/v1/profile", document);
         Assert.Contains("/api/v1/tracking/history", document);
+        Assert.Contains("/api/v1/ratings/{targetType}/{targetId}", document);
+        Assert.Contains("/api/v1/comments/{targetType}/{targetId}", document);
+        Assert.Contains("/api/v1/gamification/dashboard", document);
         Assert.Contains("/api/v1/favorites", document);
         Assert.Contains("/api/v1/lists", document);
         Assert.Contains("Bearer", document);
@@ -65,6 +68,9 @@ public sealed class AuthenticationEndpointTests
     [InlineData("/api/v1/favorites")]
     [InlineData("/api/v1/watchlist")]
     [InlineData("/api/v1/lists")]
+    [InlineData("/api/v1/ratings/movie/00000000-0000-0000-0000-000000000001")]
+    [InlineData("/api/v1/comments/movie/00000000-0000-0000-0000-000000000001")]
+    [InlineData("/api/v1/gamification/dashboard")]
     public async Task UserEndpoints_RejectAnonymousRequests(string path)
     {
         using var response = await _client.GetAsync(path);
@@ -619,5 +625,15 @@ internal static class CatalogEndpointTestServices
             CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyDictionary<CatalogReferenceKey, Guid>>(
                 references.ToDictionary(reference => reference, _ => TitleId));
+
+        public Task UpdateMetadataAsync(
+            CatalogProvider provider,
+            IReadOnlyCollection<CatalogMetadataSnapshot> snapshots,
+            CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public Task LinkEpisodesToSeriesAsync(
+            Guid seriesId,
+            IReadOnlyCollection<Guid> episodeIds,
+            CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

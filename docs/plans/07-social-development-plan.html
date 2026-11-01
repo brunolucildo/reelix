@@ -23,7 +23,7 @@
         <p class="eyebrow">Etapa 7 · especificação 09</p>
         <h1>Amizades <span>com compartilhamento autorizado.</span></h1>
         <p>Plano para solicitações, relações consistentes e um feed entre amigos que respeita a audiência de cada recurso. Amizade não concede acesso irrestrito ao histórico.</p>
-        <span class="status">Proposto em 01/11/2026 · aguardando aprovação</span>
+        <span class="status">Implementado · validação local concluída · migration ainda não aplicada</span>
       </div></header>
       <main>
         <section aria-labelledby="baseline"><h2 id="baseline">Ponto de partida e dependências</h2><article class="card"><ul>
@@ -32,35 +32,35 @@
           <li>As flags atuais são booleanas para público/privado; o contrato público de perfil não representa acesso de amigos. Acrescentar autorização contextual sem mudar silenciosamente a visibilidade existente.</li>
           <li>Tracking fornece IDs e datas, não cartões completos. Enriquecer atividades em lote pelo catálogo; não chamar o provedor uma vez por item do feed.</li>
         </ul></article></section>
-        <section aria-labelledby="scope"><h2 id="scope">Escopo e decisões propostas</h2><div class="columns">
+        <section aria-labelledby="scope"><h2 id="scope">Escopo e decisões aprovadas</h2><div class="columns">
           <article class="card"><h3>Incluído</h3><ul>
             <li>Pesquisar por nome de exibição permitido, solicitar amizade, aceitar/recusar, cancelar, remover e listar amigos/pendências.</li>
             <li>Feed paginado inicial de filmes/episódios assistidos e avaliações publicadas, somente com compartilhamento autorizado.</li>
             <li>Perfil contextual de amigo, preferências explícitas de compartilhamento e eventos para a etapa de notificações.</li>
             <li>Reutilizar favoritos compartilháveis conforme consentimento; listas privadas e watchlist não entram no feed.</li>
           </ul></article>
-          <article class="card decision"><h3>Decisões antes do desenvolvimento</h3><ul>
-            <li><strong>Proposta:</strong> pesquisa encontra perfis públicos ou contas com descoberta explicitamente habilitada; nome/avatar/ID público somente. Contas privadas continuam não descobríveis por padrão.</li>
-            <li><strong>Proposta:</strong> acrescentar audiência “amigos” por tipo de atividade e consentimento para feed, desabilitado na migração. Perfil público não equivale a histórico compartilhado.</li>
-            <li><strong>Proposta:</strong> não importar todo o histórico no primeiro feed; começar após ativação do compartilhamento. Retirada de consentimento oculta também atividades já projetadas.</li>
-            <li>Bloqueio é opcional nesta etapa. Se aprovado, especificar quem bloqueia/desbloqueia e impedir pesquisa, solicitações, feed e notificações entre as contas, nos dois sentidos.</li>
+          <article class="card decision"><h3>Decisões aplicadas</h3><ul>
+            <li>Busca por prefixo, sem diferenciar caixa, somente em perfil público ou com descoberta habilitada; retorna nome e ID Reelix, nunca e-mail ou identificador Supabase.</li>
+            <li>Compartilhamento social por consentimento independente, desligado por padrão. Perfil público não ativa o feed; histórico e avaliações antigas não são importados.</li>
+            <li>Consentimento revogado remove atividades das consultas seguintes. Favoritos usam flag própria; listas/watchlist e comentários privados não são compartilhados.</li>
+            <li>Bloqueio não foi incluído; seguidores públicos, chat e envio push continuam fora do escopo.</li>
           </ul></article>
         </div><p class="callout">Fora do escopo: seguidores públicos, chat, compartilhamento público irrestrito de listas e entrega push. Alterações nos módulos existentes ficam limitadas à autorização e emissão de atividades necessárias.</p></section>
         <section aria-labelledby="contracts"><h2 id="contracts">Relações, audiência e contratos</h2><div class="columns">
           <article class="card"><h3>Máquina de estados e banco</h3><ul>
             <li>Uma relação por par canônico de contas, com remetente/destinatário e estado. CHECK impede autorrelação; FK e índice único do par impedem duplicatas e solicitações cruzadas simultâneas.</li>
             <li>Transições: sem relação → pendente; destinatário aceita/recusa; remetente cancela; qualquer participante remove amizade aceita. Recusa/cancelamento permitem nova solicitação só após a política de frequência aprovada.</li>
-            <li>Solicitação inversa enquanto pendente não aceita amizade automaticamente: retornar estado existente/conflito e exigir ação explícita do destinatário.</li>
+            <li>Solicitação inversa enquanto pendente não aceita amizade automaticamente: retorna conflito e exige ação explícita do destinatário. Relações terminadas podem receber novo pedido.</li>
             <li>Atualizações condicionais de estado/versionamento tratam aceitar versus cancelar/remover. Pedido repetido não cria eventos duplicados; operação sem autorização nunca vira sucesso aparente.</li>
-            <li>Migration EF Core com índices de participantes/estado e RLS, sem acesso direto por Data API. Remover relação não remove histórico, avaliações ou listas dos usuários.</li>
+            <li>Migration EF Core com índices de participantes/estado, checks, RLS e revogação de acesso via Data API. Remover relação não remove histórico, avaliações ou listas dos usuários.</li>
           </ul></article>
           <article class="card"><h3>API, feed e eventos</h3><ul>
             <li>Contratos propostos: busca em <code>/api/v1/social/users</code>, solicitações e ações em <code>/api/v1/social/friend-requests</code>, amigos e feed em <code>/api/v1/social</code>.</li>
             <li>Conta do ator vem do JWT. Limitar busca, tamanho de página e solicitações; não retornar e-mail, SupabaseUserId ou contagens privadas.</li>
-            <li>Paginação por cursor data/ID no feed; listas de amigos com ordenação estável e limite documentado. Índices seguem filtros de destinatário/ator/data; projeção em lote evita N+1.</li>
+            <li>Paginação por cursor data/ID no feed, amigos e solicitações; atividades de catálogo são enriquecidas em lote para evitar N+1.</li>
             <li>Atividade mínima com ID de origem e revisão, ator, alvo e data; deduplicar origem/tipo/revisão. Não copiar comentário privado para uma projeção social.</li>
             <li>Revalidar amizade, audiência do recurso, consentimento e eventual bloqueio em toda consulta e deep link. Exclusão/privatização da origem retira o item do feed; cache não pode manter acesso revogado.</li>
-            <li>Produzir eventos de solicitação e aceitação com ID, versão, ator, destinatário e data. Registro confiável junto da mutação; sem broker ou envio push nesta etapa. Contrato será consumido pela etapa 8.</li>
+            <li>Eventos versionados de solicitação e aceitação são gravados atomicamente com a relação; sem broker ou envio push nesta etapa. O contrato fica disponível para a etapa 8.</li>
           </ul></article>
         </div></section>
         <section aria-labelledby="phases"><h2 id="phases">Sequência de execução após aprovação</h2><div class="phase-grid">

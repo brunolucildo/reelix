@@ -39,7 +39,10 @@ public sealed record ProviderCatalogTitle(
     string? OriginalLanguage,
     int? RuntimeMinutes,
     string? PosterUrl,
-    string? BackdropUrl);
+    string? BackdropUrl)
+{
+    public IReadOnlyList<int> GenreIds { get; init; } = [];
+}
 
 public sealed record CatalogTitle(
     Guid Id,
@@ -57,6 +60,11 @@ public sealed record CatalogTitle(
     string? BackdropUrl);
 
 public sealed record CatalogGenre(int Id, string Name);
+
+public sealed record CatalogMetadataSnapshot(
+    CatalogReferenceKey Reference,
+    int? RuntimeMinutes,
+    IReadOnlyList<int> GenreIds);
 
 public sealed record ProviderCatalogPage(
     IReadOnlyList<ProviderCatalogTitle> Items,
@@ -165,6 +173,16 @@ public interface IExternalCatalogReferenceRepository
     Task<IReadOnlyDictionary<CatalogReferenceKey, Guid>> GetOrCreateIdsAsync(
         CatalogProvider provider,
         IReadOnlyCollection<CatalogReferenceKey> references,
+        CancellationToken cancellationToken);
+
+    Task UpdateMetadataAsync(
+        CatalogProvider provider,
+        IReadOnlyCollection<CatalogMetadataSnapshot> snapshots,
+        CancellationToken cancellationToken);
+
+    Task LinkEpisodesToSeriesAsync(
+        Guid seriesId,
+        IReadOnlyCollection<Guid> episodeIds,
         CancellationToken cancellationToken);
 }
 
