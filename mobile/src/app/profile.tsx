@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, Tex
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { AchievementGrid } from '@/components/gamification/achievement-grid';
 import { BackButton } from '@/components/navigation/back-button';
 import { useErrorToast, useToast } from '@/providers/toast-provider';
 import {
@@ -124,17 +125,10 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
               onPress={() => void gamification.refetch()}
               variant="secondary"
             />
-          ) : gamification.data.achievements.filter((item) => item.isEarned).length === 0 ? (
+          ) : gamification.data.achievements.length === 0 ? (
             <Text style={styles.toggleDescription}>Suas conquistas aparecerão aqui.</Text>
           ) : (
-            gamification.data.achievements
-              .filter((item) => item.isEarned)
-              .map((item) => (
-                <View key={item.code} style={styles.badge}>
-                  <Text style={styles.badgeTitle}>{item.title}</Text>
-                  <Text style={styles.toggleDescription}>{item.description}</Text>
-                </View>
-              ))
+            <AchievementGrid achievements={gamification.data.achievements} />
           )}
           <Pressable
             accessibilityRole="button"
@@ -490,19 +484,6 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.medium,
   },
   preferenceAction: {
-    color: colors.brandSecondary,
-    fontSize: typography.bodySmall,
-    fontFamily: fontFamily.bold,
-  },
-  badge: {
-    gap: spacing.extraSmall,
-    padding: spacing.medium,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.small,
-    backgroundColor: colors.surface,
-  },
-  badgeTitle: {
     color: colors.brandSecondary,
     fontSize: typography.bodySmall,
     fontFamily: fontFamily.bold,

@@ -4,7 +4,28 @@ Aplicativo para descobrir e acompanhar filmes e séries, registrar o que você a
 
 O repositório reúne o aplicativo mobile em React Native/Expo e uma API ASP.NET Core. A autenticação usa Supabase Auth; os dados da conta Reelix são armazenados em PostgreSQL.
 
-## Etapas entregues
+## Estado atual do projeto
+
+**Atualizado em 02/11/2026.** A tabela descreve implementação no repositório, não
+confirma implantação em produção. Migrations e credenciais precisam ser verificadas
+separadamente em cada ambiente.
+
+| Módulo | Estado no código | Limites operacionais conhecidos |
+|---|---|---|
+| Autenticação, onboarding, perfil e catálogo | Implementados no mobile e na API. | Supabase, credenciais dos provedores e migrations devem estar configurados no ambiente. Upload de avatar não está implementado. |
+| Home, descoberta e busca | Implementadas com dados reais, paginação automática, tracking e cache definidos por seção. | Datas e metadados dependem do catálogo; não há recomendação por IA. |
+| Tracking e listas | Implementados, incluindo progresso da série inteira, listas privadas, edição e exclusão contextual. | O progresso total depende do inventário de temporadas do catálogo; consulte [tracking](docs/specs/05-tracking.md). |
+| Avaliações e comentários | Implementados, com notas de meia estrela, audiência privada e proteção contra spoilers. | Classificação automática de spoilers está temporariamente desativada; denúncias e moderação administrativa não estão disponíveis. |
+| Social | API e mobile implementados para amizades e compartilhamento autorizado. | A migration deve ser aplicada ao banco de cada ambiente antes do uso. |
+| Notificações | Preferências, inbox, dispositivos e processamento de eventos sociais implementados. | Migration ainda precisa ser aplicada; push remoto está desativado e alertas de catálogo dependem de sincronização confiável. |
+| Gamificação | API e mobile implementados para conquistas, estatísticas e ranking. | A migration precisa ser aplicada antes do uso em cada banco; reconciliação ocorre ao consultar o dashboard. |
+| Widgets mobile | Spike de compatibilidade documentado; não implementados. | Build, integração e validação em iOS e Android pendentes. |
+
+As especificações por módulo, incluindo decisões e limitações, estão em
+[docs/specs](docs/specs/). As páginas de desenvolvimento são planos históricos;
+use este quadro e as especificações como estado atual.
+
+## Funcionalidades implementadas
 
 O projeto já inclui autenticação, catálogo, onboarding, perfil, Home de descoberta,
 acompanhamento e favoritos/listas:
@@ -14,7 +35,7 @@ acompanhamento e favoritos/listas:
 - API .NET que valida tokens JWT do Supabase e expõe `GET /api/v1/auth/me` e endpoints autenticados de pesquisa e detalhes de catálogo.
 - Integração com TMDB e OMDb, com referências externas persistidas no PostgreSQL.
 - Onboarding retomável com preferências de gêneros e títulos favoritos validados pelo catálogo.
-- Perfil próprio com nome, biografia e privacidade, além de consulta de perfil público conforme as permissões do usuário.
+- Perfil próprio com nome, biografia e privacidade, consulta contextual de perfil e medalhas de conquistas. Upload de avatar não está implementado.
 - Home autenticada com áreas separadas para filmes e séries, destaques e lançamentos do catálogo, favoritos, sugestões por gênero, pesquisa e detalhes de títulos.
 - Acompanhamento de filmes/séries assistidos e gerenciamento de favoritos, watchlist e listas privadas.
 - Avaliações de 0 a 5 em passos de meia estrela e comentários privados ou públicos, com sinalização e revelação explícita de spoilers para filmes, séries e episódios.
@@ -27,7 +48,7 @@ acompanhamento e favoritos/listas:
 - Swagger para testar a API localmente e uma página exclusiva de desenvolvimento para obter um token de usuário diretamente pelo Supabase Auth.
 - Migrations e testes automatizados para autenticação, catálogo, onboarding, perfil, notificações, gamificação e configuração CORS de desenvolvimento web.
 
-Notificações sociais estão implementadas na API e no app; push remoto permanece desativado até configurar projeto EAS, credenciais APNs/FCM, segredo Expo e hosting continuamente ativo. Alertas de episódios/estreias ainda dependem de uma fonte confiável de atualização do catálogo. Gamificação está implementada na API e no app; suas conquistas são reconciliadas ao consultar o dashboard, e a migration precisa ser aplicada ao banco antes do uso. O spike de widgets ainda depende de validação em builds nativos por plataforma; não declaramos suporte iOS/Android sem essa evidência. Veja as [especificações de avaliações e comentários](docs/specs/07-ratings-comments.md), [Social](docs/specs/09-social.md), [Notificações](docs/specs/10-notifications.md) e [Gamificação](docs/specs/11-gamification.md).
+Notificações sociais e gamificação estão implementadas no código, mas dependem de migrations aplicadas no banco de cada ambiente. Push remoto permanece desativado até configurar projeto EAS, credenciais APNs/FCM, segredo Expo e hosting continuamente ativo. Alertas de episódios/estreias ainda dependem de uma fonte confiável de atualização do catálogo. A análise automática de spoilers está temporariamente desativada; sinalização manual continua disponível. Widgets não estão implementados nem aprovados para iOS/Android. Consulte as especificações de [avaliações](docs/specs/07-ratings-comments.md), [Social](docs/specs/09-social.md), [Notificações](docs/specs/10-notifications.md), [Gamificação](docs/specs/11-gamification.md) e [Widgets](docs/specs/12-mobile-widgets.md).
 
 ## Tecnologias
 
@@ -59,7 +80,7 @@ Use os valores de conexão PostgreSQL exibidos no painel do seu projeto Supabase
 
 ### 2. Configure e inicie a API
 
-A análise opcional de spoilers permanece desativada por padrão. Para habilitá-la no backend, configure `OpenAI:SpoilerAnalysis:Enabled`, `OpenAI:SpoilerAnalysis:ApiKey` e, opcionalmente, `OpenAI:SpoilerAnalysis:Model` e `OpenAI:SpoilerAnalysis:TimeoutSeconds` com User Secrets ou um gerenciador de segredos do ambiente de hospedagem. O usuário também precisa solicitar a análise ao criar ou editar cada comentário. Nunca configure a chave OpenAI no app mobile.
+A análise automática de spoilers está temporariamente desativada. Para reativá-la futuramente, configure `OpenAI:SpoilerAnalysis:Enabled=true`, `OpenAI:SpoilerAnalysis:TemporarilyDisabled=false` e `OpenAI:SpoilerAnalysis:ApiKey` no servidor, usando User Secrets ou um gerenciador de segredos do ambiente de hospedagem. `Model` e `TimeoutSeconds` são opcionais. A sinalização manual e os controles de spoiler continuam disponíveis; comentários não dependem da integração. Nunca configure a chave OpenAI no app mobile.
 
 ```powershell
 dotnet restore Reelix.sln
@@ -123,14 +144,13 @@ npx expo lint
 - [Avaliação de tecnologias adicionais](docs/technology-stack-evaluation.md)
 - [Configuração e contratos de onboarding e perfil](docs/onboarding-profile-setup.md)
 - [Regras e contratos da Home de descoberta](docs/home-discovery-setup.md)
-- [Plano aprovado de Home e descoberta](docs/plans/05-home-discovery-development-plan.html)
+- [Plano de Home e descoberta (histórico)](docs/plans/05-home-discovery-development-plan.html)
 - [Especificação implementada de avaliações e comentários](docs/specs/07-ratings-comments.md)
-- [Plano implementado de avaliações, comentários e spoilers](docs/plans/06-ratings-comments-development-plan.html)
+- [Plano de avaliações, comentários e spoilers (histórico)](docs/plans/06-ratings-comments-development-plan.html)
 - [Especificação implementada de amizades e compartilhamento](docs/specs/09-social.md)
-- [Plano de notificações e integração de eventos](docs/plans/08-notifications-development-plan.html)
-- Próximas etapas:
-  - [9 — Conquistas, estatísticas e rankings](docs/plans/09-gamification-development-plan.html)
-  - [10 — Widgets e validação nativa](docs/plans/10-mobile-widgets-development-plan.html)
+- [Plano de notificações e integração de eventos (histórico)](docs/plans/08-notifications-development-plan.html)
+- [Relatório dos cinco ajustes adicionais de UX](docs/implementation-report-additional-ux.md)
+- Próxima validação técnica: aplicação de migrations pendentes nos ambientes e validação de builds nativos para widgets.
 - [Arquitetura](docs/architecture.md)
 - [Especificações do produto](docs/specs/)
 - [Identidade visual e Brand Assets](mobile/assets/brand/README.md)

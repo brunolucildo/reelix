@@ -121,3 +121,15 @@ Os campos opcionais deverão permanecer opcionais quando o provedor não fornece
 ## Resultado
 
 Camada de catálogo implementada, com integrações isoladas, dados normalizados e contratos reutilizáveis pelos módulos do Reelix.
+
+## Estado atual · 02/11/2026
+
+Pesquisa, gêneros, detalhes, temporadas e episódios estão expostos pela API e usados
+pelas telas mobile de busca, detalhes e tracking. TMDB é o provedor principal e OMDb
+é opcional; não há fallback automático. O banco conserva referências externas estáveis,
+não uma cópia integral de respostas/imagens. Descoberta pública e gêneros têm caches
+temporários em memória descritos em [catalog-setup.md](../catalog-setup.md) e
+[home-discovery-setup.md](../home-discovery-setup.md).
+
+Provedores exigem credenciais de servidor válidas. Atribuição e direitos de uso devem
+ser confirmados para o ambiente e finalidade de distribuição; não inferir datas ausentes.

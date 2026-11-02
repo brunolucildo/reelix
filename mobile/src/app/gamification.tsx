@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { AchievementMedal } from '@/components/gamification/achievement-medal';
 import { BackButton } from '@/components/navigation/back-button';
 import { useTrackingHistory } from '@/hooks/use-tracking';
 import { useErrorToast, useToast } from '@/providers/toast-provider';
@@ -358,6 +359,12 @@ function AchievementCard({ achievement }: { achievement: AchievementProgress }) 
   const progress = Math.min(achievement.currentValue / achievement.threshold, 1);
   return (
     <View style={styles.achievement}>
+      <AchievementMedal
+        code={achievement.code}
+        title={achievement.title}
+        earned={achievement.isEarned}
+        size={72}
+      />
       <View style={styles.achievementHeading}>
         <Text style={styles.achievementTitle}>{achievement.title}</Text>
         <Text style={achievement.isEarned ? styles.earned : styles.progressLabel}>

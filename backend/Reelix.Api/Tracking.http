@@ -1,0 +1,14 @@
+@baseUrl = http://localhost:5035
+@token = replace-with-local-access-token
+@seriesId = 00000000-0000-0000-0000-000000000001
+
+### Entire-series progress, including released specials (requires a real catalog series ID)
+GET {{baseUrl}}/api/v1/tracking/series/{{seriesId}}/progress?provider=tmdb
+Authorization: Bearer {{token}}
+
+### Invalid provider returns 400 for an authenticated request
+GET {{baseUrl}}/api/v1/tracking/series/{{seriesId}}/progress?provider=invalid
+Authorization: Bearer {{token}}
+
+### Anonymous requests return 401
+GET {{baseUrl}}/api/v1/tracking/series/{{seriesId}}/progress

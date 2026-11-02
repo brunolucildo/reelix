@@ -99,3 +99,14 @@ A aplicação não deverá implementar um sistema próprio de armazenamento de s
 ## Resultado
 
 Fluxos de autenticação implementados e integrados ao backend, com sessões tratadas de forma segura e identidade consistente para os demais módulos do Reelix.
+
+## Estado atual · 02/11/2026
+
+Cadastro, login, confirmação de e-mail conforme configuração do Supabase, recuperação,
+callback/deep link, redefinição de senha, restauração de sessão e logout estão presentes
+no mobile. A API valida o JWT e associa `sub` à conta interna; telas protegidas não
+substituem autorização no servidor.
+
+O uso depende das chaves públicas no app, configuração segura do backend, URLs de
+callback e migrations aplicadas no banco do ambiente. A página `dev-auth.html` e Swagger
+estão limitados a `Development`. Consulte [authentication-setup.md](../authentication-setup.md).

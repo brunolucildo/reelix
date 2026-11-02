@@ -90,7 +90,7 @@ A biblioteca e a estratégia nativa deverão ser selecionadas após a análise d
 - As limitações de plataforma são documentadas.
 - Os testes relevantes passam.
 
-## Resultado do spike (01/11/2026)
+## Resultado do spike (atualizado em 02/11/2026)
 
 A documentação oficial consultada identifica `expo-widgets` como candidato para iOS e Android no SDK 58. O módulo não funciona no Expo Go e exige development builds. A documentação também exige App Group/bundle identifier no iOS e `android.package` com `enableAndroid` no Android; o widget roda em runtime isolado, não usa hooks nem chamadas de rede próprias, e recebe dados via snapshots/timelines.
 
@@ -100,6 +100,8 @@ A documentação oficial consultada identifica `expo-widgets` como candidato par
 | Android | Documentação Expo/Android consultada; projeto sem `android.package`; ambiente sem Java, Android SDK/ADB ou Gradle | Não validado; build, instalação, launcher, renderização e deep link pendentes |
 
 Nenhuma biblioteca foi instalada nem plugin/configuração nativa foi adicionada, pois os identificadores de distribuição não estão definidos e os builds compatíveis não podem ser executados neste ambiente. Não há widgets funcionais nem plataforma declarada como suportada. Próximo passo: definir bundle/package IDs e repetir o spike em ambiente com Xcode e Android SDK; só então aprovar snapshots, consentimento/limpeza por conta, dois layouts e navegação nativa.
+
+**Estado atual:** pesquisa/documentação concluídas; widgets iOS e Android não implementados nem validados. O wireframe marca explicitamente esta lacuna e não simula a existência de um widget funcional.
 
 Referências oficiais verificadas:
 

@@ -13,6 +13,7 @@ type Toast = {
 };
 
 type ToastContextValue = {
+  toast: Toast | null;
   showToast: (message: string, tone?: ToastTone) => void;
   showError: (message: string) => void;
   dismissToast: () => void;
@@ -33,16 +34,21 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, []);
   const showError = useCallback((message: string) => showToast(message, 'error'), [showToast]);
 
-  const value = useMemo(() => ({ showToast, showError, dismissToast }), [dismissToast, showError, showToast]);
+  const value = useMemo(() => ({ toast, showToast, showError, dismissToast }), [toast, dismissToast, showError, showToast]);
 
   return (
     <ToastContext.Provider value={value}>
       <View style={styles.root}>
         {children}
-        {toast ? <ToastView key={toast.id} toast={toast} onDismiss={dismissToast} /> : null}
+        <ToastViewport />
       </View>
     </ToastContext.Provider>
   );
+}
+
+export function ToastViewport() {
+  const { toast, dismissToast } = useToast();
+  return toast ? <ToastView key={toast.id} toast={toast} onDismiss={dismissToast} /> : null;
 }
 
 function ToastView({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }) {

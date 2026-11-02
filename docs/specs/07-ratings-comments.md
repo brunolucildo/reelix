@@ -23,10 +23,10 @@ A moderação automática poderá auxiliar na análise, mas não deverá ser con
 - Comentários têm de 1 a 2.000 caracteres após normalização. O autor pode editar e excluir os próprios comentários.
 - Filmes, séries e episódios usam IDs internos Reelix. Comentários e notas de episódios também validam a associação persistida entre episódio e série.
 - Conteúdo sinalizado manualmente ou classificado como possível spoiler é retornado como `content: null`; o leitor usa a ação autenticada de revelação. Comentários pendentes ou bloqueados não são reveláveis.
-- A análise por IA fica desativada por padrão. Se o servidor a habilitar, cada comentário ainda exige consentimento explícito. Falhas e respostas inválidas são retentadas até três vezes; ao esgotar as tentativas, o comentário é publicado com ocultação conservadora.
+- A análise por IA está temporariamente desativada no servidor. Se for reativada, cada comentário ainda exigirá consentimento explícito. Falhas e respostas inválidas são retentadas até três vezes; ao esgotar as tentativas, o comentário é publicado com ocultação conservadora.
 - Denúncias e revisão administrativa não fazem parte deste módulo; não há fluxo de denúncia ou painel de moderação manual disponível.
 
-Para habilitar a integração no backend, configure `OpenAI:SpoilerAnalysis:Enabled=true` e `OpenAI:SpoilerAnalysis:ApiKey` em User Secrets ou no gerenciador de segredos do ambiente. `Model` usa `gpt-4o-mini` por padrão; `TimeoutSeconds` usa 10 e aceita valores de 1 a 30. Não configure a chave no app mobile. Com a integração desativada, o consentimento do cliente não dispara chamadas externas e os comentários seguem as regras manuais.
+Por enquanto, a integração está desativada no servidor por `OpenAI:SpoilerAnalysis:TemporarilyDisabled=true`; comentários e sinalização manual continuam funcionando. Para reativar futuramente, configure `OpenAI:SpoilerAnalysis:Enabled=true`, `OpenAI:SpoilerAnalysis:TemporarilyDisabled=false` e `OpenAI:SpoilerAnalysis:ApiKey` em User Secrets ou no gerenciador de segredos do ambiente. `Model` usa `gpt-4o-mini` por padrão; `TimeoutSeconds` usa 10 e aceita valores de 1 a 30. Não configure a chave no app mobile.
 
 ## Requisitos Funcionais
 
@@ -130,3 +130,15 @@ Para habilitar a integração no backend, configure `OpenAI:SpoilerAnalysis:Enab
 ## Resultado
 
 Sistema de avaliações e comentários implementado, com notas de 0 a 5 em incrementos de meia estrela, audiência privada por padrão, associação validada de episódios e suporte opcional à moderação assistida por IA.
+
+## Estado atual · 02/11/2026
+
+Notas, comentários, audiência, edição/exclusão próprias, ocultação/revelação de spoilers
+e navegação de avaliações episódicas estão integrados no mobile e na API. Avaliações de
+filmes/episódios são habilitadas conforme o tracking assistido; comentários continuam
+independentes da avaliação.
+
+A classificação automática de spoilers está temporariamente desativada no servidor;
+a sinalização manual continua disponível. Denúncias e revisão administrativa não foram
+implementadas. A migration de avaliações deve ser aplicada conforme o processo de cada
+ambiente antes de depender da persistência.

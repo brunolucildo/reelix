@@ -1,8 +1,10 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
+import { Image } from 'expo-image';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { AchievementMedal } from '@/components/gamification/achievement-medal';
 import { BackButton } from '@/components/navigation/back-button';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchFriendProfile, fetchPublicGamificationBadges } from '@/services/api-client';
@@ -46,6 +48,20 @@ export default function SocialProfileScreen() {
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.container}>
         <BackButton />
+        {profile.data.avatarUrl ? (
+          <Image
+            accessibilityLabel={`Avatar de ${profile.data.displayName}`}
+            contentFit="cover"
+            source={{ uri: profile.data.avatarUrl }}
+            style={styles.avatar}
+          />
+        ) : (
+          <View accessibilityLabel={`Avatar de ${profile.data.displayName}`} style={styles.avatarFallback}>
+            <Text style={styles.avatarInitial}>
+              {profile.data.displayName.trim().slice(0, 1).toLocaleUpperCase('pt-BR')}
+            </Text>
+          </View>
+        )}
         <Text accessibilityRole="header" style={styles.title}>{profile.data.displayName}</Text>
         {profile.data.biography ? <Text style={styles.body}>{profile.data.biography}</Text> : null}
         <Text style={styles.sectionTitle}>Conquistas</Text>
@@ -62,6 +78,12 @@ export default function SocialProfileScreen() {
         ) : (
           badges.data.badges.map((badge) => (
             <View key={badge.code} style={styles.badge}>
+              <AchievementMedal
+                code={badge.code}
+                title={badge.title}
+                earned
+                size={56}
+              />
               <Text style={styles.badgeTitle}>{badge.title}</Text>
               <Text style={styles.body}>{badge.description}</Text>
               <Text style={styles.badgeDate}>
@@ -159,5 +181,24 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: typography.caption,
     fontFamily: fontFamily.regular,
+  },
+  avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surfaceElevated,
+  },
+  avatarFallback: {
+    width: 72,
+    height: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.pill,
+    backgroundColor: colors.surfaceElevated,
+  },
+  avatarInitial: {
+    color: colors.textPrimary,
+    fontSize: typography.section,
+    fontFamily: fontFamily.bold,
   },
 });

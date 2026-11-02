@@ -15,8 +15,6 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <PrimaryButton label="Perfil e privacidade" variant="secondary" onPress={() => router.push('/profile')} />
           <PrimaryButton label="Preferências de catálogo" variant="secondary" onPress={() => router.push({ pathname: '/onboarding', params: { edit: '1' } })} />
-          <PrimaryButton label="Preferências de notificações" variant="secondary" onPress={() => router.push('/notifications')} />
-          <PrimaryButton label="Privacidade de conquistas e ranking" variant="secondary" onPress={() => router.push('/gamification')} />
         </View>
       </ScrollView>
     </SafeAreaView>

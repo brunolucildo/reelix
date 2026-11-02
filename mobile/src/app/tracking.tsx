@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { Redirect, useRouter } from 'expo-router';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert,
+ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AuthScreen } from '@/components/auth/auth-screen';
 import { PrimaryButton } from '@/components/auth/primary-button';
@@ -178,6 +179,43 @@ function AuthenticatedTracking() {
     } else {
       setWatchedAtValidation('Não foi possível identificar a série deste episódio.');
     }
+  };
+
+  const confirmRemoveHistoryEntry = (entry: {
+    type: 'movie' | 'episode';
+    targetId: string;
+    seriesId: string | null;
+  }) => {
+    const isMovie = entry.type === 'movie';
+    Alert.alert(
+      'Desmarcar como assistido?',
+      'O registro será removido do seu histórico e o progresso relacionado será atualizado.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Desmarcar',
+          style: 'destructive',
+          onPress: () => {
+            setSaveConfirmation(null);
+            const onSuccess = () => {
+              setSaveConfirmation(isMovie
+                ? 'Filme removido do seu histórico.'
+                : 'Episódio removido do seu histórico.');
+              setHistoryPage(1);
+              if (!isMovie) setSeriesPage(1);
+            };
+            if (isMovie) {
+              removeMovie.mutate(entry.targetId, { onSuccess });
+            } else if (entry.seriesId) {
+              removeEpisode.mutate({
+                seriesId: entry.seriesId,
+                episodeId: entry.targetId,
+              }, { onSuccess });
+            }
+          },
+        },
+      ],
+    );
   };
 
   const submitSeriesSearch = () => {
@@ -474,9 +512,6 @@ function AuthenticatedTracking() {
               </Text>
             ) : (
               <>
-                <Text style={styles.description}>
-                  Os nomes dos títulos ainda não estão disponíveis neste histórico.
-                </Text>
                 {history.data.items.map((entry, index) => {
                   const title = historyTitleQueries[index]?.data;
                   return (
@@ -497,6 +532,7 @@ function AuthenticatedTracking() {
                           <Text style={styles.cardTitle}>{title.title}</Text>
                           <Text style={styles.description}>
                             {entry.type === 'movie' ? 'Filme' : 'Série · episódio'}
+                            {title.releaseDate ? ` · ${title.releaseDate.slice(0, 4)}` : ''}
                           </Text>
                         </View>
                       </Pressable>
@@ -509,7 +545,7 @@ function AuthenticatedTracking() {
                       {watchDateFormatter.format(new Date(entry.watchedAt))}
                     </Text>
                     {editingEntryId === entry.id ? (
-                      <>
+                      <View style={styles.editWatchedAt}>
                         <Text style={styles.description}>Nova data e hora (horário local)</Text>
                         <TextInput
                           accessibilityLabel="Nova data e hora da visualização"
@@ -539,53 +575,31 @@ function AuthenticatedTracking() {
                           disabled={isSaving}
                           onPress={cancelEditingWatchedAt}
                         />
-                      </>
+                      </View>
                     ) : (
-                      <PrimaryButton
-                        label="Corrigir data e hora"
-                        variant="secondary"
-                        disabled={isSaving}
-                        onPress={() => beginEditingWatchedAt(entry.id, entry.watchedAt)}
-                      />
+                      <View style={styles.historyActions}>
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={`Corrigir data e hora de ${title?.title ?? 'este registro'}`}
+                          disabled={isSaving}
+                          onPress={() => beginEditingWatchedAt(entry.id, entry.watchedAt)}
+                          style={styles.historyIconButton}
+                        >
+                          <Text style={styles.historyActionIcon}>✎</Text>
+                        </Pressable>
+                        {entry.type === 'movie' || entry.seriesId ? (
+                          <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={`Desmarcar ${entry.type === 'movie' ? 'filme' : 'episódio'} assistido em ${watchDateFormatter.format(new Date(entry.watchedAt))}`}
+                            disabled={isSaving}
+                            onPress={() => confirmRemoveHistoryEntry(entry)}
+                            style={styles.historyIconButton}
+                          >
+                            <Text style={styles.historyActionIcon}>✓</Text>
+                          </Pressable>
+                        ) : null}
+                      </View>
                     )}
-                    {entry.type === 'movie' ? (
-                      <PrimaryButton
-                        label={`Desmarcar filme assistido em ${watchDateFormatter.format(new Date(entry.watchedAt))}`}
-                        variant="secondary"
-                        disabled={isSaving}
-                        onPress={() => {
-                          setSaveConfirmation(null);
-                          removeMovie.mutate(entry.targetId, {
-                            onSuccess: () => {
-                              setSaveConfirmation('Filme removido do seu histórico.');
-                              setHistoryPage(1);
-                            },
-                          });
-                        }}
-                      />
-                    ) : entry.seriesId ? (
-                      <PrimaryButton
-                        label={`Desmarcar episódio assistido em ${watchDateFormatter.format(new Date(entry.watchedAt))}`}
-                        variant="secondary"
-                        disabled={isSaving}
-                        onPress={() => {
-                          if (!entry.seriesId) {
-                            return;
-                          }
-                          setSaveConfirmation(null);
-                          removeEpisode.mutate({
-                            seriesId: entry.seriesId,
-                            episodeId: entry.targetId,
-                          }, {
-                            onSuccess: () => {
-                              setSaveConfirmation('Episódio removido do seu histórico.');
-                              setHistoryPage(1);
-                              setSeriesPage(1);
-                            },
-                          });
-                        }}
-                      />
-                    ) : null}
                   </View>
                   );
                 })}
@@ -816,6 +830,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.medium,
+  },
+  historyActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.small,
+  },
+  editWatchedAt: {
+    gap: spacing.small,
+  },
+  historyIconButton: {
+    minWidth: 48,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceElevated,
+  },
+  historyActionIcon: {
+    color: colors.textPrimary,
+    fontSize: typography.section,
+    fontFamily: fontFamily.semiBold,
   },
   historyPoster: {
     width: 64,

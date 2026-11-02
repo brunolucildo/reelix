@@ -109,7 +109,8 @@ As telas de perfil e gamificação exibem badges, progresso, estatísticas vital
 
 ## Limites de implantação
 
-- A migration `AddGamification` ainda precisa ser aplicada a um PostgreSQL de desenvolvimento/produção antes de habilitar o módulo. Não foi aplicada a um banco real durante esta implementação.
+- **Snapshot em 02/11/2026:** a migration `AddGamification` precisa ser aplicada ao PostgreSQL de cada ambiente antes de habilitar o módulo. A documentação não confirma sua aplicação em banco real.
 - A reconciliação determinística é executada ao consultar o dashboard/badges, e não por um worker de backfill; não há notificação de conquista nesta etapa.
 - O ranking mostra nome, posição e contagem, sem avatar, títulos ou detalhes do histórico. O ranking só inclui participantes com ao menos um filme no mês.
 - A cobertura histórica de horas e gêneros cresce conforme as referências são buscadas/enriquecidas; itens sem metadados não são inventados nem contados como zero duração conhecida.
+- O Perfil e o menu lateral exibem as medalhas em grade sem texto adjacente. Selecionar uma medalha abre nome, descrição/critério, progresso, estado e datas disponíveis; o menu mostra conquistas ativas em tamanho compacto.

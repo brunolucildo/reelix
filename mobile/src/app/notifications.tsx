@@ -55,7 +55,12 @@ export default function NotificationsScreen() {
   });
   const readMutation = useMutation({
     mutationFn: markNotificationRead,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notification-inbox'] }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['notification-inbox'] }),
+        queryClient.invalidateQueries({ queryKey: ['notification-unread-count'] }),
+      ]);
+    },
     onError: (error) => {
       showError(error instanceof Error ? error.message : 'Não foi possível atualizar a notificação.');
     },

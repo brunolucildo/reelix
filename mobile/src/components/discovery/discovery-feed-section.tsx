@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogDiscovery, type CatalogDiscoveryCategory } from '@/services/api-client';
@@ -26,8 +26,15 @@ export function DiscoveryFeedSection({ title, type, category, genreIds = [] }: P
   });
   useErrorToast(feed.error, `Não foi possível carregar "${title}". Tente novamente.`);
 
-  const items = feed.data?.pages.flatMap((page) => page.items) ?? [];
-  const hasMore = feed.hasNextPage;
+  const seenIds = new Set<string>();
+  const items = (feed.data?.pages.flatMap((page) => page.items) ?? []).filter((item) => {
+    if (seenIds.has(item.id)) {
+      return false;
+    }
+
+    seenIds.add(item.id);
+    return true;
+  });
 
   return (
     <View style={styles.section}>
@@ -51,29 +58,36 @@ export function DiscoveryFeedSection({ title, type, category, genreIds = [] }: P
       ) : items.length === 0 ? (
         <Text style={styles.statusText}>Nenhum título disponível nesta seção.</Text>
       ) : (
-        <>
-          <ScrollView
-            contentContainerStyle={styles.cards}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-          >
-            {items.map((item) => <TitlePosterCard key={item.id} title={item} />)}
-            {feed.isFetchingNextPage ? (
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <TitlePosterCard title={item} />}
+          contentContainerStyle={styles.cards}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          onEndReachedThreshold={0.5}
+          onEndReached={() => {
+            if (feed.hasNextPage && !feed.isFetching && !feed.isFetchNextPageError) {
+              void feed.fetchNextPage({ cancelRefetch: false });
+            }
+          }}
+          ListFooterComponent={
+            feed.isFetchingNextPage ? (
               <View style={styles.moreLoading}>
                 <ActivityIndicator color={colors.brand} />
               </View>
-            ) : null}
-          </ScrollView>
-          {hasMore ? (
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => void feed.fetchNextPage()}
-              style={styles.moreButton}
-            >
-              <Text style={styles.retryText}>Mostrar mais</Text>
-            </Pressable>
-          ) : null}
-        </>
+            ) : feed.isFetchNextPageError ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Tentar carregar mais títulos de ${title}`}
+                onPress={() => void feed.fetchNextPage({ cancelRefetch: false })}
+                style={styles.retry}
+              >
+                <Text style={styles.retryText}>Tentar novamente</Text>
+              </Pressable>
+            ) : undefined
+          }
+        />
       )}
     </View>
   );
@@ -115,15 +129,6 @@ const styles = StyleSheet.create({
     color: colors.brandSecondary,
     fontSize: typography.bodySmall,
     fontFamily: fontFamily.bold,
-  },
-  moreButton: {
-    minHeight: dimensions.minimumTouchTarget,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'flex-start',
-    paddingHorizontal: spacing.medium,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface,
   },
   moreLoading: {
     width: dimensions.posterWidth,

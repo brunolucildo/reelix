@@ -177,7 +177,9 @@ public sealed class SocialRepository(ReelixDbContext dbContext) : ISocialReposit
                 return new FriendItem(
                     relationship.Id,
                     friendId,
-                    string.IsNullOrWhiteSpace(name) ? "Usuário Reelix" : name,
+                    string.IsNullOrWhiteSpace(name)
+                        ? "Usuário Reelix"
+                        : name,
                     relationship.UpdatedAt);
             })
             .ToArray();
@@ -224,7 +226,9 @@ public sealed class SocialRepository(ReelixDbContext dbContext) : ISocialReposit
                 return new FriendRequest(
                     request.Id,
                     userId,
-                    string.IsNullOrWhiteSpace(name) ? "Usuário Reelix" : name,
+                    string.IsNullOrWhiteSpace(name)
+                        ? "Usuário Reelix"
+                        : name,
                     request.CreatedAt);
             })
             .ToArray();

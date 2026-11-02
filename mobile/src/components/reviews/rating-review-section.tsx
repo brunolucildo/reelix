@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -34,14 +33,14 @@ type RatingReviewSectionProps = {
   targetId: string;
   targetType: ReviewTargetType;
   seriesId?: string;
+  allowRating?: boolean;
 };
-
-const scoreOptions = Array.from({ length: 11 }, (_, index) => index / 2);
 
 export function RatingReviewSection({
   targetId,
   targetType,
   seriesId,
+  allowRating = true,
 }: RatingReviewSectionProps) {
   const queryClient = useQueryClient();
   const { session } = useAuthSession();
@@ -52,7 +51,6 @@ export function RatingReviewSection({
   const [content, setContent] = useState('');
   const [containsSpoiler, setContainsSpoiler] = useState(false);
   const [commentAudience, setCommentAudience] = useState<ReviewAudience>('private');
-  const [requestAutomatedAnalysis, setRequestAutomatedAnalysis] = useState(false);
   const [editingComment, setEditingComment] = useState<CommentItem | null>(null);
   const [revealedComments, setRevealedComments] = useState<Record<string, string>>({});
   const viewerId = session?.user.id ?? 'signed-out';
@@ -62,6 +60,7 @@ export function RatingReviewSection({
   const rating = useQuery({
     queryKey: ratingKey,
     queryFn: ({ signal }) => fetchRatingSummary(targetType, targetId, seriesId, signal),
+    enabled: allowRating,
   });
   const comments = useInfiniteQuery({
     queryKey: commentsKey,
@@ -117,7 +116,7 @@ export function RatingReviewSection({
         content,
         containsSpoiler,
         audience: commentAudience,
-        requestAutomatedAnalysis,
+        requestAutomatedAnalysis: false,
       };
 
       return commentId
@@ -135,7 +134,6 @@ export function RatingReviewSection({
       setContent('');
       setContainsSpoiler(false);
       setCommentAudience('private');
-      setRequestAutomatedAnalysis(false);
       setEditingComment(null);
       await invalidateReviews();
     },
@@ -177,7 +175,6 @@ export function RatingReviewSection({
     setContent(commentContent);
     setContainsSpoiler(comment.containsSpoiler);
     setCommentAudience(comment.audience);
-    setRequestAutomatedAnalysis(false);
   };
 
   const askDeleteComment = (comment: CommentItem) => {
@@ -199,7 +196,7 @@ export function RatingReviewSection({
     <View style={styles.section}>
       <Text accessibilityRole="header" style={styles.heading}>Avaliações e comentários</Text>
 
-      <View style={styles.card}>
+      {allowRating ? <View style={styles.card}>
         <Text style={styles.subheading}>Sua avaliação</Text>
         {rating.isPending ? (
           <ActivityIndicator color={colors.brand} />
@@ -229,32 +226,92 @@ export function RatingReviewSection({
                 </Text>
               </View>
             )}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View accessibilityRole="radiogroup" style={styles.ratingControls}>
               <View style={styles.scoreOptions}>
-                {scoreOptions.map((score) => (
-                  <Pressable
-                    key={score}
-                    accessibilityRole="radio"
-                    accessibilityLabel={`Nota ${score} de 5 estrelas`}
-                    accessibilityState={{ selected: selectedScore === score }}
-                    onPress={() => setRatingDraft({ score, audience: ratingAudience })}
-                    style={[
-                      styles.scoreButton,
-                      selectedScore === score ? styles.selectedScoreButton : null,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.scoreText,
-                        selectedScore === score ? styles.selectedScoreText : null,
-                      ]}
+                {Array.from({ length: 5 }, (_, index) => index + 1).map((score) => {
+                  const selected = selectedScore !== null && selectedScore >= score;
+                  const halfSelected = selectedScore === score - 0.5;
+                  return (
+                    <Pressable
+                      key={score}
+                      accessibilityRole="radio"
+                      accessibilityLabel={`Selecionar ${score} ${score === 1 ? 'estrela' : 'estrelas'}`}
+                      accessibilityState={{ selected: selectedScore === score }}
+                      onPress={() => setRatingDraft({ score, audience: ratingAudience })}
+                      style={styles.starButton}
                     >
-                      {formatRatingStars(score)}
-                    </Text>
-                  </Pressable>
-                ))}
+                      <Text style={[
+                        styles.starText,
+                        selected || halfSelected ? styles.selectedStarText : null,
+                      ]}>
+                        {halfSelected ? '◐' : selected ? '★' : '☆'}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
               </View>
-            </ScrollView>
+              <View style={styles.ratingAdjustments}>
+                <Pressable
+                  accessibilityRole="radio"
+                  accessibilityLabel="Selecionar zero estrelas"
+                  accessibilityState={{ selected: selectedScore === 0 }}
+                  onPress={() => setRatingDraft({ score: 0, audience: ratingAudience })}
+                  style={[
+                    styles.ratingAdjustment,
+                    selectedScore === 0 ? styles.selectedRatingAdjustment : null,
+                  ]}
+                >
+                  <Text style={styles.adjustmentText}>0 estrelas</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={selectedScore === 5
+                    ? 'Selecione 4 estrelas para escolher meia estrela'
+                    : selectedScore !== null && selectedScore % 1 !== 0
+                      ? 'Remover meia estrela'
+                      : selectedScore === null
+                        ? 'Escolha uma nota antes de adicionar meia estrela'
+                        : 'Adicionar meia estrela'}
+                  accessibilityState={{
+                    disabled: selectedScore === null || selectedScore === 5,
+                  }}
+                  disabled={selectedScore === null || selectedScore === 5}
+                  onPress={() => {
+                    if (selectedScore === null || selectedScore === 5) {
+                      return;
+                    }
+
+                    setRatingDraft({
+                      score: selectedScore % 1 === 0
+                        ? selectedScore + 0.5
+                        : selectedScore - 0.5,
+                      audience: ratingAudience,
+                    });
+                  }}
+                  style={[
+                    styles.ratingAdjustment,
+                    selectedScore === null || selectedScore === 5
+                      ? styles.disabledRatingAdjustment
+                      : null,
+                  ]}
+                >
+                  <Text style={styles.adjustmentText}>
+                    {selectedScore === 5
+                      ? 'Selecione 4 estrelas para usar meia estrela'
+                      : selectedScore !== null && selectedScore % 1 !== 0
+                        ? 'Remover meia estrela'
+                        : selectedScore === null
+                          ? 'Escolha uma nota para adicionar meia estrela'
+                          : 'Adicionar meia estrela'}
+                  </Text>
+                </Pressable>
+              </View>
+              {selectedScore !== null ? (
+                <Text style={styles.secondaryText}>
+                  Sua nota: {selectedScore.toLocaleString('pt-BR')} de 5
+                </Text>
+              ) : null}
+            </View>
             <AudienceSelector
               audience={ratingAudience}
               onChange={(audience) => setRatingDraft({ score: selectedScore, audience })}
@@ -275,7 +332,7 @@ export function RatingReviewSection({
             ) : null}
           </>
         )}
-      </View>
+      </View> : null}
 
       <View style={styles.card}>
         <Text style={styles.subheading}>{editingComment ? 'Editar comentário' : 'Escrever comentário'}</Text>
@@ -299,17 +356,6 @@ export function RatingReviewSection({
           onPress={() => setContainsSpoiler((value) => !value)}
         />
         <AudienceSelector audience={commentAudience} onChange={setCommentAudience} />
-        <ToggleButton
-          selected={requestAutomatedAnalysis}
-          label="Peço análise opcional de possível spoiler"
-          onPress={() => setRequestAutomatedAnalysis((value) => !value)}
-        />
-        {requestAutomatedAnalysis ? (
-          <Text style={styles.privacyNote}>
-            Se a análise estiver habilitada no servidor, somente o texto do comentário será enviado
-            à OpenAI. A análise pode errar; sua sinalização manual sempre prevalece.
-          </Text>
-        ) : null}
         <PrimaryButton
           label={editingComment ? 'Salvar alterações' : 'Publicar comentário'}
           loading={isSavingComment}
@@ -326,7 +372,6 @@ export function RatingReviewSection({
               setContent('');
               setContainsSpoiler(false);
               setCommentAudience('private');
-              setRequestAutomatedAnalysis(false);
             }}
           />
         ) : null}
@@ -530,8 +575,53 @@ const styles = StyleSheet.create({
   },
   scoreOptions: {
     flexDirection: 'row',
-    gap: spacing.extraSmall,
-    paddingVertical: spacing.extraSmall,
+    gap: spacing.small,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  ratingControls: {
+    gap: spacing.small,
+  },
+  ratingAdjustments: {
+    flexDirection: 'row',
+    gap: spacing.small,
+  },
+  ratingAdjustment: {
+    flex: 1,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.small,
+    paddingHorizontal: spacing.small,
+    backgroundColor: colors.surfaceElevated,
+  },
+  selectedRatingAdjustment: {
+    borderColor: colors.brandSecondary,
+  },
+  disabledRatingAdjustment: {
+    opacity: 0.5,
+  },
+  adjustmentText: {
+    color: colors.textPrimary,
+    fontSize: typography.caption,
+    fontFamily: fontFamily.semiBold,
+    textAlign: 'center',
+  },
+  starButton: {
+    minWidth: 48,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  starText: {
+    color: colors.textSecondary,
+    fontSize: typography.title,
+    fontFamily: fontFamily.bold,
+  },
+  selectedStarText: {
+    color: colors.brandSecondary,
   },
   publicRating: {
     flexDirection: 'row',
@@ -542,28 +632,6 @@ const styles = StyleSheet.create({
     color: colors.brandSecondary,
     fontSize: typography.body,
     fontFamily: fontFamily.bold,
-  },
-  scoreButton: {
-    minWidth: 48,
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.small,
-    backgroundColor: colors.surfaceElevated,
-  },
-  selectedScoreButton: {
-    borderColor: colors.brand,
-    backgroundColor: colors.brandSurface,
-  },
-  scoreText: {
-    color: colors.textSecondary,
-    fontSize: typography.bodySmall,
-    fontFamily: fontFamily.semiBold,
-  },
-  selectedScoreText: {
-    color: colors.brandSecondary,
   },
   audienceRow: {
     flexDirection: 'row',

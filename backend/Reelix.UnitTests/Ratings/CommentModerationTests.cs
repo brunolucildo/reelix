@@ -91,6 +91,25 @@ public sealed class CommentModerationTests
     }
 
     [Fact]
+    public async Task Classifier_DoesNotSendRequestsWhenTemporarilyDisabled()
+    {
+        var handler = new FakeHttpMessageHandler(_ =>
+            throw new InvalidOperationException("The temporarily disabled classifier must not send requests."));
+        using var client = new HttpClient(handler) { BaseAddress = new Uri("https://api.openai.com/v1/") };
+        var classifier = new OpenAiCommentSpoilerClassifier(
+            client,
+            Options.Create(new OpenAiSpoilerOptions
+            {
+                Enabled = true,
+                TemporarilyDisabled = true,
+                ApiKey = "test-key",
+            }));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            classifier.ClassifyAsync("A plot comment", CancellationToken.None));
+    }
+
+    [Fact]
     public async Task Processor_RecordsRetryableFailuresAndCompletesValidResults()
     {
         var failedWork = CreateWorkItem();
@@ -115,7 +134,12 @@ public sealed class CommentModerationTests
         HttpClient client) =>
         new(
             client,
-            Options.Create(new OpenAiSpoilerOptions { Enabled = true, ApiKey = "test-key" }));
+            Options.Create(new OpenAiSpoilerOptions
+            {
+                Enabled = true,
+                TemporarilyDisabled = false,
+                ApiKey = "test-key",
+            }));
 
     private static HttpClient CreateClient(
         Func<CancellationToken, Task<HttpResponseMessage>> responseFactory) =>

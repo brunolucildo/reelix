@@ -51,6 +51,27 @@ A implementação deverá prever operações equivalentes a:
 
 Os métodos HTTP e os contratos definitivos deverão seguir as convenções REST adotadas pelo projeto e ser documentados no OpenAPI.
 
+### Progresso da série inteira
+
+`GET /api/v1/tracking/series/{seriesId}/progress?provider=tmdb` consulta o inventário
+real de temporadas e agrega os episódios por ID interno único, incluindo especiais
+(temporada 0) e episódios sem número. Temporadas negativas são ignoradas.
+Temporadas e episódios com data futura em UTC não entram no total disponível.
+Episódios sem data continuam disponíveis, seguindo a mesma regra do progresso de
+temporada; nenhuma data é inventada.
+
+`watchedEpisodeCount` conta a interseção dos episódios disponíveis com o tracking
+da conta autenticada. `pendingEpisodeCount` é a diferença entre disponíveis e
+assistidos; o percentual usa o mesmo conjunto. Registros fora do inventário atual,
+inclusive futuros eventualmente marcados, continuam no histórico, mas não
+inflam esse percentual.
+
+Sem inventário, os totais, restantes e percentual são nulos e a contagem do histórico
+é preservada. Inventário vazio retorna zero disponíveis/restantes, sem declarar
+conclusão ou percentual. Falhas ao consultar uma temporada não produzem totais
+parciais apresentados como completos. Marcar/desmarcar invalida o cache de tracking,
+inclusive o resumo exibido em Continuar Assistindo.
+
 ## Requisitos Não Funcionais
 
 - Aplicar autorização em todas as operações.
@@ -118,9 +139,12 @@ Sistema de acompanhamento de visualização funcional, com histórico persistido
 - O registro é único por conta e ID interno do item. `PUT` repetido é idempotente e corrige `watchedAt`; `DELETE` repetido permanece bem-sucedido. O cliente nunca envia o ID da conta.
 - O histórico usa `GET /api/v1/tracking/history?page=1&pageSize=20&type=movie|episode&sort=newest|oldest`; filmes e episódios são persistidos separadamente de favoritos e listas.
 - Episódios são identificados pelo GUID interno retornado pelo catálogo. O número do episódio pode ser nulo; progresso e pendências usam o GUID, inclusive para especiais e episódios sem numeração.
-- O catálogo atual fornece temporadas uma de cada vez. Progresso de temporada e pendências usam a lista retornada para aquela temporada. Episódios futuros são excluídos da contagem disponível; episódios sem data são incluídos se listados pelo catálogo. Datas de lançamento nunca marcam um item como assistido.
-- O progresso da série retorna a contagem assistida, mas total disponível, percentual e conclusão ficam nulos enquanto o catálogo não disponibilizar um inventário completo das temporadas. Não se estima conclusão da série a partir de uma temporada, nem se confunde conclusão de temporada com conclusão da série.
+- Progresso de temporada e episódios pendentes usam o inventário daquela temporada. Progresso de série agrega todas as temporadas válidas do provedor, inclusive a temporada 0, por GUID único de episódio. Temporadas negativas e temporadas/episódios datados no futuro são excluídos; episódios sem data são incluídos conforme a regra existente de disponibilidade. Datas de lançamento nunca marcam um item como assistido.
+- O progresso da série conta como assistidos somente os IDs disponíveis que também constam no tracking da conta autenticada. Registros fora do inventário atual, inclusive futuros eventualmente marcados, continuam no histórico sem inflar o progresso.
+- O total disponível, o percentual, a conclusão e os restantes são desconhecidos quando o provedor não fornece inventário. Inventário vazio retorna zero disponíveis/restantes sem percentual ou conclusão. Falha ao consultar uma temporada não produz total parcial apresentado como completo.
 - Falhas ou remoções no catálogo não apagam registros existentes. Consultas que dependem do catálogo podem falhar temporariamente; histórico e operações de marcar/desmarcar usam os IDs internos persistidos.
 - O acompanhamento mobile consulta histórico e séries de forma paginada, permite registrar filmes encontrados no catálogo, corrigir a data e remover registros do histórico. Nomes de títulos e totais da série não são inventados quando a API não os fornece.
 - A configuração EF, registro de endpoints e DI, migração, rotas autenticadas e wireframe foram integrados junto ao módulo de listas, mantendo recursos e relações independentes.
 - A tela mobile `tracking` apresenta histórico paginado e contagens assistidas de séries, sem inventar nomes ou percentuais indisponíveis no contrato. Permite buscar filmes e séries reais no catálogo, marcar filmes e episódios pendentes como assistidos, corrigir data/hora e desmarcar pelo histórico. Datas são editadas no horário local e enviadas como instante ISO 8601. A consulta de episódios usa seleção de série e número de temporada (0 para especiais), preservando os GUIDs internos e aceitando episódios sem numeração.
+- `GET /api/v1/tracking/series/{seriesId}/progress?provider=tmdb` retorna também `pendingEpisodeCount`; o provider é validado e integra a chave do cache mobile. Marcar/desmarcar episódios invalida o resumo usado por Continuar Assistindo.
+- A Home mostra a quantidade de assistidos e restantes da série inteira. A temporada do último episódio é apenas informação contextual; não restringe o cálculo.

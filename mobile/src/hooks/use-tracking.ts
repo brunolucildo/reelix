@@ -6,6 +6,7 @@ import {
 
 import {
   fetchPendingEpisodes,
+  fetchMovieTrackingStatus,
   fetchSeasonProgress,
   fetchSeriesProgress,
   fetchTrackedSeries,
@@ -22,10 +23,11 @@ export const trackingQueryKeys = {
   all: ['tracking'] as const,
   history: (page: number, pageSize: number, type?: 'movie' | 'episode') =>
     ['tracking', 'history', page, pageSize, type] as const,
+  movieStatus: (titleId: string) => ['tracking', 'movie-status', titleId] as const,
   series: (page: number, pageSize: number) =>
     ['tracking', 'series', page, pageSize] as const,
-  seriesProgress: (seriesId: string) =>
-    ['tracking', 'series-progress', seriesId] as const,
+  seriesProgress: (seriesId: string, provider: CatalogProvider = 'tmdb') =>
+    ['tracking', 'series-progress', seriesId, provider] as const,
   seasonProgress: (seriesId: string, seasonNumber: number, provider: CatalogProvider) =>
     ['tracking', 'season-progress', seriesId, seasonNumber, provider] as const,
   pendingEpisodes: (seriesId: string, seasonNumber: number, provider: CatalogProvider) =>
@@ -54,6 +56,19 @@ export function useTrackingHistory(
   return query;
 }
 
+export function useMovieTrackingStatus(titleId: string) {
+  const query = useQuery({
+    queryKey: trackingQueryKeys.movieStatus(titleId),
+    queryFn: ({ signal }) => fetchMovieTrackingStatus(titleId, signal),
+    enabled: Boolean(titleId),
+  });
+  useErrorToast(query.error, queryErrorMessage(
+    query.error,
+    'Não foi possível verificar o acompanhamento deste filme.',
+  ));
+  return query;
+}
+
 export function useTrackedSeries(page = 1, pageSize = 20) {
   const query = useQuery({
     queryKey: trackingQueryKeys.series(page, pageSize),
@@ -66,10 +81,10 @@ export function useTrackedSeries(page = 1, pageSize = 20) {
   return query;
 }
 
-export function useSeriesProgress(seriesId: string) {
+export function useSeriesProgress(seriesId: string, provider: CatalogProvider = 'tmdb') {
   const query = useQuery({
-    queryKey: trackingQueryKeys.seriesProgress(seriesId),
-    queryFn: ({ signal }) => fetchSeriesProgress(seriesId, signal),
+    queryKey: trackingQueryKeys.seriesProgress(seriesId, provider),
+    queryFn: ({ signal }) => fetchSeriesProgress(seriesId, signal, provider),
     enabled: Boolean(seriesId),
   });
   useErrorToast(query.error, 'Não foi possível carregar o progresso da série. Tente novamente.');

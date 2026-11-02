@@ -24,9 +24,10 @@
         <h1>Amizades <span>com compartilhamento autorizado.</span></h1>
         <p>Plano para solicitações, relações consistentes e um feed entre amigos que respeita a audiência de cada recurso. Amizade não concede acesso irrestrito ao histórico.</p>
         <span class="status">Implementado · validação local concluída · migration ainda não aplicada</span>
+        <p>Estado atual em 02/11/2026: API e mobile incluem busca, solicitações, amizades, perfil contextual e feed consentido. A migration precisa ser aplicada em cada ambiente antes do uso. Consulte <a href="../specs/09-social.md">a especificação</a>.</p>
       </div></header>
       <main>
-        <section aria-labelledby="baseline"><h2 id="baseline">Ponto de partida e dependências</h2><article class="card"><ul>
+        <section aria-labelledby="baseline"><h2 id="baseline">Ponto de partida documentado no plano</h2><article class="card"><ul>
           <li>Perfil próprio/público, favoritos, listas privadas e tracking já existem. Não há relação de amizade, pesquisa pública de contas ou feed persistido.</li>
           <li>Depende da etapa 6 para atividades de avaliações publicadas. O núcleo de solicitações pode ser implementado sem aguardar notificações.</li>
           <li>As flags atuais são booleanas para público/privado; o contrato público de perfil não representa acesso de amigos. Acrescentar autorização contextual sem mudar silenciosamente a visibilidade existente.</li>

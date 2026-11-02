@@ -19,7 +19,9 @@ public sealed class OpenAiCommentSpoilerClassifier(
         CancellationToken cancellationToken)
     {
         var settings = options.Value;
-        if (!settings.Enabled || string.IsNullOrWhiteSpace(settings.ApiKey))
+        if (!settings.Enabled ||
+            settings.TemporarilyDisabled ||
+            string.IsNullOrWhiteSpace(settings.ApiKey))
         {
             throw new InvalidOperationException("A análise de spoiler não está habilitada.");
         }

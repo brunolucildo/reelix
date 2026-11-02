@@ -1,6 +1,7 @@
 using Reelix.Application.Authentication;
 using Reelix.Application.Catalog;
 using Reelix.Application.Ratings;
+using Reelix.Application.Tracking;
 using Reelix.Domain.Ratings;
 using Reelix.Domain.Users;
 
@@ -58,6 +59,31 @@ public sealed class RatingsCommentsServiceTests
                 Guid.NewGuid(),
                 ReviewTargetType.Movie,
                 new RatingInput(5.5m, ReviewAudience.Public),
+                CancellationToken.None));
+
+        Assert.Null(repository.SavedRating);
+    }
+
+    [Fact]
+    public async Task UpsertEpisodeRating_RequiresEpisodeToBeTracked()
+    {
+        var subject = Guid.NewGuid();
+        var repository = new FakeRatingsCommentsRepository
+        {
+            CatalogTargetExists = true,
+            EpisodeBelongsToSeries = true,
+        };
+        var service = CreateService(
+            new FakeAccounts(subject),
+            repository,
+            episodeIsTracked: false);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.UpsertRatingAsync(
+                subject,
+                Guid.NewGuid(),
+                ReviewTargetType.Episode,
+                new RatingInput(4, ReviewAudience.Private, Guid.NewGuid()),
                 CancellationToken.None));
 
         Assert.Null(repository.SavedRating);
@@ -139,8 +165,19 @@ public sealed class RatingsCommentsServiceTests
     private static RatingsCommentsService CreateService(
         FakeAccounts accounts,
         FakeRatingsCommentsRepository repository,
-        bool analysisEnabled = false) =>
-        new(accounts, repository, new FakeModerationConfiguration(analysisEnabled));
+        bool analysisEnabled = false,
+        bool episodeIsTracked = true) =>
+        new(accounts, repository, new FakeEpisodeTrackingLookup(episodeIsTracked),
+            new FakeModerationConfiguration(analysisEnabled));
+
+    private sealed class FakeEpisodeTrackingLookup(bool isTracked) : IEpisodeTrackingLookup
+    {
+        public Task<bool> IsEpisodeTrackedAsync(
+            Guid accountId,
+            Guid episodeId,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(isTracked);
+    }
 
     private sealed class FakeAccounts(Guid subject) : IUserAccountRepository
     {

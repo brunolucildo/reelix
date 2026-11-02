@@ -7,7 +7,11 @@ public static class TrackingDependencyInjection
 {
     public static IServiceCollection AddTrackingInfrastructure(this IServiceCollection services)
     {
-        services.AddScoped<ITrackingRepository, TrackingRepository>();
+        services.AddScoped<TrackingRepository>();
+        services.AddScoped<ITrackingRepository>(provider =>
+            provider.GetRequiredService<TrackingRepository>());
+        services.AddScoped<IEpisodeTrackingLookup>(provider =>
+            provider.GetRequiredService<TrackingRepository>());
         services.AddScoped<ITrackingCatalog, TrackingCatalog>();
         return services;
     }

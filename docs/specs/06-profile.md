@@ -2,11 +2,11 @@
 
 ## Escopo
 
-Front-End, Back-End, persistência de dados e integração com armazenamento de imagens, caso aprovado para o projeto.
+Front-End, Back-End e persistência de dados. Armazenamento de imagens depende de decisão e integração próprias.
 
 ## Contexto
 
-O perfil representa a identidade do usuário dentro do Reelix.
+O perfil representa a identidade do usuário dentro do Reelix. O estado atual permite editar nome, biografia e privacidade; imagem personalizada ainda não pode ser enviada ou persistida.
 
 Deverá permitir editar informações básicas, gerenciar o avatar, consultar estatísticas disponíveis e controlar preferências de privacidade.
 
@@ -87,6 +87,12 @@ O perfil não deverá assumir que todas as informações do usuário são públi
 - Os dados são persistidos corretamente.
 - Os testes de validação e autorização passam.
 
-## Resultado
+## Estado atual
 
-Módulo de perfil funcional, com edição de dados pessoais, avatar e configurações de privacidade.
+- Implementados no mobile e na API: leitura/edição do perfil próprio, nome de exibição, biografia, preferências de privacidade e consulta contextual de perfil conforme autorização.
+- O avatar exibido é padrão local/iniciais quando não há `avatarUrl`. Upload, substituição e remoção de avatar personalizado não estão implementados; não há armazenamento de imagens conectado.
+- A tela de Perfil apresenta conquistas como uma grade de medalhas. Selecionar uma medalha abre nome, descrição/critério, progresso, estado e datas disponíveis; medalhas bloqueadas são diferenciadas visualmente.
+- O menu lateral mostra medalhas ativas junto ao avatar. Isso não amplia a visibilidade do histórico, das preferências ou de outros dados privados.
+- Preferências e tracking são fornecidos por seus módulos próprios. Histórico compartilhado depende dos consentimentos e das regras de Social; não é tornado público somente por existir um perfil público.
+
+**Resultado:** perfil e privacidade implementados no código. A experiência de avatar personalizado continua pendente; migrations devem estar aplicadas no banco do ambiente utilizado.

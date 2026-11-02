@@ -102,3 +102,15 @@ A primeira versão deverá priorizar uma experiência útil e previsível, sem e
 ## Resultado
 
 Página inicial funcional, organizada por filmes e séries, com descoberta de conteúdo e recomendações iniciais baseadas em dados disponíveis.
+
+## Estado atual · 02/11/2026
+
+Home, busca e detalhes mobile estão integrados à API autenticada e ao catálogo. A Home
+separa Filmes e Séries; recomendações são filtros determinísticos por gêneros salvos.
+Feeds horizontais de descoberta deduplicam IDs e carregam páginas automaticamente,
+com indicador de carregamento e retentativa explícita em caso de falha.
+
+Continuar Assistindo mostra o progresso de todas as temporadas válidas da série,
+não somente da temporada do episódio mais recente. Temporadas/episódios futuros são
+excluídos; sem inventário, o total continua desconhecido. Veja
+[home-discovery-setup.md](../home-discovery-setup.md) para seções, cache e regras.

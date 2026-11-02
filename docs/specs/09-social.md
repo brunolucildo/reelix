@@ -107,3 +107,11 @@ Módulo social implementado, com amizades, solicitações e compartilhamento con
 - Bloqueio, seguidores públicos, chat e histórico retroativo não fazem parte desta entrega.
 
 Os endpoints autenticados estão em `/api/v1/social`: `GET /users`, `POST /friend-requests`, `GET /friend-requests`, ações `PUT .../{id}/accept|decline`, cancelamento `DELETE /friend-requests/{id}`, `GET /friends`, perfil contextual `GET /friends/{accountId}/profile`, remoção `DELETE /friends/{relationshipId}` e `GET /feed`. A migration EF Core precisa ser aplicada ao banco antes de usar os endpoints.
+
+## Estado atual · 02/11/2026
+
+API, persistência/modelo, cliente mobile e telas de busca, solicitações, amizades,
+perfil contextual e feed estão presentes no código. A migration deve ser aplicada e
+validada em cada PostgreSQL alvo; a presença de endpoints não significa que o schema
+do ambiente já foi atualizado. Busca/feed respeitam autorização e consentimentos.
+Chat, bloqueio e seguidores públicos continuam fora do escopo.

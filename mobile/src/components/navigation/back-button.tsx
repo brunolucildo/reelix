@@ -13,10 +13,8 @@ export function BackButton({ onPress }: Props) {
   const goBack = () => {
     if (onPress) {
       onPress();
-    } else if (router.canGoBack()) {
-      router.back();
     } else {
-      router.replace('/home');
+      router.back();
     }
   };
 

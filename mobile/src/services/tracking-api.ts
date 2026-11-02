@@ -50,6 +50,7 @@ const seriesProgressSchema = z.object({
   availableEpisodeCount: z.number().int().nonnegative().nullable(),
   progressPercentage: z.number().min(0).max(100).nullable(),
   isComplete: z.boolean().nullable(),
+  pendingEpisodeCount: z.number().int().nonnegative().nullable(),
 });
 const seasonProgressSchema = z.object({
   seriesId: z.string().uuid(),
@@ -158,6 +159,17 @@ export async function markMovieWatched(
   );
 }
 
+export async function fetchMovieTrackingStatus(
+  titleId: string,
+  signal?: AbortSignal,
+): Promise<boolean> {
+  return trackingRequest(
+    `/api/v1/tracking/movies/${titleId}`,
+    z.boolean(),
+    { signal },
+  );
+}
+
 export async function removeWatchedMovie(titleId: string): Promise<void> {
   await trackingRequest(
     `/api/v1/tracking/movies/${titleId}`,
@@ -202,9 +214,11 @@ export async function fetchTrackedSeries(
 export async function fetchSeriesProgress(
   seriesId: string,
   signal?: AbortSignal,
+  provider: CatalogProvider = 'tmdb',
 ): Promise<SeriesProgress> {
+  const query = new URLSearchParams({ provider });
   return trackingRequest(
-    `/api/v1/tracking/series/${seriesId}/progress`,
+    `/api/v1/tracking/series/${seriesId}/progress?${query}`,
     seriesProgressSchema,
     { signal },
   );

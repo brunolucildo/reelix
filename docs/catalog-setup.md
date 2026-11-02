@@ -18,7 +18,7 @@ O adaptador OMDb pode ser usado sem credencial TMDB e vice-versa; a credencial a
 
 ## Banco local
 
-O catálogo persiste apenas referências estáveis (`provider`, `external_id`, `content_type`) para títulos, temporadas e episódios, associando IDs internos Reelix à origem. Não há cache de respostas ou armazenamento de sinopses/imagens. A migração cria `catalog_external_references`, com unicidade por provedor, identificador externo e tipo de conteúdo.
+O catálogo persiste apenas referências estáveis (`provider`, `external_id`, `content_type`) para títulos, temporadas e episódios, associando IDs internos Reelix à origem. A busca e os detalhes não são armazenados como snapshots no banco. A descoberta pública usa cache em memória por 10 minutos e os gêneros TMDB por seis horas; esses caches são temporários e não equivalem a persistência de metadados. A migração cria `catalog_external_references`, com unicidade por provedor, identificador externo e tipo de conteúdo.
 
 **Estado atual:** a migração `20261026193000_AddExternalCatalogReferences` foi aplicada ao Supabase configurado nas User Secrets e verificada. Para outros ambientes, configure a conexão do ambiente de destino e aplique as migrações conforme o processo de release aprovado.
 

@@ -24,13 +24,14 @@
         <div class="hero">
           <p class="eyebrow">Etapa 6 · especificação 07</p>
           <h1>Avaliações e comentários <span>sem revelar spoilers.</span></h1>
-          <p>Plano para notas independentes dos comentários, autorização por recurso e publicação com moderação explícita. A análise por IA será opcional e isolada das operações de avaliação.</p>
+          <p>Plano histórico para notas independentes dos comentários, autorização por recurso e proteção contra spoilers. O estado atual mantém a análise automática desativada e as demais operações independentes.</p>
           <span class="status">Aprovado · implementação concluída</span>
+          <p>Estado atual em 02/11/2026: notas e comentários estão integrados no mobile/API; nota de filme/episódio depende de tracking assistido. Spoilers podem ser sinalizados e revelados explicitamente. A análise por IA está temporariamente desativada; denúncias e moderação administrativa não estão disponíveis. Ver <a href="../specs/07-ratings-comments.md">a especificação atual</a>.</p>
         </div>
       </header>
       <main>
         <section aria-labelledby="baseline">
-          <h2 id="baseline">Ponto de partida e dependências</h2>
+          <h2 id="baseline">Ponto de partida documentado no plano</h2>
           <article class="card"><ul>
             <li>Autenticação Supabase, conta interna Reelix, perfil, catálogo, tracking e listas já existem; avaliações e comentários ainda não têm persistência ou endpoints.</li>
             <li>O catálogo distingue filme, série, temporada e episódio. Utilizar IDs internos e validar o tipo e a associação do episódio à série; não misturar IDs de provedores.</li>

@@ -70,6 +70,7 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(OpenAiSpoilerOptions.SectionName))
             .Validate(
                 options => !options.Enabled ||
+                    options.TemporarilyDisabled ||
                     (!string.IsNullOrWhiteSpace(options.ApiKey) &&
                      !string.IsNullOrWhiteSpace(options.Model)),
                 "OpenAI:SpoilerAnalysis requires an API key and model when enabled.")

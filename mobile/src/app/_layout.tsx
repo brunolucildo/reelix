@@ -52,9 +52,16 @@ function RootNavigator() {
 
       const notificationId = data.notificationId;
       if (typeof notificationId === 'string') {
-        void markNotificationRead(notificationId).catch((error: unknown) => {
-          console.warn('Unable to mark the opened notification as read.', error);
-        });
+        void markNotificationRead(notificationId)
+          .then(async () => {
+            await Promise.all([
+              queryClient.invalidateQueries({ queryKey: ['notification-inbox'] }),
+              queryClient.invalidateQueries({ queryKey: ['notification-unread-count'] }),
+            ]);
+          })
+          .catch((error: unknown) => {
+            console.warn('Unable to mark the opened notification as read.', error);
+          });
       }
 
       const deepLink = data.deepLink;
@@ -122,6 +129,7 @@ function RootNavigator() {
         <Stack.Screen name="my-ratings" />
         <Stack.Screen name="social-profile/[accountId]" />
         <Stack.Screen name="title/[provider]/[contentType]/[externalId]" />
+        <Stack.Screen name="episode/[provider]/[externalSeriesId]/[seasonNumber]/[episodeId]" />
         <Stack.Screen name="auth/reset-password" />
       </Stack.Protected>
       <Stack.Screen name="auth/callback" />

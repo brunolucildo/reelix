@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { useSeasonProgress, useTrackedSeries } from '@/hooks/use-tracking';
+import { useSeriesProgress, useTrackedSeries } from '@/hooks/use-tracking';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogSeason, fetchCatalogTitleDetails } from '@/services/api-client';
 import type { TrackedSeriesPage } from '@/services/tracking-api';
@@ -89,7 +89,7 @@ function TrackedSeriesCard({ item }: { item: TrackedSeriesPage['items'][number] 
     },
     enabled: Boolean(item.provider && item.externalId && item.latestEpisodeId),
   });
-  const progress = useSeasonProgress(item.seriesId, season.data?.number ?? -1, item.provider ?? 'tmdb');
+  const progress = useSeriesProgress(item.seriesId, item.provider ?? 'tmdb');
   useErrorToast(title.error, 'Não foi possível carregar o pôster da série. Tente novamente.');
   useErrorToast(season.error, 'Não foi possível identificar a temporada. Tente novamente.');
 
@@ -127,16 +127,19 @@ function TrackedSeriesCard({ item }: { item: TrackedSeriesPage['items'][number] 
             {progress.data?.progressPercentage !== null && progress.data?.progressPercentage !== undefined ? (
               <View
                 accessibilityRole="progressbar"
-                accessibilityLabel={`Progresso da temporada: ${progress.data.progressPercentage}%`}
+                accessibilityLabel={`Progresso da série: ${progress.data.progressPercentage}%`}
                 accessibilityValue={{ min: 0, max: 100, now: progress.data.progressPercentage }}
                 style={styles.progressTrack}
               >
                 <View style={[styles.progressFill, { width: `${progress.data.progressPercentage}%` }]} />
               </View>
             ) : null}
-            {progress.data ? (
-              <Text style={styles.continueMeta}>{progress.data.pendingEpisodeCount} episódios restantes</Text>
-            ) : null}
+            <Text style={styles.continueMeta}>
+              {progress.data?.watchedEpisodeCount ?? item.watchedEpisodeCount} assistidos
+              {progress.data?.pendingEpisodeCount != null
+                ? ` · ${progress.data.pendingEpisodeCount} restantes`
+                : ' · total disponível não informado'}
+            </Text>
           </View>
         </Pressable>
       ) : title.isFetching ? (

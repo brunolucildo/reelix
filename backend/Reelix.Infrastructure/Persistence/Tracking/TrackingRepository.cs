@@ -7,8 +7,21 @@ using Reelix.Domain.Tracking;
 
 namespace Reelix.Infrastructure.Persistence.Tracking;
 
-public sealed class TrackingRepository(ReelixDbContext dbContext) : ITrackingRepository
+public sealed class TrackingRepository(ReelixDbContext dbContext) :
+    ITrackingRepository,
+    IEpisodeTrackingLookup
 {
+    public Task<bool> IsEpisodeTrackedAsync(
+        Guid accountId,
+        Guid episodeId,
+        CancellationToken cancellationToken) =>
+        dbContext.Set<TrackingRecord>().AnyAsync(
+            record =>
+                record.AccountId == accountId &&
+                record.TargetId == episodeId &&
+                record.ItemType == TrackingItemType.Episode,
+            cancellationToken);
+
     public Task<bool> CatalogReferenceExistsAsync(
         Guid id,
         CatalogReferenceType type,

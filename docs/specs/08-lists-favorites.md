@@ -107,3 +107,14 @@ Vertical slice de favoritos, watchlist e listas personalizadas implementado; a a
 - Listas personalizadas são privadas por padrão e owner-only nesta entrega; não há compartilhamento público. A visibilidade de favoritos e histórico não é ampliada por este módulo.
 
 O módulo está integrado ao `ReelixDbContext`, migração PostgreSQL, DI, endpoints autenticados, rota `lists` e wireframe central. Favoritos continuam usando a relação existente do onboarding; watchlist e listas personalizadas usam relações próprias. As tabelas têm chaves/restrições para impedir duplicações e referências do catálogo com exclusão restrita.
+
+## Estado atual da interface
+
+- Resultados do catálogo, Favoritos, Watchlist, conteúdos da lista selecionada e cards de listas privadas usam rolagem horizontal. Títulos aparecem em cards de pôster com ações separadas da navegação; a paginação existente permanece disponível. Cards de listas se adaptam à largura da tela e mantêm informações, conteúdos e menu na mesma área.
+- `/lists` usa o botão compartilhado de voltar no topo e retorna pela pilha de navegação; não redireciona fixamente à Home.
+- Nos resultados de “Buscar no catálogo”, Favoritos, Watchlist e adicionar à lista usam ícones compactos com alvo de toque de 44 px e rótulos acessíveis. Favorito/Watchlist já salvos exibem seleção e check; tocar novamente remove o respectivo vínculo. Adicionar à lista permanece disponível somente com uma lista selecionada.
+- Nos conteúdos salvos, remover usa lixeira; nas listas privadas, mover para cima/baixo usa setas. As ações compartilham alvos de 44 px e rótulos acessíveis, inclusive quando os detalhes do catálogo estão indisponíveis. Reordenação continua desabilitada nos limites da lista.
+- O formulário de criação fica oculto até o usuário tocar no ícone `+`. Criar e editar usam modal, com validação, cancelamento e estados de salvamento/erro.
+- Cada lista privada tem um único card com nome, descrição, contagem combinada de filmes/séries, conteúdos paginados e menu contextual. Ações de edição e exclusão pertencem à lista correspondente.
+- Editar atualiza nome/descrição sem substituir itens. Excluir requer confirmação identificando a lista e remove somente a lista e seus vínculos; catálogo, Favoritos e Watchlist não são alterados.
+- Persistência continua nos endpoints autenticados existentes. A migration precisa ser aplicada em cada ambiente antes do uso.

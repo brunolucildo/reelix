@@ -44,6 +44,10 @@ public static class NotificationsEndpoints
             .Produces<NotificationInboxPage>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
+        group.MapGet("/inbox/unread-count", GetUnreadCount)
+            .WithName("GetNotificationUnreadCount")
+            .Produces<NotificationUnreadCount>()
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
         group.MapPut("/inbox/{notificationId:guid}/read", MarkRead)
             .WithName("MarkNotificationRead")
             .Produces(StatusCodes.Status204NoContent)
@@ -156,6 +160,19 @@ public static class NotificationsEndpoints
                 title: "Cursor inválido.",
                 detail: exception.Message);
         }
+    }
+
+    private static async Task<IResult> GetUnreadCount(
+        HttpContext context,
+        NotificationsService service,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(context, out var userId))
+        {
+            return Results.Unauthorized();
+        }
+
+        return Results.Ok(await service.GetUnreadCountAsync(userId, cancellationToken));
     }
 
     private static async Task<IResult> MarkRead(

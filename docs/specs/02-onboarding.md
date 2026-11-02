@@ -88,3 +88,13 @@ O onboarding deverá aproveitar os dados disponíveis no módulo de catálogo. N
 ## Resultado
 
 Fluxo inicial de personalização implementado, com preferências persistidas e disponíveis para a experiência personalizada do Reelix.
+
+## Estado atual · 02/11/2026
+
+O fluxo mobile retomável, gêneros oficiais TMDB, seleção de filmes/séries do catálogo,
+rascunho/conclusão no backend e modo de edição de preferências estão implementados.
+O perfil usa essas mesmas preferências, sem duplicar referências do catálogo.
+
+A operação requer migrations aplicadas no banco e credenciais válidas do Supabase/TMDB.
+Configuração e limites de payload estão em
+[onboarding-profile-setup.md](../onboarding-profile-setup.md).

@@ -159,6 +159,11 @@ public sealed class NotificationsRepository(ReelixDbContext dbContext) : INotifi
             .ToArrayAsync(cancellationToken);
     }
 
+    public Task<int> GetUnreadCountAsync(Guid accountId, CancellationToken cancellationToken) =>
+        dbContext.UserNotifications.CountAsync(
+            item => item.AccountId == accountId && item.ReadAt == null,
+            cancellationToken);
+
     public async Task<bool> MarkReadAsync(
         Guid accountId,
         Guid notificationId,

@@ -5,6 +5,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import { PrimaryButton } from '@/components/auth/primary-button';
 import { BackButton } from '@/components/navigation/back-button';
 import { RatingReviewSection } from '@/components/reviews/rating-review-section';
+import { usePendingEpisodes } from '@/hooks/use-tracking';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogSeason, type CatalogTitle } from '@/services/api-client';
@@ -43,6 +44,13 @@ export default function CatalogEpisodeScreen() {
     staleTime: 300_000,
   });
   useErrorToast(season.error, 'Não foi possível carregar os detalhes do episódio.');
+  const pendingEpisodes = usePendingEpisodes(
+    season.data?.seriesId ?? '',
+    seasonNumber ?? -1,
+    provider ?? 'tmdb',
+  );
+  const isWatched = pendingEpisodes.data !== undefined &&
+    !pendingEpisodes.data.some((item) => item.episodeId === episodeId);
 
   if (!session) {
     return <Redirect href="/" />;
@@ -95,11 +103,23 @@ export default function CatalogEpisodeScreen() {
       </Text>
       <Text accessibilityRole="header" style={styles.title}>{episode.title}</Text>
       {episode.overview ? <Text style={styles.secondaryText}>{episode.overview}</Text> : null}
+      {pendingEpisodes.isPending ? (
+        <Text style={styles.secondaryText}>Verificando se o episódio foi assistido...</Text>
+      ) : pendingEpisodes.isError ? (
+        <PrimaryButton
+          label="Tentar verificar acompanhamento"
+          variant="secondary"
+          onPress={() => void pendingEpisodes.refetch()}
+        />
+      ) : !isWatched ? (
+        <Text style={styles.secondaryText}>Marque este episódio como assistido para avaliá-lo.</Text>
+      ) : null}
       <RatingReviewSection
         key={`episode:${episode.id}:${session.user.id}`}
         targetId={episode.id}
         targetType="episode"
         seriesId={season.data.seriesId}
+        allowRating={isWatched}
       />
     </ScrollView>
   );

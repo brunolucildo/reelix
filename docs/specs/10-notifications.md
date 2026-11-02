@@ -74,6 +74,10 @@ Não há fila selecionada para o MVP. AWS SQS e LocalStack podem ser avaliados q
 
 ## Estado de implementação
 
+**Snapshot em 02/11/2026.** A implementação está no código; a migration
+`20261101191005_AddNotifications` foi gerada/testada pelo modelo EF, mas não confirmada
+em PostgreSQL real. Aplique-a separadamente em cada ambiente antes de usar a persistência.
+
 - Implementados: preferências por categoria com padrão desligado, inbox paginada, leitura idempotente, registro/removal autenticados de dispositivos sem retornar tokens, processamento idempotente de solicitações/aceitações sociais, persistência de tickets e receipts Expo, backoff limitado, desativação de `DeviceNotRegistered` e deep links apenas para rotas internas permitidas.
 - O push remoto permanece desativado por padrão. Para habilitar, são necessários `extra.eas.projectId` no app, credenciais APNs/FCM e build nativo compatível, além de `ExpoPush__Enabled`, `ExpoPush__ProjectId` e `ExpoPush__AccessToken` no backend. A API/worker precisa de hosting continuamente ativo. Nenhum segredo deve ser distribuído no app.
 - A etapa não consulta ainda alterações de catálogo para novos episódios/estreias; a tela informa essa indisponibilidade e não cria notificações fictícias. Esses avisos exigem uma fonte confiável e scheduling durável, além de integração com tracking/watchlist.

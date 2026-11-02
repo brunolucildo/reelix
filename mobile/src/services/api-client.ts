@@ -99,18 +99,21 @@ const socialUserSchema = z.object({
   relationshipStatus: friendRelationshipStatusSchema.nullable(),
   relationshipId: z.string().uuid().nullable(),
   requestSentByMe: z.boolean(),
+  avatarUrl: z.string().url().nullable().optional(),
 });
 const friendRequestSchema = z.object({
   relationshipId: z.string().uuid(),
   accountId: z.string().uuid(),
   displayName: z.string(),
   createdAt: z.string().datetime({ offset: true }),
+  avatarUrl: z.string().url().nullable().optional(),
 });
 const friendItemSchema = z.object({
   relationshipId: z.string().uuid(),
   accountId: z.string().uuid(),
   displayName: z.string(),
   since: z.string().datetime({ offset: true }),
+  avatarUrl: z.string().url().nullable().optional(),
 });
 const socialListPageSchema = <T extends z.ZodType>(itemSchema: T) => z.object({
   items: z.array(itemSchema),
@@ -135,6 +138,7 @@ const friendProfileSchema = z.object({
   accountId: z.string().uuid(),
   displayName: z.string(),
   biography: z.string().nullable(),
+  avatarUrl: z.string().url().nullable().optional(),
   favorites: z.array(z.object({
     titleId: z.string().uuid(),
     contentType: z.enum(['movie', 'series']),
@@ -159,6 +163,9 @@ const notificationInboxItemSchema = z.object({
 const notificationInboxPageSchema = z.object({
   items: z.array(notificationInboxItemSchema),
   nextCursor: z.string().nullable(),
+});
+const notificationUnreadCountSchema = z.object({
+  count: z.number().int().nonnegative(),
 });
 const notificationDeviceSchema = z.object({
   id: z.string().uuid(),
@@ -621,6 +628,16 @@ export async function fetchNotificationInbox(
 ): Promise<NotificationInboxPage> {
   const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
   return apiRequest(`/api/v1/notifications/inbox${query}`, notificationInboxPageSchema, { signal });
+}
+
+export async function fetchNotificationUnreadCount(
+  signal?: AbortSignal,
+): Promise<{ count: number }> {
+  return apiRequest(
+    '/api/v1/notifications/inbox/unread-count',
+    notificationUnreadCountSchema,
+    { signal },
+  );
 }
 
 export async function markNotificationRead(notificationId: string): Promise<void> {

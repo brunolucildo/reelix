@@ -2,20 +2,20 @@ import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { type Href, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Animated, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Animated, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { AchievementGrid } from '@/components/gamification/achievement-grid';
 import { useAuthSession } from '@/providers/auth-provider';
-import { useErrorToast, useToast } from '@/providers/toast-provider';
-import { fetchProfile } from '@/services/api-client';
+import { ToastViewport, useErrorToast, useToast } from '@/providers/toast-provider';
+import { fetchGamificationDashboard, fetchProfile } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import ProfileIcon from '../../../assets/brand/navigation-icons/profile.svg';
 import FavoritesIcon from '../../../assets/brand/navigation-icons/favorites.svg';
 import ListsIcon from '../../../assets/brand/navigation-icons/list-add.svg';
 import ClockIcon from '../../../assets/brand/navigation-icons/clock.svg';
 import FriendsIcon from '../../../assets/brand/navigation-icons/friends.svg';
-import NotificationsIcon from '../../../assets/brand/navigation-icons/notifications.svg';
 import AchievementsIcon from '../../../assets/brand/navigation-icons/achievements.svg';
 import SettingsIcon from '../../../assets/brand/navigation-icons/settings.svg';
 import CloseIcon from '../../../assets/brand/navigation-icons/close.svg';
@@ -30,7 +30,6 @@ const destinations: { label: string; href: Href; Icon: typeof ProfileIcon }[] = 
   { label: 'Minhas avaliações', href: '/my-ratings', Icon: RatingIcon },
   { label: 'Conquistas', href: '/gamification', Icon: AchievementsIcon },
   { label: 'Amigos e atividades', href: '/social', Icon: FriendsIcon },
-  { label: 'Notificações', href: '/notifications', Icon: NotificationsIcon },
   { label: 'Configurações', href: '/settings', Icon: SettingsIcon },
 ];
 
@@ -46,6 +45,12 @@ export function UserDrawer() {
   const [signingOut, setSigningOut] = useState(false);
   const [offset] = useState(() => new Animated.Value(-dimensions.drawerWidth));
   const profile = useQuery({ queryKey: ['profile'], queryFn: fetchProfile, enabled: Boolean(session) });
+  const gamification = useQuery({
+    queryKey: ['gamification', 'dashboard'],
+    queryFn: ({ signal }) => fetchGamificationDashboard(signal),
+    enabled: Boolean(session) && visible,
+  });
+  useErrorToast(gamification.error, 'Não foi possível carregar suas conquistas.');
   useErrorToast(profile.error, 'Não foi possível carregar seu perfil. Tente novamente.');
   const name = profile.data?.displayName || 'Minha conta';
   const initials = name.trim().slice(0, 1).toLocaleUpperCase('pt-BR');
@@ -91,7 +96,15 @@ export function UserDrawer() {
           <Pressable accessibilityRole="button" accessibilityLabel="Fechar menu da conta" onPress={() => close()} style={styles.backdrop} />
           <Animated.View accessibilityViewIsModal style={[styles.drawer, { width: drawerWidth, paddingTop: insets.top + spacing.medium, paddingBottom: insets.bottom + spacing.medium, transform: [{ translateX: offset }] }]}>
             <View style={styles.header}>
-              {avatar(true)}
+              <View style={styles.identity}>
+                {avatar(true)}
+                {gamification.isPending ? (
+                  <ActivityIndicator accessibilityLabel="Carregando conquistas" color={colors.brand} />
+                ) : null}
+                {gamification.data ? (
+                  <AchievementGrid compact achievements={gamification.data.achievements.filter((item) => item.isEarned)} />
+                ) : null}
+              </View>
               <Pressable accessibilityRole="button" accessibilityLabel="Fechar menu" onPress={() => close()} style={styles.iconButton}>
                 <CloseIcon width={dimensions.iconSize} height={dimensions.iconSize} />
               </Pressable>
@@ -99,6 +112,7 @@ export function UserDrawer() {
             <Text accessibilityRole="header" style={styles.name}>{name}</Text>
             {session?.user.email ? <Text style={styles.email}>{session.user.email}</Text> : null}
             {profile.isError ? <PrimaryButton label="Atualizar perfil" variant="secondary" onPress={() => void profile.refetch()} /> : null}
+            {gamification.isError ? <PrimaryButton label="Atualizar conquistas" variant="secondary" onPress={() => void gamification.refetch()} /> : null}
             <ScrollView contentContainerStyle={styles.options}>
               {destinations.map(({ label, href, Icon }) => (
                 <Pressable key={label} accessibilityRole="button" onPress={() => close(() => router.push(href))} style={({ pressed }) => [styles.option, pressed && styles.pressed]}>
@@ -120,6 +134,7 @@ export function UserDrawer() {
               </Pressable>
             )}
           </Animated.View>
+          <ToastViewport />
         </View>
       </Modal>
     </>
@@ -135,6 +150,7 @@ const styles = StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFill, backgroundColor: colors.background, opacity: 0.72 },
   drawer: { position: 'absolute', left: 0, top: 0, bottom: 0, paddingHorizontal: spacing.medium, gap: spacing.small, backgroundColor: colors.surface },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  identity: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.small },
   iconButton: { width: dimensions.minimumTouchTarget, height: dimensions.minimumTouchTarget, justifyContent: 'center', alignItems: 'center' },
   name: { fontFamily: fontFamily.bold, fontSize: typography.section, color: colors.textPrimary },
   email: { fontFamily: fontFamily.regular, fontSize: typography.caption, color: colors.textSecondary },

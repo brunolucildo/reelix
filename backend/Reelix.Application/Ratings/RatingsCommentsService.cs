@@ -1,5 +1,6 @@
 using Reelix.Application.Authentication;
 using Reelix.Application.Catalog;
+using Reelix.Application.Tracking;
 using Reelix.Domain.Ratings;
 
 namespace Reelix.Application.Ratings;
@@ -7,6 +8,7 @@ namespace Reelix.Application.Ratings;
 public sealed class RatingsCommentsService(
     IUserAccountRepository accounts,
     IRatingsCommentsRepository repository,
+    IEpisodeTrackingLookup episodeTracking,
     ICommentModerationConfiguration moderationConfiguration)
 {
     public async Task<OwnRatingsPage> GetOwnRatingsAsync(
@@ -43,6 +45,14 @@ public sealed class RatingsCommentsService(
         ArgumentNullException.ThrowIfNull(input);
         await ValidateTargetAsync(targetId, targetType, input.SeriesId, cancellationToken);
         var account = await accounts.GetOrCreateAsync(supabaseUserId, cancellationToken);
+        if (targetType == ReviewTargetType.Episode &&
+            !await episodeTracking.IsEpisodeTrackedAsync(account.Id, targetId, cancellationToken))
+        {
+            throw new ArgumentException(
+                "Marque o episódio como assistido antes de avaliá-lo.",
+                nameof(targetId));
+        }
+
         var rating = UserRating.Create(
             account.Id,
             targetId,

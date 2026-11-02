@@ -9,6 +9,17 @@ public sealed class TrackingService(
     ITrackingRepository tracking,
     ITrackingCatalog catalog)
 {
+    public async Task<bool> IsMovieWatchedAsync(
+        Guid supabaseUserId,
+        Guid titleId,
+        CancellationToken cancellationToken)
+    {
+        var accountId = await GetAccountIdAsync(supabaseUserId, cancellationToken);
+        await RequireCatalogReferenceAsync(titleId, CatalogReferenceType.Movie, cancellationToken);
+        return (await tracking.GetAsync(accountId, titleId, cancellationToken)) is
+            { ItemType: TrackingItemType.Movie };
+    }
+
     public async Task<TrackingHistoryEntry> MarkMovieAsync(
         Guid supabaseUserId,
         Guid titleId,
@@ -109,18 +120,42 @@ public sealed class TrackingService(
     public async Task<SeriesProgress> GetSeriesProgressAsync(
         Guid supabaseUserId,
         Guid seriesId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        CatalogProvider provider = CatalogProvider.Tmdb)
     {
         var accountId = await GetAccountIdAsync(supabaseUserId, cancellationToken);
         await RequireCatalogReferenceAsync(seriesId, CatalogReferenceType.Series, cancellationToken);
-        var watchedCount = await tracking.GetWatchedEpisodeCountAsync(
-            accountId,
-            seriesId,
-            cancellationToken);
+        var seasons = await catalog.GetSeasonsAsync(seriesId, provider, cancellationToken);
+        if (seasons is null)
+        {
+            var trackedCount = await tracking.GetWatchedEpisodeCountAsync(
+                accountId, seriesId, cancellationToken);
+            return new SeriesProgress(seriesId, trackedCount, null, null, null);
+        }
 
-        // The current catalog contract exposes one season at a time, so a series-wide
-        // denominator is unknown and must not be estimated from the user's watch history.
-        return new SeriesProgress(seriesId, watchedCount, null, null, null);
+        var todayUtc = DateOnly.FromDateTime(DateTime.UtcNow);
+        var availableIds = new HashSet<Guid>();
+        foreach (var summary in seasons
+            .Where(item => item.SeasonNumber >= 0 &&
+                (item.ReleaseDate is null || item.ReleaseDate <= todayUtc))
+            .DistinctBy(item => item.SeasonNumber))
+        {
+            var season = await GetSeasonAsync(
+                seriesId, summary.SeasonNumber, provider, cancellationToken);
+            availableIds.UnionWith(GetAvailableEpisodes(season).Select(episode => episode.Id));
+        }
+
+        var watchedIds = await tracking.GetWatchedEpisodeIdsAsync(
+            accountId, seriesId, availableIds, cancellationToken);
+        var availableCount = availableIds.Count;
+        var watchedCount = watchedIds.Count;
+        return new SeriesProgress(
+            seriesId,
+            watchedCount,
+            availableCount,
+            availableCount == 0 ? null : decimal.Round(watchedCount * 100m / availableCount, 2),
+            availableCount == 0 ? null : watchedCount == availableCount,
+            availableCount - watchedCount);
     }
 
     public async Task<SeasonProgress> GetSeasonProgressAsync(

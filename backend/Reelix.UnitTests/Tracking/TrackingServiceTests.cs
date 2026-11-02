@@ -36,6 +36,25 @@ public sealed class TrackingServiceTests
     }
 
     [Fact]
+    public async Task MovieTrackingStatus_ReflectsTheAuthenticatedUsersHistory()
+    {
+        var repository = new StubTrackingRepository();
+        var titleId = Guid.NewGuid();
+        repository.AddCatalogReference(titleId, CatalogReferenceType.Movie);
+        var service = new TrackingService(
+            new StubAccountRepository(),
+            repository,
+            new StubTrackingCatalog());
+        var userId = Guid.NewGuid();
+
+        Assert.False(await service.IsMovieWatchedAsync(userId, titleId, CancellationToken.None));
+        await service.MarkMovieAsync(userId, titleId, null, CancellationToken.None);
+        Assert.True(await service.IsMovieWatchedAsync(userId, titleId, CancellationToken.None));
+        await service.RemoveMovieAsync(userId, titleId, CancellationToken.None);
+        Assert.False(await service.IsMovieWatchedAsync(userId, titleId, CancellationToken.None));
+    }
+
+    [Fact]
     public async Task History_IsScopedToAuthenticatedAccountAndPaginated()
     {
         var accounts = new StubAccountRepository();
@@ -133,6 +152,112 @@ public sealed class TrackingServiceTests
         Assert.Equal(1, seriesProgress.WatchedEpisodeCount);
         Assert.Null(seriesProgress.AvailableEpisodeCount);
         Assert.Null(seriesProgress.IsComplete);
+        Assert.Null(seriesProgress.PendingEpisodeCount);
+    }
+
+    [Fact]
+    public async Task SeriesProgress_CountsAllSeasonsAndUpdatesAfterTrackingChanges()
+    {
+        var repository = new StubTrackingRepository();
+        var seriesId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        repository.AddCatalogReference(seriesId, CatalogReferenceType.Series);
+        var seasons = new[] { 10, 12, 8 }.Select((count, index) => new CatalogSeason(
+            Guid.NewGuid(), seriesId, CatalogProvider.Tmdb, "series", "Temporada",
+            index + 1, null,
+            Enumerable.Range(1, count).Select(number =>
+                Episode(Guid.NewGuid(), number, new DateOnly(2020, 1, 1))).ToArray())).ToArray();
+        var catalog = new StubTrackingCatalog { Seasons = seasons };
+        var service = new TrackingService(new StubAccountRepository(), repository, catalog);
+        var episodes = seasons.SelectMany(season => season.Episodes).ToArray();
+        foreach (var episode in episodes)
+        {
+            repository.AddCatalogReference(episode.Id, CatalogReferenceType.Episode);
+        }
+        foreach (var episode in episodes.Take(15))
+        {
+            await service.MarkEpisodeAsync(userId, seriesId, episode.Id, null, CancellationToken.None);
+        }
+        await service.MarkEpisodeAsync(Guid.NewGuid(), seriesId, episodes[15].Id, null, CancellationToken.None);
+        var progress = await service.GetSeriesProgressAsync(userId, seriesId, CancellationToken.None);
+        Assert.Equal(30, progress.AvailableEpisodeCount);
+        Assert.Equal(15, progress.WatchedEpisodeCount);
+        Assert.Equal(15, progress.PendingEpisodeCount);
+        Assert.Equal(50m, progress.ProgressPercentage);
+        Assert.False(progress.IsComplete);
+
+        await service.MarkEpisodeAsync(userId, seriesId, episodes[15].Id, null, CancellationToken.None);
+        Assert.Equal(14, (await service.GetSeriesProgressAsync(userId, seriesId, CancellationToken.None)).PendingEpisodeCount);
+        await service.RemoveEpisodeAsync(userId, seriesId, episodes[0].Id, CancellationToken.None);
+        Assert.Equal(15, (await service.GetSeriesProgressAsync(userId, seriesId, CancellationToken.None)).PendingEpisodeCount);
+        foreach (var episode in episodes)
+        {
+            await service.MarkEpisodeAsync(userId, seriesId, episode.Id, null, CancellationToken.None);
+        }
+        progress = await service.GetSeriesProgressAsync(userId, seriesId, CancellationToken.None);
+        Assert.Equal(0, progress.PendingEpisodeCount);
+        Assert.Equal(100m, progress.ProgressPercentage);
+        Assert.True(progress.IsComplete);
+    }
+
+    [Fact]
+    public async Task SeriesProgress_DeduplicatesSpecialsAndExcludesFutureEpisodesAndSeasons()
+    {
+        var repository = new StubTrackingRepository();
+        var seriesId = Guid.NewGuid();
+        repository.AddCatalogReference(seriesId, CatalogReferenceType.Series);
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var special = Episode(Guid.NewGuid(), null, null);
+        var released = Episode(Guid.NewGuid(), 1, today);
+        var future = Episode(Guid.NewGuid(), 2, today.AddDays(1));
+        var seasons = new[]
+        {
+            new CatalogSeason(Guid.NewGuid(), seriesId, CatalogProvider.Tmdb, "series", "Especiais", 0, null, [special]),
+            new CatalogSeason(Guid.NewGuid(), seriesId, CatalogProvider.Tmdb, "series", "Primeira", 1, null, [released, special, future, released]),
+            new CatalogSeason(Guid.NewGuid(), seriesId, CatalogProvider.Tmdb, "series", "Futura", 2, today.AddDays(1), [Episode(Guid.NewGuid(), null, null)]),
+            new CatalogSeason(Guid.NewGuid(), seriesId, CatalogProvider.Tmdb, "series", "Inválida", -1, null, [Episode(Guid.NewGuid(), 1, null)]),
+        };
+        var catalog = new StubTrackingCatalog { Seasons = [.. seasons, seasons[1]] };
+        var service = new TrackingService(new StubAccountRepository(), repository, catalog);
+        var userId = Guid.NewGuid();
+        repository.AddCatalogReference(future.Id, CatalogReferenceType.Episode);
+        await service.MarkEpisodeAsync(userId, seriesId, future.Id, null, CancellationToken.None);
+        var progress = await service.GetSeriesProgressAsync(userId, seriesId, CancellationToken.None);
+        Assert.Equal(2, progress.AvailableEpisodeCount);
+        Assert.Equal(0, progress.WatchedEpisodeCount);
+        Assert.Equal(2, progress.PendingEpisodeCount);
+        Assert.Equal(0m, progress.ProgressPercentage);
+        Assert.Equal(new[] { 0, 1 }, catalog.RequestedSeasons);
+    }
+
+    [Fact]
+    public async Task SeriesProgress_MissingSeasonDoesNotReturnPartialTotals()
+    {
+        var repository = new StubTrackingRepository();
+        var seriesId = Guid.NewGuid();
+        repository.AddCatalogReference(seriesId, CatalogReferenceType.Series);
+        var catalog = new StubTrackingCatalog
+        {
+            Summaries = [new CatalogSeasonSummary(1, null, null)],
+        };
+        var service = new TrackingService(new StubAccountRepository(), repository, catalog);
+        await Assert.ThrowsAsync<TrackingContentNotFoundException>(() =>
+            service.GetSeriesProgressAsync(Guid.NewGuid(), seriesId, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task SeriesProgress_EmptyInventoryDoesNotInventCompletion()
+    {
+        var repository = new StubTrackingRepository();
+        var seriesId = Guid.NewGuid();
+        repository.AddCatalogReference(seriesId, CatalogReferenceType.Series);
+        var service = new TrackingService(new StubAccountRepository(), repository,
+            new StubTrackingCatalog { Seasons = [] });
+        var progress = await service.GetSeriesProgressAsync(Guid.NewGuid(), seriesId, CancellationToken.None);
+        Assert.Equal(0, progress.AvailableEpisodeCount);
+        Assert.Equal(0, progress.PendingEpisodeCount);
+        Assert.Null(progress.ProgressPercentage);
+        Assert.Null(progress.IsComplete);
     }
 
     [Fact]
@@ -313,12 +438,25 @@ public sealed class TrackingServiceTests
     private sealed class StubTrackingCatalog : ITrackingCatalog
     {
         public CatalogSeason? Season { get; init; }
+        public IReadOnlyList<CatalogSeason>? Seasons { get; init; }
+        public IReadOnlyList<CatalogSeasonSummary>? Summaries { get; init; }
+        public List<int> RequestedSeasons { get; } = [];
+
+        public Task<IReadOnlyList<CatalogSeasonSummary>?> GetSeasonsAsync(
+            Guid seriesId,
+            CatalogProvider provider,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(Summaries ?? Seasons?.Select(season =>
+                new CatalogSeasonSummary(season.SeasonNumber, season.Title, season.ReleaseDate)).ToArray());
 
         public Task<CatalogSeason?> GetSeasonAsync(
             Guid seriesId,
             int seasonNumber,
             CatalogProvider provider,
-            CancellationToken cancellationToken) =>
-            Task.FromResult(Season);
+            CancellationToken cancellationToken)
+        {
+            RequestedSeasons.Add(seasonNumber);
+            return Task.FromResult(Seasons?.FirstOrDefault(season => season.SeasonNumber == seasonNumber) ?? Season);
+        }
     }
 }

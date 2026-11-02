@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -15,9 +15,13 @@ import { PrimaryButton } from '@/components/auth/primary-button';
 import { BackButton } from '@/components/navigation/back-button';
 import { RatingReviewSection } from '@/components/reviews/rating-review-section';
 import {
+  useMarkMovieWatched,
   useMarkEpisodeWatched,
+  useMovieTrackingStatus,
   usePendingEpisodes,
+  useRemoveWatchedMovie,
   useRemoveWatchedEpisode,
+  trackingQueryKeys,
   useSeasonProgress,
 } from '@/hooks/use-tracking';
 import { useAuthSession } from '@/providers/auth-provider';
@@ -186,6 +190,9 @@ export default function CatalogTitleScreen() {
           <Text style={styles.body}>{title.overview}</Text>
         </View>
       ) : null}
+      {title.contentType === 'movie' ? (
+        <MovieTrackingControls titleId={title.id} title={title.title} />
+      ) : null}
       {title.contentType === 'series' ? (
         <View style={styles.seasons}>
           <Text accessibilityRole="header" style={styles.sectionTitle}>Temporadas e episódios</Text>
@@ -252,6 +259,10 @@ export default function CatalogTitleScreen() {
                 const episodeIsPending = pendingEpisodes.data?.some(
                   (pending) => pending.episodeId === episode.id,
                 );
+                const episodeIsWatched =
+                  !pendingEpisodes.isPending &&
+                  !pendingEpisodes.isError &&
+                  episodeIsPending === false;
                 const episodeIsUpcoming =
                   episode.releaseDate !== null && episode.releaseDate > todayUtc;
                 const trackingIsBusy = markEpisode.isPending || removeEpisode.isPending;
@@ -310,14 +321,18 @@ export default function CatalogTitleScreen() {
                         <Text style={[styles.watchedIcon, episodeIsPending && styles.unwatchedIcon]}>
                           {episodeIsPending ? '○' : '✓'}
                         </Text>
-                        <Text style={styles.secondaryText}>
-                          {episodeIsPending ? 'Marcar como assistido' : 'Assistido'}
-                        </Text>
                       </Pressable>
                     )}
                     <PrimaryButton
-                      label="Avaliar episódio"
+                      label={pendingEpisodes.isPending
+                        ? 'Verificando acompanhamento...'
+                        : pendingEpisodes.isError
+                          ? 'Não foi possível verificar o episódio'
+                          : episodeIsPending
+                            ? 'Marque como assistido para avaliar'
+                            : 'Avaliar episódio'}
                       variant="secondary"
+                      disabled={!episodeIsWatched || trackingIsBusy}
                       onPress={() => router.push({
                         pathname: '/episode/[provider]/[externalSeriesId]/[seasonNumber]/[episodeId]',
                         params: {
@@ -335,12 +350,72 @@ export default function CatalogTitleScreen() {
           ) : null}
         </View>
       ) : null}
-      <RatingReviewSection
-        key={`${title.contentType}:${title.id}:${session.user.id}`}
-        targetId={title.id}
-        targetType={title.contentType}
-      />
+      {title.contentType === 'series' ? (
+        <RatingReviewSection
+          key={`${title.contentType}:${title.id}:${session.user.id}`}
+          targetId={title.id}
+          targetType={title.contentType}
+        />
+      ) : null}
     </ScrollView>
+  );
+}
+
+function MovieTrackingControls({ titleId, title }: { titleId: string; title: string }) {
+  const queryClient = useQueryClient();
+  const status = useMovieTrackingStatus(titleId);
+  const markWatched = useMarkMovieWatched();
+  const removeWatched = useRemoveWatchedMovie();
+  const isWatched = status.data === true;
+  const isBusy = markWatched.isPending || removeWatched.isPending;
+
+  return (
+    <View style={styles.movieTracking}>
+      {status.isPending ? (
+        <>
+          <ActivityIndicator color={colors.brand} />
+          <Text style={styles.secondaryText}>Verificando seu acompanhamento...</Text>
+        </>
+      ) : status.isError ? (
+        <PrimaryButton
+          label="Tentar carregar estado do filme"
+          variant="secondary"
+          onPress={() => void status.refetch()}
+        />
+      ) : (
+        <Pressable
+          accessibilityRole="checkbox"
+          accessibilityLabel={isWatched ? `Desmarcar ${title} como assistido` : `Marcar ${title} como assistido`}
+          accessibilityState={{ checked: isWatched, disabled: isBusy }}
+          disabled={isBusy}
+          onPress={() => {
+            if (isWatched) {
+              removeWatched.mutate(titleId, {
+                onSuccess: () => queryClient.setQueryData(trackingQueryKeys.movieStatus(titleId), false),
+              });
+            } else {
+              markWatched.mutate({ titleId }, {
+                onSuccess: () => queryClient.setQueryData(trackingQueryKeys.movieStatus(titleId), true),
+              });
+            }
+          }}
+          style={[styles.movieWatchedToggle, isWatched && styles.movieWatchedSelected]}
+        >
+          <Text style={[styles.movieWatchedIcon, isWatched && styles.movieWatchedIconSelected]}>
+            {isWatched ? '✓' : '○'}
+          </Text>
+          <Text style={styles.movieWatchedLabel}>
+            {isWatched ? 'Assistido' : 'Marcar como assistido'}
+          </Text>
+        </Pressable>
+      )}
+      <RatingReviewSection
+        key={`movie-reviews:${titleId}`}
+        targetId={titleId}
+        targetType="movie"
+        allowRating={isWatched}
+      />
+    </View>
   );
 }
 
@@ -438,6 +513,38 @@ const styles = StyleSheet.create({
   },
   episodeCopy: {
     gap: spacing.extraSmall,
+  },
+  movieTracking: {
+    gap: spacing.small,
+  },
+  movieWatchedToggle: {
+    minHeight: dimensions.minimumTouchTarget,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing.small,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.medium,
+    backgroundColor: colors.surface,
+  },
+  movieWatchedSelected: {
+    borderColor: colors.success,
+    backgroundColor: colors.surfaceElevated,
+  },
+  movieWatchedIcon: {
+    color: colors.textSecondary,
+    fontSize: typography.section,
+    fontFamily: fontFamily.bold,
+  },
+  movieWatchedIconSelected: {
+    color: colors.success,
+  },
+  movieWatchedLabel: {
+    color: colors.textPrimary,
+    fontSize: typography.bodySmall,
+    fontFamily: fontFamily.semiBold,
   },
   watchedToggle: {
     minHeight: dimensions.minimumTouchTarget,

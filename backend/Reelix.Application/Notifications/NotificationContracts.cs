@@ -37,6 +37,8 @@ public sealed record NotificationInboxPage(
     IReadOnlyList<NotificationInboxItem> Items,
     string? NextCursor);
 
+public sealed record NotificationUnreadCount(int Count);
+
 public sealed record NotificationCursor(DateTimeOffset CreatedAt, Guid Id);
 
 public sealed record NotificationPushWorkItem(
@@ -116,6 +118,8 @@ public interface INotificationsRepository
         NotificationCursor? cursor,
         int limit,
         CancellationToken cancellationToken);
+
+    Task<int> GetUnreadCountAsync(Guid accountId, CancellationToken cancellationToken);
 
     Task<bool> MarkReadAsync(
         Guid accountId,

@@ -4,7 +4,7 @@
 
 O mobile oferece onboarding retomável após autenticação, seleção de gêneros oficiais TMDB, busca de filmes/séries no catálogo e edição do perfil próprio. O backend usa o `sub` do JWT Supabase validado para resolver a conta; o cliente não escolhe o proprietário dos dados.
 
-As preferências guardam IDs de gênero TMDB e IDs internos de títulos já presentes em `catalog_external_references`. Metadados do catálogo não são duplicados. Upload de avatar, estatísticas, conquistas e histórico continuam fora deste incremento. O perfil usa um avatar padrão local; `avatarUrl` permanece `null`.
+As preferências guardam IDs de gênero TMDB e IDs internos de títulos já presentes em `catalog_external_references`. Metadados do catálogo não são duplicados. Upload/persistência de avatar continua fora do escopo atual; o perfil usa um avatar padrão local quando `avatarUrl` é `null`. Estatísticas e conquistas são fornecidas pelo módulo de Gamificação, descrito em [11-gamification.md](specs/11-gamification.md); histórico pertence ao Tracking.
 
 ## Banco de dados
 
@@ -44,7 +44,9 @@ As etapas aceitas são `welcome`, `genres`, `favoriteMovies`, `favoriteSeries` e
 
 `catalog_external_references` grava `provider` e `content_type` em minúsculas (`tmdb`, `movie`, `series`). A validação de favoritos compara o tipo nesse formato. uma comparação com `Movie`/`Series` rejeitava qualquer título como se ele não estivesse no catálogo; esse problema foi corrigido. As mensagens de `ProblemDetails` são exibidas no toast do app e estão em português, por exemplo: “Um ou mais filmes favoritos não estão no catálogo.”
 
-No perfil, `displayName` aceita até 50 caracteres e `biography` até 280. Os campos são opcionais. `profileIsPublic`, `favoritesArePublic` e `watchHistoryIsPublic` começam como `false`. A rota de perfil público não retorna e-mail; favoritos só são incluídos quando `favoritesArePublic` está ligado. A configuração de histórico é salva, mas histórico não é exposto enquanto o módulo Tracking não existir.
+No perfil, `displayName` aceita até 50 caracteres e `biography` até 280. Os campos são opcionais. `profileIsPublic`, `favoritesArePublic` e `watchHistoryIsPublic` começam como `false`. A rota de perfil público não retorna e-mail; favoritos só são incluídos quando `favoritesArePublic` está ligado. A existência de tracking não torna o histórico automaticamente público: o compartilhamento social respeita os consentimentos e as regras descritos em [09-social.md](specs/09-social.md).
+
+O perfil apresenta as conquistas em uma grade somente de medalhas. Ao selecionar uma medalha, abre detalhes com nome, descrição/critério, progresso, estado e datas disponíveis. Conquistas bloqueadas têm distinção visual. O menu lateral exibe medalhas ativas junto ao avatar. Isso não altera as regras de privacidade do histórico ou das conquistas.
 
 ## Mobile e atribuição
 

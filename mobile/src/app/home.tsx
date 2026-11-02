@@ -16,10 +16,8 @@ import { FavoriteTitleSection } from '@/components/discovery/favorite-title-sect
 import { StartWatchingSection } from '@/components/discovery/start-watching-section';
 import { TrackedSeriesSection } from '@/components/discovery/tracked-series-section';
 import { UpcomingCalendarSection } from '@/components/discovery/upcoming-calendar-section';
-import { UserDrawer } from '@/components/navigation/user-drawer';
+import { AppHeader } from '@/components/navigation/app-header';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Logo from '../../assets/brand/logos/logo-white.svg';
-import SearchIcon from '../../assets/brand/navigation-icons/search.svg';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchOnboarding } from '@/services/api-client';
@@ -77,20 +75,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.screen}>
     <ScrollView contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <View style={styles.brand}>
-          <Logo width={dimensions.logoWidth} height={dimensions.logoHeight} accessibilityLabel="Reelix" />
-        </View>
-        <Pressable
-          accessibilityLabel="Pesquisar no catálogo"
-          accessibilityRole="button"
-          onPress={() => router.push('/search')}
-          style={styles.searchButton}
-        >
-          <View pointerEvents="none"><SearchIcon width={dimensions.iconSize} height={dimensions.iconSize} /></View>
-        </Pressable>
-        <UserDrawer />
-      </View>
+      <AppHeader />
 
       <View accessibilityRole="tablist" style={styles.contentTabs}>
         {(['series', 'movie'] as const).map((type) => {
@@ -172,16 +157,6 @@ const styles = StyleSheet.create({
     padding: spacing.large,
     backgroundColor: colors.background,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.medium,
-  },
-  brand: {
-    flex: 1,
-    gap: spacing.extraSmall,
-  },
   title: {
     color: colors.textPrimary,
     fontSize: typography.section,
@@ -192,14 +167,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: typography.bodySmall,
     fontFamily: fontFamily.regular,
-  },
-  searchButton: {
-    minHeight: dimensions.minimumTouchTarget,
-    minWidth: dimensions.minimumTouchTarget,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.pill,
-    backgroundColor: colors.surfaceElevated,
   },
   contentTabs: {
     flexDirection: 'row',

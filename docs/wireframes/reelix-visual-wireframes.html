@@ -608,28 +608,32 @@
       </div>
     </div>
     <section class="hero">
-      <p class="eyebrow">Product experience · 7 módulos</p>
+      <p class="eyebrow">Product experience · estado do repositório em 02/11/2026</p>
       <h1>Visual <span>Wireframes</span></h1>
       <p class="hero-copy">
-        Comparação navegável entre as telas confirmadas no repositório e a experiência visual
-        prevista para autenticação, onboarding, perfil, catálogo, tracking, listas e avaliações. Cada status AS IS
-        foi confrontado com o código; o que não existe aparece como lacuna, nunca como tela entregue.
+        Comparação navegável das superfícies mobile implementadas, suas limitações operacionais
+        e lacunas ainda não construídas. Dados ilustrativos aparecem somente como wireframe;
+        não representam conteúdo real da API.
       </p>
       <div class="hero-meta">
         <span class="status done">Autenticação mobile implementada</span>
-        <span class="status done">Catálogo: detalhes, temporadas e episódios no mobile</span>
-        <span class="status done">Onboarding e perfil implementados (API + mobile)</span>
-        <span class="status done">Tracking e listas implementados (API + mobile)</span>
-        <span class="status done">Avaliações e comentários implementados</span>
+        <span class="status done">Home, catálogo, tracking e listas implementados</span>
+        <span class="status done">Avaliações, social e gamificação no código</span>
+        <span class="status partial">Migrations e credenciais variam por ambiente</span>
+        <span class="status partial">Push remoto desativado · widgets não implementados</span>
       </div>
     </section>
     <div class="summary-grid" aria-label="Resumo de implementação">
       <article class="summary-card"><strong>01 · Authentication</strong><span>Login, cadastro, callback, recuperação, redefinição e sessão implementados, com visualização de senha e erros em toast.</span></article>
-      <article class="summary-card"><strong>02 · Onboarding &amp; Profile</strong><span>Fluxo retomável em 5 etapas, edição de preferências e perfil com nome, biografia e privacidade. Upload de avatar, estatísticas e conquistas continuam fora do escopo.</span></article>
-      <article class="summary-card"><strong>03 · Catalog</strong><span>A API autenticada pesquisa e consulta detalhes/temporadas; no mobile, a busca só é usada no onboarding. Não há telas de catálogo.</span></article>
-      <article class="summary-card"><strong>05 · Tracking</strong><span>Histórico paginado, filmes assistidos, episódios acompanhados e progresso sem estimar totais ausentes do catálogo.</span></article>
-      <article class="summary-card"><strong>08 · Favoritos e listas</strong><span>Favoritos, watchlist e listas personalizadas privadas, com paginação e estado persistido.</span></article>
-      <article class="summary-card"><strong>06 · Avaliações e comentários</strong><span>Notas de meia estrela, audiência privada por padrão, spoilers ocultos e navegação de avaliações por episódio.</span></article>
+      <article class="summary-card"><strong>02 + 06 · Onboarding &amp; Profile</strong><span>Fluxo retomável, preferências, edição de perfil e privacidade. Perfil exibe medalhas interativas; avatar personalizado não é suportado.</span></article>
+      <article class="summary-card"><strong>03 + 04 · Catalog e Home</strong><span>Busca, detalhes de títulos/temporadas/episódios, descoberta por gênero, paginação automática e navegação de episódios.</span></article>
+      <article class="summary-card"><strong>05 · Tracking</strong><span>Histórico paginado e progresso total da série com todas as temporadas válidas; futuros e IDs duplicados não inflam os totais.</span></article>
+      <article class="summary-card"><strong>08 · Favoritos e listas</strong><span>Favoritos, watchlist e listas privadas independentes. Criação contextual, cards unificados, edição e exclusão confirmada.</span></article>
+      <article class="summary-card"><strong>06 · Avaliações</strong><span>Notas de meia estrela, gating por tracking, audiência privada, spoilers ocultos e sinalização manual; análise automática está desativada.</span></article>
+      <article class="summary-card"><strong>09 · Social</strong><span>Amizades, solicitações, perfis contextuais e feed com consentimentos. Migration precisa ser aplicada em cada ambiente.</span></article>
+      <article class="summary-card"><strong>10 · Notificações</strong><span>Inbox, preferências e dispositivos implementados; push remoto desativado e alertas de catálogo pendentes.</span></article>
+      <article class="summary-card"><strong>11 · Gamificação</strong><span>Medalhas, estatísticas e ranking implementados no código; migration precisa estar aplicada para operar no banco.</span></article>
+      <article class="summary-card"><strong>12 · Widgets</strong><span>Spike documentado; nenhuma integração ou plataforma nativa está implementada/validada.</span></article>
     </div>
   </header>
 
@@ -641,6 +645,10 @@
     <button class="module-button" role="tab" aria-selected="false" data-module="ratings">Avaliações e comentários <span class="nav-count">01</span></button>
     <button class="module-button" role="tab" aria-selected="false" data-module="tracking">Tracking <span class="nav-count">01</span></button>
     <button class="module-button" role="tab" aria-selected="false" data-module="lists">Favoritos e listas <span class="nav-count">01</span></button>
+    <button class="module-button" role="tab" aria-selected="false" data-module="social">Social <span class="nav-count">01</span></button>
+    <button class="module-button" role="tab" aria-selected="false" data-module="notifications">Notificações <span class="nav-count">01</span></button>
+    <button class="module-button" role="tab" aria-selected="false" data-module="gamification">Gamificação <span class="nav-count">01</span></button>
+    <button class="module-button" role="tab" aria-selected="false" data-module="widgets">Widgets <span class="nav-count">01</span></button>
   </nav>
 
   <main class="wrap">
@@ -651,7 +659,7 @@
           <h2 id="screen-section-title">Selecione uma tela</h2>
           <p>As molduras simulam proporções mobile. Os botões no wireframe navegam pelo protótipo, sem autenticação, API ou persistência real.</p>
         </div>
-        <span class="tag">24 telas · 7 módulos</span>
+        <span class="tag">31 telas · 11 módulos</span>
       </div>
       <div class="toolbar">
         <label class="toolbar-label" for="screen-select">Tela</label>
@@ -724,7 +732,7 @@
         </article>
         <article class="observation">
           <strong>Progresso respeita os dados disponíveis</strong>
-          <p>O catálogo atual consulta uma temporada por vez. Quando não há inventário completo da série, totais, percentual e conclusão da série não são estimados; episódios sem número convencional continuam identificados por GUID interno.</p>
+          <p>O progresso da série agrega todas as temporadas válidas do catálogo, inclusive especiais, por ID único de episódio. Datas futuras não entram; episódios sem data seguem a regra existente de disponibilidade. Sem inventário, os totais permanecem desconhecidos; falhas em temporadas não produzem totais parciais apresentados como completos.</p>
         </article>
         <article class="observation">
           <strong>Home atual não é a Home de descoberta</strong>
@@ -733,6 +741,14 @@
         <article class="observation">
           <strong>Feedback padronizado: erros em toast</strong>
           <p>Falhas de API, autenticação, carregamento e salvamento aparecem em um toast no topo, com fechamento automático em 5 s e botão “Fechar aviso”. Validação por campo e limites de seleção continuam inline, junto ao controle; mensagens de sucesso também. Selecione um estado de erro para ver o toast na moldura.</p>
+        </article>
+        <article class="observation">
+          <strong>Notificações no header e caixa de entrada</strong>
+          <p>O sino do header abre a caixa de entrada e exibe a contagem real de não lidas, limitada visualmente a 99+. A caixa de entrada diferencia itens lidos/não lidos; marcar como lida atualiza tanto a lista quanto o contador. Erro de contagem aparece como aviso e não impede a navegação.</p>
+        </article>
+        <article class="observation">
+          <strong>Amigos, solicitações e privacidade</strong>
+          <p>A tela social apresenta busca, pedidos recebidos/enviados, amigos e atividades compartilhadas com estados próprios. Solicitações pendentes, recusadas, canceladas e amizades removidas têm ações/indicações distintas; avatares usam imagem quando disponível e iniciais como fallback. Perfil social respeita as preferências de privacidade configuradas pelo titular.</p>
         </article>
         <article class="observation">
           <strong>Dados visuais são estruturas, não metadados reais</strong>
@@ -842,14 +858,14 @@
         current: "done",
         tobe: "kept",
         currentCaption: "Home de descoberta implementada",
-        currentNotes: ["Séries é a primeira aba e a seleção inicial; Filmes continua disponível", "Acompanhamento fica acima dos destaques, com o mesmo card de pôster dos favoritos", "Temporada do episódio mais recente e progresso dos episódios disponíveis vêm de dados reais", "Sem inventário conhecido, mostra apenas contagem assistida e ausência de progresso", "Menu do avatar centraliza perfil, favoritos, listas, watchlist, avaliações, conquistas, amigos, notificações, configurações e logout confirmado", "Seções preservam carregamento, vazio, retentativa e erros em toast sem bloquear o restante da Home"],
+        currentNotes: ["Séries é a primeira aba e a seleção inicial; Filmes continua disponível", "Continuar Assistindo mostra assistidos e restantes da série inteira, agregando todas as temporadas e especiais sem IDs duplicados", "A temporada do último episódio é apenas uma legenda; datas futuras não entram nos disponíveis", "Sem inventário conhecido, mostra apenas contagem assistida e ausência de progresso", "Header reúne busca e sino com contador real de notificações não lidas; o menu do avatar centraliza opções pessoais sem duplicar notificações", "Seções preservam carregamento, vazio, retentativa e erros em toast sem bloquear o restante da Home"],
         currentStates: ["Carregando preferências", "Erro de preferências", "Carregamento por seção", "Vazio por seção", "Erro parcial", "Home disponível"],
         states: ["Carregando preferências", "Erro de preferências", "Carregamento por seção", "Vazio por seção", "Erro parcial", "Home disponível"],
         stateCopy: {"Carregando preferências": ["", "Preparando sua Home…"], "Erro de preferências": ["error", "Não foi possível carregar suas preferências. Tente novamente."], "Carregamento por seção": ["", "Carregando títulos do catálogo…"], "Vazio por seção": ["", "Nenhum título disponível nesta seção."], "Erro parcial": ["error", "Uma seção não está disponível; as demais continuam acessíveis."], "Home disponível": ["success", "Descubra títulos de filmes e séries."]},
-        description: "Home com dados normalizados do catálogo, dados privados do próprio usuário e fallback sem preferências.",
+        description: "Home com dados normalizados do catálogo, dados privados do próprio usuário e fallback sem preferências. Listas horizontais de descoberta carregam automaticamente ao se aproximar do fim, sem Mostrar mais; preservam títulos únicos, indicador de carregamento e retentativa manual após falha com toast.",
         scope: "04 · Home / Discovery",
         flow: "Login → Home (Séries) → Acompanhamento → Detalhes; Avatar → Menu lateral → Opção pessoal; Filmes e Pesquisa continuam disponíveis",
-        changes: "Removidos atalhos pessoais redundantes e logout direto; mantidos no menu lateral com confirmação de saída.",
+        changes: "Busca e notificações ficam no header; opções pessoais ficam no menu lateral, com logout confirmado.",
         template: "account",
         next: "profile",
         prev: "login",
@@ -980,14 +996,14 @@
         current: "done",
         tobe: "partial",
         currentCaption: "Tela implementada no app mobile",
-        currentNotes: ["Avatar padrão com a inicial do nome", "Seções Informações, Privacidade, Preferências e Créditos (TMDB)", "Erro ao carregar: toast e Tentar novamente", "Sucesso ao salvar inline; falhas em toast"],
-        currentStates: ["Carregando", "Erro", "Perfil carregado"],
-        states: ["Carregando", "Erro", "Perfil carregado"],
+        currentNotes: ["Avatar padrão com a inicial do nome", "Conquistas em grade apenas de medalhas, sem nomes ou descrições junto às imagens; bloqueadas com opacidade reduzida", "Tocar na medalha abre modal com nome, descrição/critério, progresso, estado e data disponível", "Seções Informações, Privacidade, Preferências e Créditos (TMDB)", "Erro ao carregar: toast e Tentar novamente", "Sucesso ao salvar inline; falhas em toast"],
+        currentStates: ["Carregando", "Erro", "Perfil carregado", "Detalhes da conquista"],
+        states: ["Carregando", "Erro", "Perfil carregado", "Detalhes da conquista"],
         stateCopy: {"Carregando": ["", "Carregando perfil…"], "Erro": ["error", "Não foi possível carregar o perfil. Verifique sua conexão e tente novamente."], "Perfil carregado": ["success", "Perfil próprio carregado com os campos permitidos."]},
         description: "Perfil próprio separado da identidade de autenticação; o e-mail não é exibido nem editado aqui.",
         scope: "02 · Profile",
-        flow: "Home → Perfil → Editar / Privacidade / Preferências",
-        changes: "Upload de avatar, estatísticas e conquistas dependem de decisões e módulos ainda não implementados; não exibir valores fictícios.",
+        flow: "Home → Perfil → Medalha → Detalhes / Fechar; Editar / Privacidade / Preferências",
+        changes: "Conquistas reais em grade interativa; upload de avatar permanece fora do incremento.",
         template: "profile",
         next: "profile-edit",
         prev: "account",
@@ -1043,7 +1059,7 @@
         current: "done",
         tobe: "kept",
         currentCaption: "Seção implementada na tela de perfil",
-        currentNotes: ["Perfil visível, Favoritos visíveis e Histórico visível, todos desligados por padrão", "Cada opção descreve seu efeito", "O histórico é salvo, mas não é exposto enquanto Tracking não existir", "Salvo com o perfil; falhas em toast"],
+        currentNotes: ["Perfil visível, Favoritos visíveis e Histórico visível começam desligados", "Consentimentos de compartilhamento social são independentes das flags públicas do perfil", "Ter tracking não torna o histórico automaticamente público", "Salvo com o perfil; falhas em toast"],
         currentStates: ["Salvando", "Erro", "Atualizado"],
         states: ["Salvando", "Erro", "Atualizado"],
         stateCopy: {"Salvando": ["", "Salvando alterações…"], "Erro": ["error", "Não foi possível salvar o perfil."], "Atualizado": ["success", "Perfil atualizado."]},
@@ -1082,37 +1098,37 @@
       {
         id: "movie", module: "home-discovery", name: "Detalhes de filme", objective: "Consultar metadados normalizados de um filme.", route: "title/[provider]/[contentType]/[externalId].tsx",
         current: "done", tobe: "kept", currentCaption: "Detalhes mobile implementados",
-        currentNotes: ["Tela autenticada consulta o endpoint de detalhes do catálogo.", "Título original, sinopse, gêneros, data, duração e imagens aparecem quando disponíveis.", "Retorno preserva a Home ou pesquisa ao voltar."],
+        currentNotes: ["Tela autenticada consulta o endpoint de detalhes do catálogo.", "Título original, sinopse, gêneros, data, duração e imagens aparecem quando disponíveis.", "Filmes podem ser marcados/desmarcados como assistidos; o estado persistido controla a disponibilidade da avaliação.", "Retorno preserva a Home ou pesquisa ao voltar."],
         currentStates: ["Carregando", "Detalhes", "Não encontrado", "Erro provedor"],
         states: ["Carregando", "Detalhes", "Não encontrado", "Erro provedor"],
         stateCopy: { "Carregando": ["", "Carregando detalhes do título…"], "Detalhes": ["success", "Exiba apenas os metadados que o provedor retornar."], "Não encontrado": ["", "Título não encontrado no provedor selecionado."], "Erro provedor": ["error", "Falha do provedor. Mostre estado recuperável sem título substituto."] },
         description: "Detalhes limitados aos metadados disponíveis no catálogo.",
         scope: "04 · Home / Discovery", flow: "Resultados ou Home → Detalhes do filme → Voltar",
-        changes: "Exibir somente campos existentes; avaliações e comentários ficam integrados aos detalhes e mantêm sua própria audiência.",
+        changes: "Exibir somente campos existentes; permitir tracking de filme e liberar avaliação somente após marcar como assistido, preservando comentários e audiência.",
         template: "movie", next: "search", prev: "results",
       },
       {
         id: "series", module: "home-discovery", name: "Detalhes de série", objective: "Consultar metadados normalizados de uma série.", route: "title/[provider]/[contentType]/[externalId].tsx",
         current: "done", tobe: "kept", currentCaption: "Detalhes mobile implementados",
-        currentNotes: ["Tela autenticada consulta o endpoint de detalhes do catálogo.", "Gêneros, datas, sinopse e imagens aparecem quando disponíveis.", "Retorno preserva a Home ou pesquisa ao voltar."],
+        currentNotes: ["Tela autenticada consulta o endpoint de detalhes do catálogo.", "Gêneros, datas, sinopse e imagens aparecem quando disponíveis.", "Temporadas disponíveis são selecionáveis sem corte artificial; o estado de episódio assistido é indicado somente por ícone.", "Retorno preserva a Home ou pesquisa ao voltar."],
         currentStates: ["Carregando", "Detalhes", "Não encontrado", "Erro provedor"],
         states: ["Carregando", "Detalhes", "Não encontrado", "Erro provedor"],
         stateCopy: { "Carregando": ["", "Carregando dados da série…"], "Detalhes": ["success", "Temporadas e metadados aparecem apenas quando disponíveis."], "Não encontrado": ["", "Série não encontrada no provedor."], "Erro provedor": ["error", "Não foi possível consultar detalhes. Tente novamente."] },
         description: "Detalhes de série limitados aos metadados existentes; episódios e tracking permanecem nos módulos correspondentes.",
         scope: "04 · Home / Discovery", flow: "Resultados ou Home → Detalhes da série → Voltar",
-        changes: "Informar o número da temporada para navegar pelos episódios; manter as avaliações independentes do tracking.",
+        changes: "Manter temporadas disponíveis do catálogo e liberar avaliações episódicas somente quando o tracking confirmar que o episódio foi assistido.",
         template: "series", next: "search", prev: "results",
       },
       {
         id: "reviews", module: "ratings", name: "Avaliações e comentários", objective: "Avaliar filmes, séries e episódios e publicar comentários com audiência e controles de spoiler.", route: "components/reviews/rating-review-section.tsx · /api/v1/ratings · /api/v1/comments",
         current: "done", tobe: "kept", currentCaption: "Experiência implementada nos detalhes de títulos e episódios",
-        currentNotes: ["Notas de 0 a 5 em passos de 0,5; 0 é válido, e cada usuário possui uma nota por alvo.", "Notas e comentários são privados por padrão; médias e contagens usam somente notas públicas.", "Comentários próprios podem ser editados/excluídos; spoilers ficam ocultos e são revelados por ação explícita.", "Análise opcional de spoiler é desativada no servidor por padrão e depende de consentimento por comentário."],
+        currentNotes: ["Notas de 0 a 5 em passos de 0,5; cinco estrelas individuais, opção de zero e ajuste de meia estrela preservam a escala completa.", "Avaliações de filme e episódio só são habilitadas quando o tracking confirma que foram assistidos; comentários continuam disponíveis.", "Notas e comentários são privados por padrão; médias e contagens usam somente notas públicas.", "Comentários próprios podem ser editados/excluídos; spoilers ficam ocultos e são revelados por ação explícita.", "Análise por IA está temporariamente desativada; sinalização manual de spoilers continua disponível."],
         currentStates: ["Avaliação", "Comentários", "Spoiler oculto", "Pendente", "Erro"],
         states: ["Avaliação", "Comentários", "Spoiler oculto", "Pendente", "Erro"],
-        stateCopy: { "Avaliação": ["success", "Média pública separada da nota privada do usuário."], "Comentários": ["success", "Comentários públicos e próprios respeitam a audiência escolhida."], "Spoiler oculto": ["", "O conteúdo só aparece depois da ação explícita de revelar."], "Pendente": ["", "O autor vê o estado; análise só é executada quando habilitada e consentida."], "Erro": ["error", "Falhas de rede são recuperáveis e não substituem o conteúdo da API."] },
+        stateCopy: { "Avaliação": ["success", "Média pública separada da nota privada; a nota própria exige tracking assistido."], "Comentários": ["success", "Comentários públicos e próprios respeitam a audiência escolhida."], "Spoiler oculto": ["", "O conteúdo só aparece depois da ação explícita de revelar."], "Pendente": ["", "Análise automática temporariamente desativada; a sinalização manual permanece."], "Erro": ["error", "Falhas de rede são recuperáveis e não substituem o conteúdo da API."] },
         description: "Notas, comentários, privacidade e spoilers integrados às telas de detalhes de filmes/séries e à tela de episódio.",
         scope: "06 · Ratings and comments", flow: "Detalhes de título → Avaliação/comentário → Revelar spoiler ou navegar a episódio",
-        changes: "Manter nota e comentário independentes; não expor conteúdo privado, pendente ou spoiler sem autorização explícita.",
+        changes: "Manter nota e comentário independentes; exigir tracking assistido para avaliar, sem bloquear comentários nem expor conteúdo privado ou spoiler.",
         template: "reviews", next: "season", prev: "series",
       },
       {
@@ -1130,10 +1146,10 @@
       {
         id: "tracking", module: "tracking", name: "Acompanhamento", objective: "Consultar histórico paginado e séries acompanhadas, com progresso baseado nos episódios disponíveis no catálogo.", route: "tracking.tsx · /api/v1/tracking",
         current: "done", tobe: "kept", currentCaption: "Tela implementada no app mobile",
-        currentNotes: ["Histórico autenticado com paginação e ordenação cronológica.", "Lista as séries acompanhadas e a quantidade real de episódios assistidos.", "Percentual/conclusão só aparecem quando o inventário completo da série é conhecido.", "Erros de API aparecem em toast; estado vazio e nova tentativa permanecem na tela."],
+        currentNotes: ["Histórico autenticado com paginação e ordenação cronológica; títulos exibem metadados e pôster quando disponíveis.", "Ações compactas por ícone permitem editar a data ou desmarcar, com confirmação antes de remover tracking.", "Continuar Assistindo conta episódios disponíveis e assistidos em todas as temporadas válidas, inclusive especiais, por ID único.", "Temporadas/episódios futuros são excluídos; episódios sem data seguem a política de disponibilidade. Sem inventário, total e percentual ficam desconhecidos.", "Falha na consulta de uma temporada não apresenta um progresso parcial como completo.", "Erros de API aparecem em toast; estado vazio e nova tentativa permanecem na tela."],
         currentStates: ["Histórico", "Séries", "Sem registros", "Carregando", "Erro"],
         states: ["Histórico", "Séries", "Sem registros", "Carregando", "Erro"],
-        stateCopy: { "Histórico": ["success", "Itens e datas vêm do histórico autenticado e paginado."], "Séries": ["success", "A contagem informa episódios assistidos; não estima o total da série."], "Sem registros": ["", "Seu acompanhamento ainda não tem registros."], "Carregando": ["", "Carregando seu histórico…"], "Erro": ["error", "Não foi possível carregar seu acompanhamento. Tente novamente."] },
+        stateCopy: { "Histórico": ["success", "Itens e datas vêm do histórico autenticado e paginado."], "Séries": ["success", "Progresso calculado sobre o inventário disponível de todas as temporadas."], "Sem registros": ["", "Seu acompanhamento ainda não tem registros."], "Carregando": ["", "Carregando seu histórico…"], "Erro": ["error", "Não foi possível carregar seu acompanhamento. Tente novamente."] },
         description: "Resumo do acompanhamento sem presumir títulos ou estatísticas; estados ilustrativos do wireframe.",
         scope: "05 · Tracking", flow: "Home → Acompanhamento → Histórico / Séries",
         changes: "Manter dados reais, autenticação no servidor e paginação; não confundir conclusão de temporada com conclusão da série.",
@@ -1142,33 +1158,34 @@
       {
         id: "lists", module: "lists", name: "Favoritos e listas", objective: "Gerenciar favoritos, watchlist e listas privadas independentes, reutilizando os favoritos do onboarding.", route: "lists.tsx · /api/v1/favorites, /watchlist e /lists",
         current: "done", tobe: "kept", currentCaption: "Tela implementada no app mobile",
-        currentNotes: ["Abas separadas para favoritos, watchlist e listas próprias.", "Busca títulos no catálogo e exibe estados de favorito/watchlist.", "Listas personalizadas começam privadas; edição é restrita ao proprietário no servidor.", "Estados de vazio, carregamento, erro/retentativa e sucesso são cobertos."],
-        currentStates: ["Favoritos", "Watchlist", "Listas privadas", "Sem títulos", "Erro"],
-        states: ["Favoritos", "Watchlist", "Listas privadas", "Sem títulos", "Erro"],
+        currentNotes: ["Voltar compartilhado no topo respeita a pilha; Favoritos, Watchlist e listas próprias seguem independentes.", "Adicionar lista abre modal inicialmente oculto, com cancelar, validação e bloqueio durante salvamento.", "Cada lista tem um único card com nome, descrição, total de filmes/séries, conteúdos paginados ao selecionar e menu de três pontos.", "Editar reutiliza o modal preenchido sem remover conteúdos; excluir exige confirmação nomeada e não afeta catálogo, Favoritos ou Watchlist.", "Erros usam toast inclusive sobre o modal; estados vazios e retentativa permanecem."],
+        currentStates: ["Favoritos", "Watchlist", "Listas privadas", "Criar lista", "Editar lista", "Confirmar exclusão", "Sem títulos", "Erro"],
+        searchActionNotes: "Resultados de catálogo usam coração, relógio e adicionar à lista, sem botões textuais largos; seleção/check indicam vínculos salvos e cada ação mantém rótulo acessível. Conteúdos salvos usam lixeira para remover e setas para reordenar nas listas privadas, com alvos de 44 px e estados desabilitados nos limites.",
+        states: ["Favoritos", "Watchlist", "Listas privadas", "Criar lista", "Editar lista", "Confirmar exclusão", "Sem títulos", "Erro"],
         stateCopy: { "Favoritos": ["success", "Favoritos usam a relação já mantida pelo onboarding."], "Watchlist": ["success", "Watchlist é independente do histórico de visualização."], "Listas privadas": ["success", "Só a conta proprietária pode consultar e alterar estas listas."], "Sem títulos": ["", "Ainda não há títulos nesta seção."], "Erro": ["error", "Não foi possível carregar suas listas. Tente novamente."] },
         description: "Gestão das relações do usuário com títulos; o protótipo não representa dados reais.",
-        scope: "08 · Favoritos e listas", flow: "Home → Favoritos e listas → Favoritos / Watchlist / Listas privadas",
+        scope: "08 · Favoritos e listas", flow: "Minhas listas → Adicionar → Modal → Salvar / Cancelar; Card → Opções → Editar / Confirmar exclusão; Voltar → Tela anterior",
         changes: "Manter privacidade owner-only, paginação, catálogo como fonte dos metadados e independência entre recursos.",
         template: "lists", next: "tracking", prev: "account",
       },
       {
         id: "drawer", module: "home-discovery", name: "Menu da conta", objective: "Centralizar a navegação pessoal no avatar da Home.", route: "components/navigation/user-drawer.tsx",
         current: "done", tobe: "kept", currentCaption: "Menu lateral implementado",
-        currentNotes: ["Avatar, nome e e-mail reais; fallback de iniciais", "Animação lateral e largura limitada no mobile", "Áreas seguras e lista rolável", "Fecha pelo botão, toque fora e voltar do dispositivo", "Sair exige confirmação; falhas usam o toast existente", "Favoritos, listas e watchlist abrem suas abas diretamente"],
+        currentNotes: ["Avatar, nome e e-mail reais; fallback de iniciais", "Medalhas conquistadas em grade compacta ao lado do avatar; tocar abre os mesmos detalhes do perfil", "Animação lateral e largura limitada no mobile", "Áreas seguras e lista rolável", "Fecha pelo botão, toque fora e voltar do dispositivo", "Sair exige confirmação; falhas usam o toast existente", "Favoritos, listas e watchlist abrem suas abas diretamente; notificações ficam no sino do header"],
         currentStates: ["Aberto", "Confirmar saída", "Saindo", "Erro"], states: ["Aberto", "Confirmar saída", "Saindo", "Erro"],
-        description: "Menu pessoal sem duplicar rotas ou dados do servidor.", scope: "04 · Home / Discovery", flow: "Avatar → Menu → Destino; Sair → Confirmar / Cancelar", changes: "Preserva todos os atalhos antigos da Home.", template: "drawer", next: "profile", prev: "account",
+        description: "Menu pessoal sem duplicar rotas ou dados do servidor.", scope: "04 · Home / Discovery", flow: "Avatar → Menu → Destino; Sair → Confirmar / Cancelar", changes: "Mantém atalhos pessoais sem duplicar notificações ou conquistas já acessíveis por suas superfícies principais.", template: "drawer", next: "profile", prev: "account",
       },
       {
-        id: "gamification", module: "home-discovery", name: "Conquistas e estatísticas", objective: "Consultar conquistas calculadas a partir do histórico real.", route: "gamification.tsx · /api/v1/gamification",
-        current: "done", tobe: "kept", currentCaption: "Gamificação integrada",
-        currentNotes: ["Resolve sub do Supabase para ID interno antes de consultar operações pessoais", "Dashboard e conquistas compartilham contrato validado por Zod", "Estatísticas e ranking têm erros independentes", "Falha ao atualizar preserva o último dashboard", "Sem dados, toast e nova tentativa; nunca substitui por mocks"],
+        id: "gamification", module: "gamification", name: "Conquistas e estatísticas", objective: "Consultar conquistas calculadas a partir do histórico real.", route: "gamification.tsx · /api/v1/gamification",
+        current: "partial", tobe: "kept", currentCaption: "Código integrado; migration necessária no banco do ambiente",
+        currentNotes: ["Resolve sub do Supabase para ID interno antes de consultar operações pessoais", "Dashboard e conquistas compartilham contrato validado por Zod", "Cada conquista tem medalha associada a código estável; bloqueadas aparecem visualmente distintas", "Estatísticas e ranking têm erros independentes", "Falha ao atualizar preserva o último dashboard", "Migration AddGamification deve estar aplicada; a reconciliação ocorre ao consultar o dashboard", "Sem dados, toast e nova tentativa; nunca substitui por mocks"],
         currentStates: ["Carregando", "Conquistas", "Sem conquistas", "Erro", "Ranking desativado"], states: ["Carregando", "Conquistas", "Sem conquistas", "Erro", "Ranking desativado"],
         description: "Reconciliada no backend ao consultar o dashboard; registros de episódios invalidam o cache.", scope: "09 · Gamification", flow: "Menu → Conquistas → Estatísticas / Privacidade / Ranking", changes: "Corrigida identidade da conta; badges públicos preservam o ID do destinatário.", template: "gamification", next: "profile", prev: "drawer",
       },
       {
         id: "settings", module: "home-discovery", name: "Configurações", objective: "Organizar configurações já existentes.", route: "settings.tsx",
         current: "done", tobe: "kept", currentCaption: "Navegação de configurações implementada",
-        currentNotes: ["Perfil e privacidade", "Edição do onboarding em modo de preferências", "Notificações", "Privacidade de conquistas e ranking", "Não simula novas configurações"],
+        currentNotes: ["Perfil e privacidade", "Edição do onboarding em modo de preferências", "Notificações são acessadas pelo sino do header; privacidade de conquistas e ranking fica na própria tela de conquistas", "Não simula novas configurações"],
         currentStates: ["Opções"], states: ["Opções"], description: "Hub de navegação para telas reais.", scope: "06 · Profile", flow: "Menu → Configurações → Tela existente", changes: "Rotas protegidas no Stack atual.", template: "settings", next: "preferences", prev: "drawer",
       },
       {
@@ -1177,16 +1194,50 @@
         currentNotes: ["Filtro obrigatório pelo ID interno da conta autenticada", "Pôster reutilizado do catálogo", "Nota, audiência e data reais", "Avaliações de episódios identificadas e vinculadas à série", "Salvar ou remover invalida a listagem pessoal"],
         currentStates: ["Carregando", "Avaliações", "Vazio", "Erro"], states: ["Carregando", "Avaliações", "Vazio", "Erro"], description: "Coleção autenticada com paginação e recuperação de erros.", scope: "06 · Ratings and comments", flow: "Menu → Minhas avaliações → Detalhes do título", changes: "Não substitui a edição existente nos detalhes.", template: "my-ratings", next: "reviews", prev: "drawer",
       },
+      {
+        id: "social", module: "social", name: "Amigos e atividades", objective: "Pesquisar pessoas, gerenciar amizades e consultar somente atividades compartilhadas com consentimento.", route: "social.tsx · /api/v1/social",
+        current: "partial", tobe: "kept", currentCaption: "API e mobile implementados; migration necessária no banco do ambiente",
+        currentNotes: ["Busca por nome e solicitações recebidas/enviadas com ações de aceitar, recusar e cancelar.", "Lista de amigos e feed usam paginação por cursor.", "Perfil contextual e feed respeitam permissões e consentimentos de cada atividade.", "Remover amizade não apaga histórico, avaliações ou listas.", "Migration de Social precisa estar aplicada para operar no banco; não há chat, bloqueio ou seguidores públicos."],
+        currentStates: ["Carregando", "Buscar pessoas", "Solicitações", "Amigos", "Feed vazio", "Erro"], states: ["Carregando", "Buscar pessoas", "Solicitações", "Amigos", "Feed vazio", "Erro"],
+        stateCopy: { "Carregando": ["", "Carregando relações sociais…"], "Buscar pessoas": ["success", "Busca por nome, sem revelar e-mail ou identificador Supabase."], "Solicitações": ["success", "Ações disponíveis apenas para participantes autorizados."], "Amigos": ["success", "Atividades respeitam o consentimento de cada usuário."], "Feed vazio": ["", "Ainda não há atividades compartilhadas."], "Erro": ["error", "Não foi possível carregar dados sociais. Tente novamente."] },
+        description: "Busca, relações e feed social autenticados; a ilustração não contém dados pessoais reais.", scope: "09 · Social",
+        flow: "Menu → Amigos → Buscar / Solicitações / Feed → Perfil contextual",
+        changes: "Manter consentimentos e privacidade por atividade; a migration de cada ambiente é pré-requisito de execução.", template: "social", next: "notifications", prev: "drawer",
+      },
+      {
+        id: "notifications", module: "notifications", name: "Notificações", objective: "Gerenciar preferências e consultar a inbox social paginada.", route: "notifications.tsx · /api/v1/notifications",
+        current: "partial", tobe: "kept", currentCaption: "Inbox e preferências no código; push remoto desativado",
+        currentNotes: ["Preferência social desligada por padrão; inbox persistida e leitura idempotente.", "Registro de dispositivo é autenticado e não devolve token privado.", "Push exige build nativo, projeto EAS, credenciais APNs/FCM e configuração segura do servidor.", "Alertas de episódios/estreias ainda não são gerados sem fonte confiável de atualização do catálogo.", "Migration precisa estar aplicada no banco do ambiente."],
+        currentStates: ["Carregando", "Inbox vazia", "Não lidas", "Preferências", "Push indisponível", "Erro"], states: ["Carregando", "Inbox vazia", "Não lidas", "Preferências", "Push indisponível", "Erro"],
+        stateCopy: { "Carregando": ["", "Carregando notificações…"], "Inbox vazia": ["", "Você ainda não tem notificações."], "Não lidas": ["success", "Abrir a notificação marca como lida e navega para rota interna."], "Preferências": ["success", "Categorias não configuradas permanecem indisponíveis."], "Push indisponível": ["", "A inbox do app permanece disponível sem push remoto."], "Erro": ["error", "Não foi possível carregar notificações. Tente novamente."] },
+        description: "Inbox social, preferências e dispositivo; recebimento remoto é dependente de configuração operacional.", scope: "10 · Notifications",
+        flow: "Header → Notificações → Preferências / Inbox → Destino interno",
+        changes: "Não afirmar entrega push ou alertas de catálogo antes de configurar e validar infraestrutura.", template: "notifications", next: "widgets", prev: "social",
+      },
+      {
+        id: "widgets", module: "widgets", name: "Widgets mobile", objective: "Registrar a lacuna atual e os critérios do spike nativo.", route: "Sem rota ou componente implementado",
+        current: "todo", tobe: "unknown", currentCaption: "Não implementado; spike/documentação não equivalem a suporte",
+        currentNotes: ["Nenhum widget, plugin ou configuração nativa está integrado ao aplicativo.", "iOS não validado por build/dispositivo com Xcode; Android não validado por build/ADB.", "Não declarar suporte de plataforma até validar build, armazenamento seguro, atualização e deep links."],
+        currentStates: ["Não implementado"], states: ["Não implementado"],
+        stateCopy: { "Não implementado": ["", "Não há widget funcional nesta versão do projeto."] },
+        description: "Lacuna explícita. Os requisitos e resultados de compatibilidade estão em docs/specs/12-mobile-widgets.md.", scope: "12 · Mobile widgets",
+        flow: "Sem fluxo no app; consultar o plano do spike para os próximos gates.",
+        changes: "Proposta futura, condicionada à validação de cada plataforma.", template: "widgets", next: "account", prev: "notifications",
+      },
     ];
 
     const modules = {
       auth: { label: "Authentication", ids: ["login", "signup", "callback", "forgot", "reset", "session-init"] },
       onboarding: { label: "Onboarding & Profile", ids: ["welcome", "genres", "fav-movies", "fav-series", "complete", "profile", "profile-edit", "preferences", "privacy"] },
-      "home-discovery": { label: "Home & Discovery", ids: ["account", "drawer", "gamification", "settings", "search", "results", "movie", "series"] },
+      "home-discovery": { label: "Home & Discovery", ids: ["account", "drawer", "settings", "search", "results", "movie", "series"] },
       catalog: { label: "Catalog", ids: ["season"] },
       ratings: { label: "Avaliações e comentários", ids: ["reviews", "my-ratings"] },
       tracking: { label: "Tracking", ids: ["tracking"] },
       lists: { label: "Favoritos e listas", ids: ["lists"] },
+      social: { label: "Social", ids: ["social"] },
+      notifications: { label: "Notificações", ids: ["notifications"] },
+      gamification: { label: "Gamificação", ids: ["gamification"] },
+      widgets: { label: "Widgets", ids: ["widgets"] },
     };
 
     const currentScreen = { id: "login", mode: "compare", state: null, details: true };
@@ -1200,6 +1251,7 @@
     const resultCard = (title, meta, style = "") => `<div class="result-card"><div class="poster ${style}">POSTER</div><div class="result-copy"><strong>${title}</strong><span>${meta}</span></div><span class="result-add">+</span></div>`;
     const chip = text => `<span class="meta-chip">${text}</span>`;
     const goButton = (label, target, variant = "primary", full = false) => `<button class="action ${variant} ${full ? "full" : ""}" data-go="${target}">${label}</button>`;
+    const medalPreview = () => `<div style="display:flex;flex-wrap:wrap;gap:8px">${["first-film","marathon","series-fan","explorer"].map((badge, index) => `<button class="action ghost" data-state="Detalhes da conquista" aria-label="Ver detalhes da conquista"><img src="../../mobile/assets/brand/badges/${badge}.svg" alt="" width="44" height="44" style="opacity:${index === 3 ? 0.35 : 1}"></button>`).join("")}</div>${currentScreen.state === "Detalhes da conquista" ? '<div class="soft-card"><strong>Detalhes da conquista</strong><p>Nome, descrição, critério, progresso, estado e data vêm do dashboard autenticado.</p><button class="action secondary" data-state="Detalhes da conquista">Fechar detalhes</button></div>' : ''}`;
 
     function screenMarkup(screen, future) {
       const { template, id } = screen;
@@ -1209,11 +1261,14 @@
       if (template === "callback") inner = `${iconLogo}<div class="phone-content" style="text-align:center"><p class="phone-title">${currentScreen.state === "Erro / expirado" ? "Link indisponível." : "Confirmando seu acesso."}</p><p class="phone-subtitle">${currentScreen.state === "Erro / expirado" ? "Solicite um novo link para continuar com segurança." : "Estamos validando o link com segurança."}</p><div class="soft-card" style="padding:24px"><span style="display:inline-grid;width:34px;height:34px;place-items:center;border:2px solid #29323C;border-top-color:var(--brand);border-radius:50%;color:var(--pink)">◌</span><p style="margin-top:11px">Validando link de autenticação</p></div><div class="form-note">Confirmação de e-mail ocorre somente se estiver habilitada no provedor. Link inválido ou expirado aparece em toast.</div>${goButton("Voltar para entrar","login","secondary",true)}<div style="margin-top:8px">${goButton("Fluxo de recuperação","reset","ghost",true)}</div></div>`;
       if (template === "forgot") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Recupere seu acesso.</p><p class="phone-subtitle">Enviaremos as instruções para o e-mail informado.</p><div class="soft-card">${formField("E-mail", "voce@exemplo.com")}${goButton("Enviar instruções", "reset", "primary", true)}</div><div class="form-note success">Se houver uma conta associada a esse endereço, enviaremos instruções para redefinir a senha.</div><a class="center-link" href="#" data-go="login">Voltar para entrar</a></div>`;
       if (template === "reset") inner = `${iconLogo}<div class="phone-content"><p class="phone-title">Escolha uma nova senha.</p><p class="phone-subtitle">Use uma senha nova para recuperar o acesso.</p><div class="soft-card">${formField("Nova senha (mínimo 8 caracteres)", "Nova senha", "", true)}${formField("Confirme a nova senha", "Repita a nova senha", "", true)}${goButton("Atualizar senha", "account", "primary", true)}</div><div class="form-note success" style="margin-top:10px">Senha alterada com sucesso.</div></div>`;
-      if (template === "account") inner = `${iconLogo}${phoneTop}<div class="phone-content"><div class="phone-heading">${goButton("Avatar / Menu", "drawer", "ghost")}${goButton("Pesquisar", "search", "ghost")}</div><div class="choice-row">${choice("Séries", true)}${choice("Filmes")}</div><p class="mini-section">SÉRIES EM ACOMPANHAMENTO</p>${resultCard("Série do seu histórico", "Temporada conhecida · episódios assistidos / disponíveis")}<div class="progress"><span style="width:50%"></span></div><p class="tiny">Episódios restantes e barra vêm da API. Sem metadados, não estima progresso.</p><p class="mini-section">SÉRIES EM DESTAQUE</p>${resultCard("Título do catálogo", "Pôster e metadados disponíveis")}<p class="mini-section">SUAS SÉRIES FAVORITAS</p>${resultCard("Título salvo", "Mesmo padrão de card do acompanhamento")}<p class="mini-section">SUGESTÕES PARA VOCÊ</p><p>Gêneros escolhidos no onboarding.</p><p class="mini-section">ESTREIAS DE SÉRIES</p>${goButton("Ver acompanhamento", "tracking", "secondary", true)}</div>`;
-      if (template === "drawer") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><div class="avatar">R</div>${goButton("Fechar", "account", "ghost")}</div><p class="phone-title">Minha conta</p><p class="tiny">Nome e e-mail da sessão real</p>${[["Meu perfil","profile"],["Favoritos","lists"],["Minhas listas","lists"],["Quero assistir","lists"],["Acompanhamento","tracking"],["Minhas avaliações","my-ratings"],["Conquistas","gamification"],["Configurações","settings"]].map(([label,target]) => goButton(label,target,"ghost",true)).join("")}<p class="tiny">Amigos e notificações também permanecem acessíveis no app.</p>${currentScreen.state === "Confirmar saída" ? `<p class="mini-section">Sair da conta?</p>${goButton("Confirmar saída","login","primary",true)}${goButton("Cancelar","drawer","secondary",true)}` : goButton("Sair da conta: confirmar antes","drawer","secondary",true)}</div>`;
+      if (template === "account") inner = `${iconLogo}${phoneTop}<div class="phone-content"><div class="phone-heading">${goButton("Avatar / Menu", "drawer", "ghost")}${goButton("Pesquisar", "search", "ghost")}${goButton("Notificações · 3 não lidas", "account", "ghost")}</div><div class="choice-row">${choice("Séries", true)}${choice("Filmes")}</div><p class="mini-section">CONTINUAR ASSISTINDO</p>${resultCard("Série do seu histórico", "Assistidos e restantes da série inteira")}<div class="progress"><span style="width:50%"></span></div><p class="tiny">Todas as temporadas válidas e especiais, sem duplicatas ou lançamentos futuros. Sem inventário, total desconhecido.</p><p class="mini-section">SÉRIES EM DESTAQUE</p>${resultCard("Título do catálogo", "Pôster e metadados disponíveis")}<p class="mini-section">SUAS SÉRIES FAVORITAS</p>${resultCard("Título salvo", "Mesmo padrão de card do acompanhamento")}<p class="mini-section">SUGESTÕES PARA VOCÊ</p><p>Gêneros escolhidos no onboarding.</p><p class="mini-section">ESTREIAS DE SÉRIES</p>${goButton("Ver acompanhamento", "tracking", "secondary", true)}</div>`;
+      if (template === "drawer") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><div class="avatar">R</div><button class="action ghost" data-state="Detalhes da conquista" aria-label="Ver conquista"><img src="../../mobile/assets/brand/badges/first-film.svg" width="44" height="44" alt=""></button>${goButton("Fechar", "account", "ghost")}</div>${currentScreen.state === "Detalhes da conquista" ? '<div class="soft-card"><strong>Detalhes da conquista</strong><p>Nome, descrição/critério, estado e datas do dashboard.</p><button class="action secondary" data-state="Detalhes da conquista">Fechar detalhes</button></div>' : ''}<p class="phone-title">Minha conta</p><p class="tiny">Nome e e-mail da sessão real</p>${[["Meu perfil","profile"],["Favoritos","lists"],["Minhas listas","lists"],["Quero assistir","lists"],["Acompanhamento","tracking"],["Minhas avaliações","my-ratings"],["Conquistas","gamification"],["Configurações","settings"]].map(([label,target]) => goButton(label,target,"ghost",true)).join("")}<p class="tiny">Amigos permanecem no menu; notificações são abertas pelo sino do header.</p>${currentScreen.state === "Confirmar saída" ? `<p class="mini-section">Sair da conta?</p>${goButton("Confirmar saída","login","primary",true)}${goButton("Cancelar","drawer","secondary",true)}` : goButton("Sair da conta: confirmar antes","drawer","secondary",true)}</div>`;
       if (template === "gamification") inner = `${phoneTop}<div class="phone-content">${goButton("Voltar","drawer","ghost")}<p class="phone-title">Conquistas e estatísticas</p><p class="mini-section">SUA ATIVIDADE TOTAL</p><p>Filmes, episódios, séries e tempo estimado com cobertura real.</p><p class="mini-section">CONQUISTAS</p><p>Progresso calculado pelo backend a partir do histórico; sem valores ilustrativos.</p><p class="mini-section">NESTE MÊS</p><p>Estatísticas independentes do dashboard.</p><p class="mini-section">PRIVACIDADE E RANKING</p><div class="row"><span>Exibir badges no perfil</span><span class="toggle"></span></div><div class="row"><span>Participar do ranking entre amigos</span><span class="toggle"></span></div>${goButton("Tentar novamente","gamification","secondary",true)}</div>`;
-      if (template === "settings") inner = `${phoneTop}<div class="phone-content">${goButton("Voltar","drawer","ghost")}<p class="phone-title">Configurações</p>${goButton("Perfil e privacidade","profile","secondary",true)}${goButton("Preferências de catálogo","preferences","secondary",true)}${goButton("Privacidade de conquistas e ranking","gamification","secondary",true)}<p class="tiny">Preferências de notificações abrem a tela real no app.</p></div>`;
+      if (template === "settings") inner = `${phoneTop}<div class="phone-content">${goButton("Voltar","drawer","ghost")}<p class="phone-title">Configurações</p>${goButton("Perfil e privacidade","profile","secondary",true)}${goButton("Preferências de catálogo","preferences","secondary",true)}<p class="tiny">Notificações são abertas pelo sino do header; privacidade de conquistas e ranking fica na própria tela de conquistas.</p></div>`;
       if (template === "my-ratings") inner = `${phoneTop}<div class="phone-content">${goButton("Voltar","drawer","ghost")}<p class="phone-title">Minhas avaliações</p>${resultCard("Título avaliado", "Nota / 5 · audiência · data da API")}<p class="tiny">Episódios são identificados e abrem a série correspondente.</p>${goButton("Abrir detalhes","reviews","secondary",true)}<div class="phone-actions">${goButton("Anterior","my-ratings","secondary")}${goButton("Próxima","my-ratings","secondary")}</div><p class="tiny">Vazio: Você ainda não avaliou títulos. Erro: toast e nova tentativa.</p></div>`;
+      if (template === "social") inner = `${phoneTop}<div class="phone-content">${goButton("← Voltar","drawer","ghost")}<p class="phone-title">Amigos</p><p class="phone-subtitle">Encontre pessoas e veja somente atividades compartilhadas com você.</p><div class="input search"><span>Buscar por nome (mínimo 2 caracteres)</span></div><div class="soft-card"><strong>Solicitações recebidas</strong><p>Nome público · aceitar · recusar</p></div><div class="soft-card"><strong>Seus amigos</strong><p>Perfil contextual · remover amizade com confirmação</p></div><div class="soft-card"><strong>Atividades compartilhadas</strong><p>Feed paginado · consentimentos aplicados em cada consulta</p></div><p class="form-note">Dados demonstrativos do wireframe. Social requer migration aplicada; não há chat, bloqueio ou seguidores públicos.</p></div>`;
+      if (template === "notifications") inner = `${phoneTop}<div class="phone-content">${goButton("← Voltar","account","ghost")}<p class="phone-title">Notificações</p><p class="phone-subtitle">Gerencie seus avisos e veja as atividades recentes.</p><p class="mini-section">PREFERÊNCIAS</p><div class="row"><span>Atividades sociais<small>Solicitações e confirmações</small></span><span class="toggle"></span></div><div class="row"><span>Episódios e estreias<small>Indisponíveis até configurar atualização de catálogo</small></span><span class="tiny">—</span></div><p class="mini-section">NESTE DISPOSITIVO</p><p class="tiny">Push exige build nativo, projectId EAS e credenciais Expo/APNs/FCM.</p>${goButton("Ativar notificações push","notifications","secondary",true)}<p class="mini-section">CAIXA DE ENTRADA</p><div class="soft-card"><strong>Atividade social</strong><p>Data · abrir notificação marca como lida e navega para rota interna.</p></div>${goButton("Carregar mais","notifications","secondary",true)}<p class="form-note">Inbox e preferências dependem da migration do ambiente. Push remoto está desativado por padrão.</p></div>`;
+      if (template === "widgets") inner = `${phoneTop}<div class="phone-content">${goButton("← Voltar","account","ghost")}<p class="phone-title">Widgets mobile</p><div class="soft-card"><strong>Não implementado</strong><p>O projeto ainda não inclui widgets iOS ou Android.</p></div><p class="mini-section">GATES PENDENTES</p><p class="tiny">Definir identificadores nativos; validar development/release build, snapshot seguro, limpeza após logout, atualização e deep links em cada plataforma.</p><p class="form-note">A documentação do spike não representa suporte funcional. Não há dados simulados exibidos como widget real.</p></div>`;
       if (template === "session-init") inner = `${iconLogo}<div class="phone-content" style="text-align:center"><p class="phone-title">Iniciando Reelix</p><p class="phone-subtitle">Estamos verificando sua sessão salva.</p><div class="soft-card" style="padding:22px"><span style="display:inline-grid;width:34px;height:34px;place-items:center;border:2px solid #29323C;border-top-color:var(--brand);border-radius:50%;color:var(--pink)">◌</span><p style="margin-top:11px">Carregando sua sessão…</p></div><div class="form-note">Se a restauração falhar, o app apresenta erro e opção de tentar novamente.</div>${goButton("Sem sessão: ir ao login","login","primary",true)}<div style="margin-top:8px">${goButton("Sessão válida: conta","account","secondary",true)}</div></div>`;
       if (template === "welcome") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span></span><span class="step-mark">ETAPA 1 DE 5</span></div><div class="progress"><span style="width:20%"></span></div><p class="phone-kicker">SEU REELIX</p><p class="phone-title">Vamos encontrar seu próximo favorito.</p><p class="phone-subtitle">Escolha alguns gêneros e títulos para personalizar seu espaço.</p><div class="progress" style="width:42px"><span style="width:100%"></span></div>${goButton("Começar", "genres", "primary", true)}</div>`;
       if (template === "genres") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="welcome">‹ VOLTAR</span><span class="step-mark">ETAPA 2 DE 5</span></div><div class="progress"><span style="width:40%"></span></div><p class="phone-kicker">PREFERÊNCIAS</p><p class="phone-title">Que tipo de história te prende?</p><div class="tab-row"><span class="tab active">Filmes</span><span class="tab">Séries</span></div><p class="tiny">2 de 20 gêneros selecionados</p><div class="chip-row">${choice("Ação",true)}${choice("Aventura")}${choice("Animação")}${choice("Comédia",true)}${choice("Documentário")}${choice("Drama")}${choice("Terror")}${choice("Romance")}${choice("Ficção científica")}</div>${goButton("Continuar","fav-movies","primary",true)}<a class="center-link" href="#" data-go="fav-movies">Pular esta etapa</a></div>`;
@@ -1222,17 +1277,35 @@
         inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="${isMovie ? "genres" : "fav-movies"}">‹ VOLTAR</span><span class="step-mark">ETAPA ${isMovie ? "3" : "4"} DE 5</span></div><div class="progress"><span style="width:${isMovie ? "60%" : "80%"}"></span></div><p class="phone-kicker">${isMovie ? "FILMES" : "SÉRIES"}</p><p class="phone-title">${isMovie ? "Quais filmes você ama?" : "Quais séries você acompanha?"}</p><p class="phone-subtitle">Escolha até 10. Esta etapa é opcional.</p><div class="phone-actions" style="margin-top:0"><div class="input search" style="flex:2"><span>Buscar no catálogo</span></div>${goButton("Buscar", template, "secondary")}</div><p class="tiny" style="margin:7px 0">Digite ao menos 2 caracteres. Os resultados abaixo são exemplos visuais.</p>${resultCard("Título do catálogo","Ano · metadados disponíveis")}${resultCard("Outro título","Metadados opcionais","cool")}<p class="tiny">1 de 10 selecionados</p><a class="center-link" href="#" data-go="${template}">Remover seleções desta etapa</a>${goButton("Continuar", isMovie ? "fav-series" : "complete", "primary", true)}<a class="center-link" href="#" data-go="${isMovie ? "fav-series" : "complete"}">Pular esta etapa</a></div>`;
       }
       if (template === "complete") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="fav-series">‹ VOLTAR</span><span class="step-mark">ETAPA 5 DE 5</span></div><div class="progress"><span style="width:100%"></span></div><p class="phone-kicker">PRONTO</p><p class="phone-title">Seu ponto de partida.</p><div class="row"><span>Gêneros</span><strong>—</strong></div><div class="row"><span>Filmes favoritos</span><strong>—</strong></div><div class="row"><span>Séries favoritas</span><strong>—</strong></div><p class="phone-subtitle" style="margin-top:10px">Você pode editar suas escolhas no perfil.</p>${goButton("Concluir","account","primary",true)}</div>`;
-      if (template === "profile") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="account">‹ VOLTAR</span><span class="step-mark">CONTA REELIX</span></div><div class="user-row"><div class="avatar">R</div><div><strong>Seu perfil</strong><span>Sua identidade no Reelix.</span></div></div><p class="mini-section">INFORMAÇÕES</p>${formField("Nome de exibição","Como você quer aparecer")}<p class="tiny" style="text-align:right">0/50</p>${formField("Biografia","Uma frase sobre você")}<p class="tiny" style="text-align:right">0/280</p><p class="mini-section">PRIVACIDADE</p><div class="row" data-go="privacy"><span>Perfil visível<small>Privado por padrão</small></span><span class="toggle"></span></div><p class="mini-section">PREFERÊNCIAS</p><div class="row" data-go="preferences"><span>Gêneros e títulos favoritos</span><span class="tiny">Editar</span></div>${goButton("Salvar alterações","profile-edit","primary",true)}<p class="tiny" style="margin-top:9px">Créditos TMDB ao final da tela. Estatísticas, conquistas e upload de avatar não fazem parte deste incremento.</p></div>`;
+      if (template === "profile") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="account">‹ VOLTAR</span><span class="step-mark">CONTA REELIX</span></div><div class="user-row"><div class="avatar">R</div><div><strong>Seu perfil</strong><span>Sua identidade no Reelix.</span></div></div><p class="mini-section">CONQUISTAS</p>${medalPreview()}<p class="mini-section">INFORMAÇÕES</p>${formField("Nome de exibição","Como você quer aparecer")}<p class="tiny" style="text-align:right">0/50</p>${formField("Biografia","Uma frase sobre você")}<p class="tiny" style="text-align:right">0/280</p><p class="mini-section">PRIVACIDADE</p><div class="row" data-go="privacy"><span>Perfil visível<small>Privado por padrão</small></span><span class="toggle"></span></div><p class="mini-section">PREFERÊNCIAS</p><div class="row" data-go="preferences"><span>Gêneros e títulos favoritos</span><span class="tiny">Editar</span></div>${goButton("Salvar alterações","profile-edit","primary",true)}<p class="tiny" style="margin-top:9px">Créditos TMDB ao final da tela. Upload de avatar permanece fora deste incremento.</p></div>`;
       if (template === "profile-edit") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="account">‹ VOLTAR</span><span class="step-mark">CONTA REELIX</span></div><p class="mini-section">INFORMAÇÕES</p><div class="field"><label>Nome de exibição</label><div class="input" style="border-color:var(--pink)"><span>Nome em edição</span></div></div><p class="tiny" style="text-align:right">14/50</p>${formField("Biografia","Uma frase sobre você")}<p class="tiny" style="text-align:right">0/280</p><div class="form-note">O campo em foco recebe borda rosa. Os limites de 50 e 280 caracteres também são validados no servidor.</div>${goButton("Salvar alterações","profile","primary",true)}<div class="form-note success" style="margin-top:10px">Perfil atualizado.</div></div>`;
       if (template === "preferences") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="profile">‹ VOLTAR</span><span class="step-mark">EDITANDO PREFERÊNCIAS</span></div><div class="progress"><span style="width:40%"></span></div><p class="phone-kicker">PREFERÊNCIAS</p><p class="phone-title">Que tipo de história te prende?</p><p class="phone-subtitle">Mesmo fluxo do onboarding, aberto em modo de edição pela Home ou pelo Perfil.</p><div class="chip-row">${choice("Ação",true)}${choice("Comédia",true)}${choice("Drama")}</div>${goButton("Continuar","fav-movies","primary",true)}<a class="center-link" href="#" data-go="profile">Cancelar edição</a><p class="tiny" style="margin-top:9px">Na revisão, a ação final é “Salvar preferências”. Não duplica títulos nem gêneros do catálogo.</p></div>`;
-      if (template === "privacy") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="account">‹ VOLTAR</span><span class="step-mark">CONTA REELIX</span></div><p class="mini-section">PRIVACIDADE</p><div class="row"><span>Perfil visível<small>Seus dados básicos podem aparecer quando alguém consulta seu perfil.</small></span><span class="toggle"></span></div><div class="row"><span>Favoritos visíveis<small>Exibe seus títulos favoritos no perfil público.</small></span><span class="toggle"></span></div><div class="row"><span>Histórico visível<small>A configuração será aplicada quando o histórico estiver disponível.</small></span><span class="toggle"></span></div><div class="form-note">Todas as opções começam desligadas e são salvas junto com o perfil.</div>${goButton("Salvar alterações","profile","primary",true)}</div>`;
-      if (template === "search") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Descobrir</p><span class="tiny">⌕</span></div><p class="phone-subtitle">Pesquise filmes e séries no catálogo disponível.</p><div class="input search"><span>⌕ &nbsp; Título, filme ou série</span><span class="icon">↵</span></div><div class="chip-row">${choice("Todos",true)}${choice("Filmes")}${choice("Séries")}</div><div class="soft-card"><strong>Busca autenticada</strong><p>Termo, tipo, página e idioma seguem o contrato Reelix; provedor disponível no backend.</p></div><div class="phone-actions">${goButton("Buscar","results","primary")}${goButton("Ver séries","series","secondary")}</div><p class="tiny" style="margin-top:13px">PROPOSTA DE INTERFACE · NÃO ESPECIFICADA PELO PLANO DE CATÁLOGO</p></div>`;
+      if (template === "privacy") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="account">‹ VOLTAR</span><span class="step-mark">CONTA REELIX</span></div><p class="mini-section">PRIVACIDADE</p><div class="row"><span>Perfil visível<small>Seus dados básicos podem aparecer quando alguém consulta seu perfil.</small></span><span class="toggle"></span></div><div class="row"><span>Favoritos visíveis<small>Exibe seus títulos favoritos no perfil público.</small></span><span class="toggle"></span></div><div class="row"><span>Histórico visível<small>O compartilhamento social também exige consentimento independente.</small></span><span class="toggle"></span></div><div class="form-note">Todas as opções começam desligadas e são salvas junto com o perfil. Histórico não é público apenas por existir.</div>${goButton("Salvar alterações","profile","primary",true)}</div>`;
+      if (template === "search") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Descobrir</p><span class="tiny">⌕</span></div><p class="phone-subtitle">Pesquise filmes e séries no catálogo disponível.</p><div class="input search"><span>⌕ &nbsp; Título, filme ou série</span><span class="icon">↵</span></div><div class="chip-row">${choice("Todos",true)}${choice("Filmes")}${choice("Séries")}</div><div class="soft-card"><strong>Busca autenticada</strong><p>Termo, tipo, página e idioma seguem o contrato Reelix; provedor disponível no backend.</p></div><div class="phone-actions">${goButton("Buscar","results","primary")}${goButton("Ver séries","series","secondary")}</div><p class="tiny" style="margin-top:13px">Tela mobile implementada; cards exibidos aqui são apenas ilustrativos.</p></div>`;
       if (template === "results") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Resultados</p><span class="tiny">FILTRO</span></div><div class="input search"><span>⌕ &nbsp; Busca atual</span><span class="icon">×</span></div><div class="chip-row">${choice("Todos",true)}${choice("Filmes")}${choice("Séries")}</div><p class="tiny">RESULTADOS · PROVEDOR / PÁGINA DISPONÍVEIS</p>${resultCard("Resultado do catálogo","Filme · metadados disponíveis")}${resultCard("Resultado do catálogo","Série · metadados disponíveis","cool")}${resultCard("Resultado do catálogo","Filme · data opcional","gold")}<div class="phone-actions">${goButton("‹ Anterior","search","secondary")}${goButton("Próxima página","movie","primary")}</div><p class="tiny" style="margin-top:10px">Resultados ilustrativos, não retornados por API.</p></div>`;
       if (template === "movie") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="results">‹ VOLTAR</span><span class="tiny">DETALHES</span></div><div class="title-art"><small>Filme · provedor de origem</small><strong>Título do catálogo</strong></div><div class="inline-metadata">${chip("Data opcional")}${chip("Duração opcional")}${chip("Idioma opcional")}</div><div class="chip-row">${choice("Gênero disponível")}${choice("Outro gênero")}</div><p class="mini-section">SINOPSE</p><p class="phone-subtitle">Sinopse fornecida pelo provedor, quando disponível. Este campo permanece opcional.</p><div class="soft-card"><strong>Origem identificável</strong><p>ID interno Reelix + provedor + ID externo.</p></div><div class="form-note">Avaliações e comentários privados ou públicos aparecem abaixo dos detalhes, no módulo correspondente.</div>${goButton("Voltar aos resultados","results","secondary",true)}</div>`;
       if (template === "series") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="results">‹ VOLTAR</span><span class="tiny">DETALHES</span></div><div class="title-art series-art"><small>Série · provedor de origem</small><strong>Título do catálogo</strong></div><div class="inline-metadata">${chip("Estreia opcional")}${chip("Idioma opcional")}</div><div class="chip-row">${choice("Gênero disponível")}${choice("Gênero disponível")}</div><p class="mini-section">SOBRE</p><p class="phone-subtitle">Sinopse e dados de estreia quando fornecidos pelo provedor.</p><p class="mini-section">TEMPORADAS DISPONÍVEIS</p><div class="row"><span>Informe o número da temporada<small>Consultar episódios no catálogo</small></span><span>›</span></div>${goButton("Ver temporada","season","primary",true)}<p class="tiny" style="margin-top:10px">Notas e comentários também ficam disponíveis nos detalhes da série.</p></div>`;
       if (template === "season") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="series">‹ SÉRIE</span><span class="tiny">TEMPORADA</span></div><p class="phone-kicker">SÉRIE · TEMPORADA DISPONÍVEL</p><p class="phone-title">Temporada</p><p class="phone-subtitle">Episódios retornados pelo provedor. Dados ausentes não são inferidos.</p>${["Episódio disponível","Episódio disponível","Episódio disponível"].map((item, index) => `<div class="row"><span>${String(index + 1).padStart(2,"0")} · ${item}<small>Data / duração quando disponíveis</small></span>${goButton("Avaliar episódio","reviews","secondary")}</div>`).join("")}<div class="form-note">Avaliar um episódio não registra progresso de visualização.</div>${goButton("Voltar aos detalhes","series","secondary",true)}</div>`;
       if (template === "tracking") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Acompanhamento</p><span class="tiny">HISTÓRICO</span></div><div class="tab-row"><span class="tab active">Histórico</span><span class="tab">Séries</span></div><p class="mini-section">SEU HISTÓRICO · PÁGINA 1</p><div class="row"><span>Registro do seu histórico<small>Data de visualização · filme ou episódio</small></span><span>✓</span></div><div class="row"><span>Série acompanhada<small>Contagem real de episódios assistidos</small></span><span>›</span></div><div class="form-note">Total, percentual e conclusão ficam indisponíveis se o inventário completo da série não for fornecido pelo catálogo.</div><div class="phone-actions">${goButton("Página anterior","account","secondary")}${goButton("Próxima página","lists","primary")}</div><p class="tiny">Wireframe conceitual; conteúdo vem da API autenticada e paginada.</p></div>`;
-      if (template === "lists") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><p class="phone-title">Seus títulos e listas</p><span class="tiny">PRIVADO</span></div><div class="tab-row"><span class="tab active">Favoritos</span><span class="tab">Watchlist</span><span class="tab">Minhas listas</span></div><div class="input search"><span>Buscar filmes e séries no catálogo</span><span class="icon">⌕</span></div><div class="row"><span>Título salvo<small>Dados carregados do catálogo</small></span>${goButton("Remover","tracking","secondary")}</div><div class="soft-card"><strong>Lista privada</strong><p>Acesso owner-only · quantidade real de títulos · ordem editável</p>${goButton("Criar ou editar lista","tracking","primary",true)}</div><div class="form-note">Favoritos, watchlist, listas e histórico são relações independentes. Conteúdo ilustrativo, sem dados reais.</div></div>`;
+      if (template === "lists") {
+        const rail = (label, content) => `<div aria-label="${label}" style="display:flex;gap:8px;overflow-x:auto;align-items:flex-start;padding-bottom:8px">${content}</div>`;
+        const iconActions = (actions) => `<div style="display:flex;flex-wrap:wrap;gap:4px">${actions.map(([icon,label]) => `<button class="action secondary" aria-label="${label}" title="${label}" style="width:44px;height:44px;padding:10px"><img src="../../mobile/assets/brand/navigation-icons/${icon}.svg" width="24" height="24" alt=""></button>`).join("")}</div>`;
+        const titleCards = (actions) => [1,2,3].map((number) => `<div class="soft-card" style="flex:0 0 164px;margin:0"><div class="poster" style="height:180px;width:100%"></div><strong>Título do catálogo ${number}</strong><p class="tiny">Metadados da API</p>${iconActions(actions)}</div>`).join("");
+        const searchCards = titleCards([["favorites","Adicionar favorito"],["clock","Adicionar à watchlist"],["list-add","Adicionar à lista"]]);
+        const savedCards = titleCards([["trash","Remover"]]);
+        const listCards = [1,2].map((number) => `<div class="soft-card" style="flex:0 0 272px;min-width:0;margin:0"><div class="phone-heading"><strong>Lista privada ${number}</strong><button class="action ghost" data-state="Menu da lista" aria-label="Opções da lista">...</button></div><p>Descrição e total de filmes/séries da API</p>${number === 1 ? rail("Conteúdos da lista privada",titleCards([["trash","Remover"],["arrow-up","Mover para cima"],["arrow-down","Mover para baixo"]])) : '<button class="action secondary">Abrir lista</button>'}</div>`).join("");
+        inner = `${phoneTop}<div class="phone-content">${goButton("← Voltar","drawer","ghost")}
+          <div class="phone-heading"><p class="phone-title">Seus títulos e listas</p><span class="tiny">PRIVADO</span></div>
+          <div class="tab-row"><span class="tab">Favoritos</span><span class="tab">Watchlist</span><span class="tab active">Minhas listas</span></div>
+          <div class="input search"><span>Buscar filmes e séries no catálogo</span><span class="icon">⌕</span></div>
+          ${rail("Resultados do catálogo",searchCards)}<p class="tiny">${screen.searchActionNotes}</p>
+          <div class="phone-heading"><strong>Listas privadas</strong><button class="action secondary" data-state="Criar lista" aria-label="Adicionar nova lista">+</button></div>
+          ${rail("Listas privadas",listCards)}
+          <p class="tiny">Favoritos e Watchlist usam o mesmo carrossel de pôsteres:</p>${rail("Exemplo de Favoritos e Watchlist",savedCards)}
+          ${["Criar lista","Editar lista"].includes(currentScreen.state) ? `<div class="soft-card"><strong>${currentScreen.state}</strong>${formField("Nome","Nome da lista")}${formField("Descrição","Opcional, até 500 caracteres")}<button class="action primary" data-state="${currentScreen.state}">Salvar</button><button class="action secondary" data-state="${currentScreen.state}">Cancelar</button></div>` : currentScreen.state === "Confirmar exclusão" ? '<div class="soft-card"><strong>Excluir a lista selecionada?</strong><p>Catálogo, Favoritos e Watchlist não serão alterados.</p><button class="action primary" data-state="Confirmar exclusão">Confirmar exclusão</button><button class="action secondary" data-state="Confirmar exclusão">Cancelar</button></div>' : ''}
+          ${currentScreen.state === "Menu da lista" ? '<div class="soft-card"><button class="action ghost" data-state="Editar lista">Editar</button><button class="action ghost" data-state="Confirmar exclusão">Excluir</button></div>' : ''}
+          <div class="form-note">Todas as listagens têm rolagem horizontal; paginação preservada. Um único card por lista. Formulário sob demanda; alterações exigem persistência autenticada no app. Exemplos visuais não são dados reais.</div></div>`;
+      }
       if (template === "reviews") inner = `${phoneTop}<div class="phone-content"><div class="phone-heading"><span class="tiny" data-go="series">‹ DETALHES</span><span class="tiny">AVALIAÇÕES</span></div><p class="phone-title">Avaliações e comentários</p><div class="soft-card"><p class="phone-kicker">MÉDIA PÚBLICA</p><p class="phone-title">4,5 <span class="tiny">/ 5 · 12 avaliações</span></p><p class="phone-subtitle">Sua nota continua privada até você escolher publicá-la.</p><div class="chip-row">${choice("0")}${choice("0,5 ★")}${choice("1 ★")}${choice("1,5 ★", true)}${choice("2 ★")}</div><div class="choice-row">${choice("Privada", true)}${choice("Pública")}</div>${goButton("Salvar avaliação","reviews","primary",true)}</div><div class="soft-card"><p class="phone-kicker">SEU COMENTÁRIO</p><div class="input"><span>Compartilhe sua opinião · até 2.000 caracteres</span></div><div class="choice-row">${choice("Privada", true)}${choice("Pública")}</div><div class="choice-row">${choice("Marcar como spoiler")}${choice("Solicitar análise opcional")}</div><div class="form-note">Análise externa só quando habilitada no servidor e solicitada pelo autor.</div>${goButton("Publicar comentário","reviews","primary",true)}</div><div class="soft-card"><p class="phone-kicker">COMENTÁRIO · PÚBLICO</p><p>Leitor · data</p><div class="form-note">Spoiler oculto até a ação explícita do leitor.</div>${goButton("Revelar spoiler","reviews","secondary",true)}<div class="tiny">O autor também pode editar ou excluir seu comentário.</div></div><div class="form-note">Mesma experiência para filmes, séries e episódios; o destino do episódio é validado no servidor.</div>${goButton("Ver episódio","season","secondary",true)}</div>`;
 
       const auth = screen.module === "auth";
@@ -1377,6 +1450,33 @@
             [["Home","account"],["Favoritos e listas","lists"],["Favoritos","lists"]],
             [["Favoritos e listas","lists"],["Watchlist","lists"],["Listas privadas","lists"]],
           ], label: "AS IS · implementado",
+        },
+        {
+          title: "Social", status: "partial", caption: "Amizades, solicitações, perfis contextuais e feed respeitam consentimentos; a migration é pré-requisito do banco.",
+          paths: [
+            [["Menu","drawer"],["Amigos","social"],["Pesquisar / solicitar","social"]],
+            [["Amigos","social"],["Feed autorizado","social"],["Perfil contextual","social"]],
+          ], label: "Código implementado · migration por ambiente",
+        },
+        {
+          title: "Notificações", status: "partial", caption: "Inbox e preferências sociais no código; push remoto está desativado e alertas de catálogo pendentes.",
+          paths: [
+            [["Header · sino","notifications"],["Inbox","notifications"],["Destino interno","account"]],
+            [["Notificações","notifications"],["Preferências","notifications"],["Push condicionado","notifications"]],
+          ], label: "Implementação parcial · setup pendente",
+        },
+        {
+          title: "Gamificação", status: "partial", caption: "Dashboard, medalhas, estatísticas e ranking no código; migration precisa estar aplicada.",
+          paths: [
+            [["Menu","drawer"],["Conquistas","gamification"],["Medalha","profile"]],
+            [["Conquistas","gamification"],["Estatísticas / ranking","gamification"]],
+          ], label: "Código implementado · migration por ambiente",
+        },
+        {
+          title: "Widgets mobile", status: "todo", caption: "Nenhuma integração nativa implementada ou validada para iOS/Android.",
+          paths: [
+            [["Projeto atual","widgets"],["Não implementado","widgets"]],
+          ], label: "Spike documentado · sem suporte aprovado",
         },
       ];
       document.getElementById("flow-grid").innerHTML = flows.map(flow => {

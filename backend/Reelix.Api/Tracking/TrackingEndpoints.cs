@@ -30,6 +30,12 @@ public static class TrackingEndpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status404NotFound);
+        group.MapGet("/movies/{titleId:guid}", GetMovieStatus)
+            .WithName("GetMovieTrackingStatus")
+            .WithSummary("Get whether a movie is in the authenticated user's watch history.")
+            .Produces<bool>()
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status404NotFound);
         group.MapDelete("/movies/{titleId:guid}", RemoveMovie)
             .WithName("RemoveWatchedMovie")
             .WithSummary("Remove a movie from the authenticated user's watch history.")
@@ -56,10 +62,14 @@ public static class TrackingEndpoints
             .ProducesProblem(StatusCodes.Status401Unauthorized);
         group.MapGet("/series/{seriesId:guid}/progress", GetSeriesProgress)
             .WithName("GetSeriesProgress")
-            .WithSummary("Get watched episode counts for a series.")
+            .WithSummary("Get released episode progress across all seasons, including specials.")
             .Produces<SeriesProgress>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status404NotFound);
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status502BadGateway)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
+            .ProducesProblem(StatusCodes.Status504GatewayTimeout);
         group.MapGet(
                 "/series/{seriesId:guid}/seasons/{seasonNumber:int}/progress",
                 GetSeasonProgress)
@@ -131,6 +141,22 @@ public static class TrackingEndpoints
             userId,
             titleId,
             request.WatchedAt,
+            context.RequestAborted)));
+    }
+
+    private static async Task<IResult> GetMovieStatus(
+        HttpContext context,
+        TrackingService tracking,
+        Guid titleId)
+    {
+        if (!TryGetUserId(context, out var userId))
+        {
+            return Results.Unauthorized();
+        }
+
+        return await ExecuteAsync(async () => Results.Ok(await tracking.IsMovieWatchedAsync(
+            userId,
+            titleId,
             context.RequestAborted)));
     }
 
@@ -214,17 +240,24 @@ public static class TrackingEndpoints
     private static async Task<IResult> GetSeriesProgress(
         HttpContext context,
         TrackingService tracking,
-        Guid seriesId)
+        Guid seriesId,
+        string provider = "tmdb")
     {
         if (!TryGetUserId(context, out var userId))
         {
             return Results.Unauthorized();
         }
 
+        if (!TryParseProvider(provider, out var parsedProvider))
+        {
+            return InvalidRequest();
+        }
+
         return await ExecuteAsync(async () => Results.Ok(await tracking.GetSeriesProgressAsync(
             userId,
             seriesId,
-            context.RequestAborted)));
+            context.RequestAborted,
+            parsedProvider)));
     }
 
     private static async Task<IResult> GetSeasonProgress(

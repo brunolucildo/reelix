@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -146,6 +147,7 @@ export default function SocialScreen() {
           ) : null}
           {search.data?.map((user) => (
             <View key={user.accountId} style={styles.listRow}>
+              <SocialAvatar name={user.displayName} uri={user.avatarUrl} />
               <Text style={styles.rowTitle}>{user.displayName}</Text>
               {user.relationshipStatus === 'accepted' ? (
                 <Pressable
@@ -186,13 +188,26 @@ export default function SocialScreen() {
                   </View>
                 )
               ) : (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => request.mutate(user.accountId)}
-                  style={styles.actionButton}
-                >
-                  <Text style={styles.actionText}>Adicionar</Text>
-                </Pressable>
+                <>
+                  {user.relationshipStatus === 'declined' ? (
+                    <Text style={styles.secondaryText}>Solicitação recusada anteriormente</Text>
+                  ) : user.relationshipStatus === 'cancelled' ? (
+                    <Text style={styles.secondaryText}>Solicitação cancelada</Text>
+                  ) : user.relationshipStatus === 'removed' ? (
+                    <Text style={styles.secondaryText}>Amizade removida</Text>
+                  ) : null}
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => request.mutate(user.accountId)}
+                    style={styles.actionButton}
+                  >
+                    <Text style={styles.actionText}>
+                      {user.relationshipStatus === 'declined' || user.relationshipStatus === 'cancelled'
+                        ? 'Enviar nova solicitação'
+                        : 'Adicionar'}
+                    </Text>
+                  </Pressable>
+                </>
               )}
             </View>
           ))}
@@ -204,6 +219,7 @@ export default function SocialScreen() {
             <Text style={styles.secondaryText}>Você não tem solicitações pendentes.</Text>
           ) : allIncoming.map((item) => (
             <View key={item.relationshipId} style={styles.listRow}>
+              <SocialAvatar name={item.displayName} uri={item.avatarUrl} />
               <Text style={styles.rowTitle}>{item.displayName}</Text>
               <View style={styles.inlineActions}>
                 <Pressable
@@ -234,6 +250,7 @@ export default function SocialScreen() {
             <Text style={styles.secondaryText}>Você não tem solicitações enviadas pendentes.</Text>
           ) : allOutgoing.map((item) => (
             <View key={item.relationshipId} style={styles.listRow}>
+              <SocialAvatar name={item.displayName} uri={item.avatarUrl} />
               <Text style={styles.rowTitle}>{item.displayName}</Text>
               <Pressable
                 accessibilityRole="button"
@@ -255,6 +272,7 @@ export default function SocialScreen() {
             <Text style={styles.secondaryText}>Quando você aceitar uma solicitação, seus amigos aparecerão aqui.</Text>
           ) : allFriends.map((friend) => (
             <View key={friend.relationshipId} style={styles.listRow}>
+              <SocialAvatar name={friend.displayName} uri={friend.avatarUrl} />
               <Pressable
                 accessibilityRole="button"
                 onPress={() => router.push({
@@ -328,6 +346,17 @@ export default function SocialScreen() {
   );
 }
 
+function SocialAvatar({ name, uri }: { name: string; uri?: string | null }) {
+  const initials = name.trim().slice(0, 1).toLocaleUpperCase('pt-BR') || '?';
+  return uri ? (
+    <Image accessibilityLabel={`Avatar de ${name}`} contentFit="cover" source={{ uri }} style={styles.avatar} />
+  ) : (
+    <View accessibilityLabel={`Avatar de ${name}`} style={styles.avatarFallback}>
+      <Text style={styles.avatarInitial}>{initials}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
@@ -394,6 +423,25 @@ const styles = StyleSheet.create({
     gap: spacing.small,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surfaceElevated,
+  },
+  avatarFallback: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.pill,
+    backgroundColor: colors.surfaceElevated,
+  },
+  avatarInitial: {
+    color: colors.textPrimary,
+    fontSize: typography.body,
+    fontFamily: fontFamily.semiBold,
   },
   rowTitle: {
     flexShrink: 1,

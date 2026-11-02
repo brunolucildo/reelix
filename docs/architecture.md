@@ -76,14 +76,37 @@ A change should not be considered complete until relevant checks pass:
 7. Documentation updates for changed contracts, configuration, or architectural decisions.
 8. For mobile UI changes, compliance with the [UX standards](#ux-standards-for-every-mobile-screen) and an updated visual wireframe.
 
+### Current implementation snapshot · 02/11/2026
+
+This document includes both architectural standards and future options. The active
+implementation in this repository is:
+
+- Mobile: React Native, Expo SDK 58, TypeScript, Expo Router, TanStack Query and
+  React Native `StyleSheet`; shared design tokens and brand assets live under
+  `mobile/src/theme/` and `mobile/assets/brand/`.
+- Backend: ASP.NET Core / .NET 10, Clean Architecture projects, EF Core/Npgsql,
+  PostgreSQL and xUnit.
+- Identity: Supabase Auth is the active provider. The API validates its JWTs and
+  resolves the internal Reelix account; ASP.NET Identity is not implemented.
+- Catalog: TMDB is the primary discovery provider and OMDb is optional. Provider
+  credentials remain on the server; stored catalog references do not constitute a
+  full metadata cache.
+- Implemented code includes onboarding/profile, discovery, tracking and lists,
+  reviews/comments, social, notifications and gamification. See the module specs for
+  operational gates. Push delivery is disabled by default; automatic spoiler analysis
+  is temporarily disabled; widgets are not implemented.
+- A feature present in source is not proof that its migration or provider credentials
+  are deployed in a particular environment. The README status table and module
+  specifications record these boundaries.
+
 ## 2. Architecture decisions
 
 - **Mobile application:** React Native + Expo + TypeScript.
 - **Backend API:** ASP.NET Core Web API with C#.
 - **Database:** PostgreSQL, initially hosted by Supabase or another managed PostgreSQL provider.
-- **Authentication:** Supabase Auth or ASP.NET Core Identity with an established identity provider. Choose one approach; do not build password handling from scratch.
+- **Authentication (active):** Supabase Auth. ASP.NET Core Identity is not part of the current application; do not add a second identity system.
 - **Content metadata:** Use a licensed/provider-approved movie and TV metadata API. Keep provider integration behind an adapter so it can be replaced.
-- **API style:** REST + OpenAPI. Generate or maintain a typed TypeScript client from the OpenAPI contract.
+- **API style:** REST + OpenAPI. The current mobile app maintains typed request/response schemas and clients; generation from OpenAPI is a future option, not an existing build step.
 - **Hosting:** Deploy the .NET API to a container-friendly platform. Host the mobile app through Apple App Store and Google Play; Expo EAS can support builds and releases. Use Vercel only for optional web surfaces such as a landing page or admin web app.
 - **Automation:** n8n for non-critical workflows and integrations, not as the core request-processing backend.
 - **Architecture style:** Modular monolith first, with clear module boundaries. Avoid microservices until scale, team ownership, or independent deployment needs justify them.
@@ -344,7 +367,12 @@ Vercel is not the default host for an ASP.NET Core API. Do not assume a Next.js 
 
 Do not chase a coverage percentage without testing meaningful behavior. Prioritize critical user journeys and regression-prone business rules.
 
-## 14. MVP implementation order
+## 14. Initial MVP implementation order (historical)
+
+The sequence below records the original delivery order, not the current backlog or
+completion status. Use the dated implementation snapshot near the beginning of this
+document and the [README status table](../README.md#estado-atual-do-projeto) for
+current scope.
 
 1. Create the mobile app shell, navigation, Reelix brand assets and design tokens, and API client.
 2. Implement authentication and user profile/preferences.
@@ -367,7 +395,7 @@ Do not chase a coverage percentage without testing meaningful behavior. Prioriti
 | API contract | REST + OpenAPI |
 | ORM | EF Core + Npgsql |
 | Database | PostgreSQL, optionally managed by Supabase |
-| Authentication | Supabase Auth or ASP.NET Core Identity + identity provider |
+| Authentication | Supabase Auth (active implementation) |
 | UI styling | React Native StyleSheet or NativeWind, using tokens mapped from the Reelix Brand Kit |
 | Web admin (optional) | Next.js + shadcn/ui |
 | Lint/format | Biome where supported; ESLint if needed |

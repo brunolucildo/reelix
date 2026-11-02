@@ -32,7 +32,8 @@ public sealed record SeriesProgress(
     int WatchedEpisodeCount,
     int? AvailableEpisodeCount,
     decimal? ProgressPercentage,
-    bool? IsComplete);
+    bool? IsComplete,
+    int? PendingEpisodeCount = null);
 
 public sealed record SeasonProgress(
     Guid SeriesId,
@@ -107,8 +108,21 @@ public interface ITrackingRepository
         CancellationToken cancellationToken);
 }
 
+public interface IEpisodeTrackingLookup
+{
+    Task<bool> IsEpisodeTrackedAsync(
+        Guid accountId,
+        Guid episodeId,
+        CancellationToken cancellationToken);
+}
+
 public interface ITrackingCatalog
 {
+    Task<IReadOnlyList<CatalogSeasonSummary>?> GetSeasonsAsync(
+        Guid seriesId,
+        CatalogProvider provider,
+        CancellationToken cancellationToken);
+
     Task<CatalogSeason?> GetSeasonAsync(
         Guid seriesId,
         int seasonNumber,

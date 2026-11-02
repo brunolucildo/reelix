@@ -89,6 +89,15 @@ public sealed class NotificationsService(
                 : null);
     }
 
+    public async Task<NotificationUnreadCount> GetUnreadCountAsync(
+        Guid supabaseUserId,
+        CancellationToken cancellationToken)
+    {
+        var accountId = await GetAccountIdAsync(supabaseUserId, cancellationToken);
+        return new NotificationUnreadCount(
+            await notificationsRepository.GetUnreadCountAsync(accountId, cancellationToken));
+    }
+
     public async Task<bool> MarkReadAsync(
         Guid supabaseUserId,
         Guid notificationId,
