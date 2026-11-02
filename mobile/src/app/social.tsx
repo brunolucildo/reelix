@@ -13,6 +13,7 @@ import {
 import { useRouter } from 'expo-router';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { BackButton } from '@/components/navigation/back-button';
 import { useErrorToast } from '@/providers/toast-provider';
 import {
   cancelFriendRequest,
@@ -118,9 +119,7 @@ export default function SocialScreen() {
   return (
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <View style={styles.container}>
-        <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backLabel}>Voltar</Text>
-        </Pressable>
+        <BackButton />
         <View style={styles.heading}>
           <Text accessibilityRole="header" style={styles.title}>Amigos</Text>
           <Text style={styles.secondaryText}>

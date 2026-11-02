@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Redirect, useLocalSearchParams } from 'expo-router';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { BackButton } from '@/components/navigation/back-button';
 import { RatingReviewSection } from '@/components/reviews/rating-review-section';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
@@ -10,7 +11,6 @@ import { fetchCatalogSeason, type CatalogTitle } from '@/services/api-client';
 import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';
 
 export default function CatalogEpisodeScreen() {
-  const router = useRouter();
   const { session } = useAuthSession();
   const params = useLocalSearchParams<{
     provider?: string;
@@ -52,7 +52,7 @@ export default function CatalogEpisodeScreen() {
     return (
       <View style={styles.centered}>
         <Text accessibilityRole="alert" style={styles.title}>O endereço deste episódio é inválido.</Text>
-        <PrimaryButton label="Voltar" onPress={() => router.back()} />
+        <BackButton />
       </View>
     );
   }
@@ -71,7 +71,7 @@ export default function CatalogEpisodeScreen() {
       <View style={styles.centered}>
         <Text accessibilityRole="header" style={styles.title}>Não foi possível abrir este episódio.</Text>
         <PrimaryButton label="Tentar novamente" onPress={() => void season.refetch()} />
-        <PrimaryButton label="Voltar" variant="secondary" onPress={() => router.back()} />
+        <BackButton />
       </View>
     );
   }
@@ -81,20 +81,14 @@ export default function CatalogEpisodeScreen() {
     return (
       <View style={styles.centered}>
         <Text accessibilityRole="header" style={styles.title}>Episódio não encontrado nesta temporada.</Text>
-        <PrimaryButton label="Voltar" onPress={() => router.back()} />
+        <BackButton />
       </View>
     );
   }
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => router.back()}
-        style={styles.backButton}
-      >
-        <Text style={styles.backText}>Voltar</Text>
-      </Pressable>
+      <BackButton />
       <Text style={styles.secondaryText}>
         {season.data.title ?? `Temporada ${season.data.seasonNumber}`}
         {episode.episodeNumber === null ? '' : ` · Episódio ${episode.episodeNumber}`}

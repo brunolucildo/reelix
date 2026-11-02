@@ -1,9 +1,8 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { useInfiniteQuery, useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Image } from 'expo-image';
 import { useMemo } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   ScrollView,
   StyleSheet,
   Switch,
@@ -12,11 +11,14 @@ import {
 } from 'react-native';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { BackButton } from '@/components/navigation/back-button';
+import { useTrackingHistory } from '@/hooks/use-tracking';
 import { useErrorToast, useToast } from '@/providers/toast-provider';
 import {
   fetchGamificationDashboard,
   fetchGamificationStatistics,
   fetchMonthlyFriendsRanking,
+  fetchCatalogTitleDetails,
   saveGamificationPreferences,
   type AchievementProgress,
   type GamificationStatistics,
@@ -24,7 +26,6 @@ import {
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 
 export default function GamificationScreen() {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const { showError } = useToast();
   const dashboard = useQuery({
@@ -34,18 +35,40 @@ export default function GamificationScreen() {
   const now = new Date();
   const year = now.getUTCFullYear();
   const month = now.getUTCMonth() + 1;
-  const periodStart = useMemo(
-    () => new Date(Date.UTC(year, month - 1, 1)),
-    [year, month],
-  );
-  const periodEnd = useMemo(
-    () => new Date(Date.UTC(year, month, 1)),
-    [year, month],
-  );
+  const periodStart = new Date(Date.UTC(year, month - 1, 1));
+  const periodEnd = new Date(Date.UTC(year, month, 1));
   const periodStatistics = useQuery({
     queryKey: ['gamification', 'statistics', periodStart.toISOString(), periodEnd.toISOString()],
     queryFn: ({ signal }) => fetchGamificationStatistics(periodStart, periodEnd, signal),
   });
+  const activityHistory = useTrackingHistory(1, 20);
+  const activityTitleQueries = useQueries({
+    queries: (activityHistory.data?.items ?? []).map((activity) => {
+      const contentType = activity.type === 'movie' ? 'movie' : 'series';
+      const externalId = activity.type === 'movie' ? activity.externalId : activity.seriesExternalId;
+      return {
+        queryKey: ['gamification', 'activity-title', activity.id, activity.provider, externalId],
+        queryFn: ({ signal }: { signal: AbortSignal }) => {
+          if (!activity.provider || !externalId) {
+            throw new Error('Os detalhes deste conteúdo não estão disponíveis.');
+          }
+          return fetchCatalogTitleDetails(activity.provider, contentType, externalId, signal);
+        },
+        enabled: Boolean(activity.provider && externalId),
+        staleTime: 300_000,
+      };
+    }),
+  });
+  const activityTitleById = new Map(
+    (activityHistory.data?.items ?? []).flatMap((activity, index) => {
+      const title = activityTitleQueries[index]?.data;
+      return title ? [[activity.id, title] as const] : [];
+    }),
+  );
+  const activityGroups = useMemo(
+    () => groupActivitiesByMonth(activityHistory.data?.items ?? []),
+    [activityHistory.data?.items],
+  );
   const ranking = useInfiniteQuery({
     queryKey: ['gamification', 'ranking', year, month],
     initialPageParam: undefined as string | undefined,
@@ -71,8 +94,15 @@ export default function GamificationScreen() {
     },
   });
 
-  useErrorToast(dashboard.error, 'Não foi possível carregar suas conquistas.');
+  useErrorToast(dashboard.error, dashboard.error && 'status' in dashboard.error && dashboard.error.status === 401
+    ? 'Sua sessão expirou. Entre novamente para continuar.'
+    : 'Não foi possível carregar suas conquistas.');
   useErrorToast(periodStatistics.error, 'Não foi possível carregar as estatísticas do período.');
+  useErrorToast(activityHistory.error, 'Não foi possível carregar o histórico de atividades.');
+  useErrorToast(
+    activityTitleQueries.find((result) => result.error)?.error,
+    'Não foi possível carregar alguns títulos das atividades.',
+  );
   useErrorToast(ranking.error, 'Não foi possível carregar o ranking entre amigos.');
 
   if (dashboard.isPending) {
@@ -84,12 +114,12 @@ export default function GamificationScreen() {
     );
   }
 
-  if (dashboard.isError) {
+  if (!dashboard.data) {
     return (
       <View style={styles.centered}>
-        <Text accessibilityRole="header" style={styles.title}>Gamificação indisponível</Text>
+        <Text accessibilityRole="header" style={styles.title}>Conquistas e estatísticas</Text>
         <PrimaryButton label="Tentar novamente" onPress={() => void dashboard.refetch()} />
-        <PrimaryButton label="Voltar" onPress={() => router.back()} variant="secondary" />
+        <BackButton />
       </View>
     );
   }
@@ -99,10 +129,11 @@ export default function GamificationScreen() {
   return (
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.container}>
-        <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backLabel}>Voltar</Text>
-        </Pressable>
+        <BackButton />
         <Text accessibilityRole="header" style={styles.title}>Conquistas e estatísticas</Text>
+        {dashboard.isError ? (
+          <PrimaryButton label="Atualizar conquistas" onPress={() => void dashboard.refetch()} variant="secondary" />
+        ) : null}
         <Text style={styles.body}>
           Progresso calculado a partir dos seus registros de acompanhamento.
         </Text>
@@ -113,7 +144,9 @@ export default function GamificationScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Neste mês</Text>
+          <Text style={styles.sectionTitle}>
+            Este mês · {new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(now)}
+          </Text>
           {periodStatistics.isPending ? (
             <ActivityIndicator color={colors.brand} />
           ) : periodStatistics.isError ? (
@@ -128,7 +161,53 @@ export default function GamificationScreen() {
         </View>
 
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Atividade recente</Text>
+          {activityHistory.isPending ? (
+            <ActivityIndicator color={colors.brand} />
+          ) : activityHistory.isError && !activityHistory.data ? (
+            <PrimaryButton
+              label="Tentar carregar atividades"
+              onPress={() => void activityHistory.refetch()}
+              variant="secondary"
+            />
+          ) : activityGroups.length === 0 ? (
+            <Text style={styles.body}>Ainda não há atividades registradas.</Text>
+          ) : (
+            activityGroups.map((group) => (
+              <View key={group.key} style={styles.activityGroup}>
+                <Text style={styles.activityMonth}>{group.label}</Text>
+                {group.items.map((item) => (
+                  <View key={item.id} style={styles.activityRow}>
+                    <Text style={styles.activityIcon}>{item.type === 'movie' ? '▶' : '✓'}</Text>
+                    <View style={styles.activityCopy}>
+                      <Text style={styles.activityLabel}>
+                        {activityTitleById.get(item.id)?.title ??
+                          (item.type === 'movie' ? 'Filme assistido' : 'Episódio assistido')}
+                      </Text>
+                      <Text style={styles.caption}>
+                        {item.type === 'movie' ? 'Filme assistido' : 'Episódio assistido'}
+                        {' · '}
+                        {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeStyle: 'short' })
+                          .format(new Date(item.watchedAt))}
+                      </Text>
+                    </View>
+                    {activityTitleById.get(item.id)?.posterUrl ? (
+                      <Image
+                        contentFit="cover"
+                        source={{ uri: activityTitleById.get(item.id)?.posterUrl ?? undefined }}
+                        style={styles.activityPoster}
+                      />
+                    ) : null}
+                  </View>
+                ))}
+              </View>
+            ))
+          )}
+        </View>
+
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Conquistas</Text>
+          {dashboard.data.achievements.length === 0 ? <Text style={styles.body}>Ainda não há conquistas disponíveis.</Text> : null}
           {dashboard.data.achievements.map((achievement) => (
             <AchievementCard key={achievement.code} achievement={achievement} />
           ))}
@@ -205,9 +284,16 @@ export default function GamificationScreen() {
 function StatisticsSummary({ statistics }: { statistics: GamificationStatistics }) {
   return (
     <View style={styles.statistics}>
-      <Text style={styles.statLine}>
-        {statistics.moviesWatched} filmes · {statistics.episodesWatched} episódios · {statistics.seriesExplored} séries
-      </Text>
+      <View style={styles.statGrid}>
+        <StatTile label="Episódios" value={statistics.episodesWatched} icon="✓" />
+        <StatTile label="Séries" value={statistics.seriesExplored} icon="▣" />
+        <StatTile label="Filmes" value={statistics.moviesWatched} icon="▶" />
+        <StatTile
+          label="Registros"
+          value={statistics.moviesWatched + statistics.episodesWatched}
+          icon="◷"
+        />
+      </View>
       <Text style={styles.statLine}>{statistics.genresExplored} gêneros de filmes conhecidos</Text>
       <Text style={styles.body}>
         {statistics.estimatedWatchHours === null
@@ -235,6 +321,37 @@ function StatisticsSummary({ statistics }: { statistics: GamificationStatistics 
       ) : null}
     </View>
   );
+}
+
+function StatTile({ label, value, icon }: { label: string; value: number; icon: string }) {
+  return (
+    <View style={styles.statTile}>
+      <Text style={styles.statIcon}>{icon}</Text>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function groupActivitiesByMonth<T extends { id: string; type: 'movie' | 'episode'; watchedAt: string }>(
+  activities: T[],
+) {
+  const groups = new Map<string, { key: string; label: string; items: T[] }>();
+  for (const activity of activities) {
+    const date = new Date(activity.watchedAt);
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    let group = groups.get(key);
+    if (!group) {
+      group = {
+        key,
+        label: new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(date),
+        items: [],
+      };
+      groups.set(key, group);
+    }
+    group.items.push(activity);
+  }
+  return Array.from(groups.values());
 }
 
 function AchievementCard({ achievement }: { achievement: AchievementProgress }) {
@@ -350,9 +467,65 @@ const styles = StyleSheet.create({
     borderRadius: radii.medium,
     backgroundColor: colors.surface,
   },
+  statGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.small,
+  },
+  statTile: {
+    flexGrow: 1,
+    flexBasis: '45%',
+    minHeight: 92,
+    gap: spacing.extraSmall,
+    justifyContent: 'center',
+    padding: spacing.small,
+    borderRadius: radii.small,
+    backgroundColor: colors.surfaceElevated,
+  },
+  statIcon: { color: colors.brandSecondary, fontSize: typography.body, fontFamily: fontFamily.bold },
+  statValue: { color: colors.textPrimary, fontSize: typography.section, fontFamily: fontFamily.bold },
+  statLabel: { color: colors.textSecondary, fontSize: typography.caption, fontFamily: fontFamily.medium },
   statLine: {
     color: colors.textPrimary,
     fontSize: typography.body,
+    fontFamily: fontFamily.semiBold,
+  },
+  activityGroup: {
+    gap: spacing.small,
+    padding: spacing.medium,
+    borderRadius: radii.medium,
+    backgroundColor: colors.surface,
+  },
+  activityMonth: {
+    color: colors.brandSecondary,
+    fontSize: typography.bodySmall,
+    fontFamily: fontFamily.bold,
+    textTransform: 'capitalize',
+  },
+  activityRow: {
+    minHeight: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.medium,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  activityIcon: {
+    width: 32,
+    color: colors.brandSecondary,
+    fontSize: typography.body,
+    fontFamily: fontFamily.bold,
+  },
+  activityPoster: {
+    width: 42,
+    height: 62,
+    borderRadius: radii.small,
+    backgroundColor: colors.surfaceElevated,
+  },
+  activityCopy: { flex: 1, gap: spacing.extraSmall },
+  activityLabel: {
+    color: colors.textPrimary,
+    fontSize: typography.bodySmall,
     fontFamily: fontFamily.semiBold,
   },
   body: {

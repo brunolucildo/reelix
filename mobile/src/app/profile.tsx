@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, Tex
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { BackButton } from '@/components/navigation/back-button';
 import { useErrorToast, useToast } from '@/providers/toast-provider';
 import {
   fetchGamificationDashboard,
@@ -99,9 +100,7 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <View style={styles.container}>
         <View style={styles.topBar}>
-          <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backLabel}>Voltar</Text>
-          </Pressable>
+          <BackButton />
           <Text style={styles.eyebrow}>CONTA REELIX</Text>
         </View>
 

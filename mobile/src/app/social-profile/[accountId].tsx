@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { BackButton } from '@/components/navigation/back-button';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchFriendProfile, fetchPublicGamificationBadges } from '@/services/api-client';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
@@ -36,7 +37,7 @@ export default function SocialProfileScreen() {
       <View style={styles.centered}>
         <Text accessibilityRole="header" style={styles.title}>Perfil indisponível</Text>
         <PrimaryButton label="Tentar novamente" onPress={() => void profile.refetch()} />
-        <PrimaryButton label="Voltar" onPress={() => router.back()} variant="secondary" />
+        <BackButton />
       </View>
     );
   }
@@ -44,9 +45,7 @@ export default function SocialProfileScreen() {
   return (
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.container}>
-        <Pressable accessibilityRole="button" onPress={() => router.back()}>
-          <Text style={styles.backLabel}>Voltar</Text>
-        </Pressable>
+        <BackButton />
         <Text accessibilityRole="header" style={styles.title}>{profile.data.displayName}</Text>
         {profile.data.biography ? <Text style={styles.body}>{profile.data.biography}</Text> : null}
         <Text style={styles.sectionTitle}>Conquistas</Text>

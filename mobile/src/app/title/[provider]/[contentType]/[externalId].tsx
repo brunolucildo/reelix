@@ -8,15 +8,21 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { BackButton } from '@/components/navigation/back-button';
 import { RatingReviewSection } from '@/components/reviews/rating-review-section';
+import {
+  useMarkEpisodeWatched,
+  usePendingEpisodes,
+  useRemoveWatchedEpisode,
+  useSeasonProgress,
+} from '@/hooks/use-tracking';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
-import { fetchCatalogSeason, fetchCatalogTitleDetails } from '@/services/api-client';
+import { fetchCatalogSeason, fetchCatalogSeasons, fetchCatalogTitleDetails } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 
 export default function CatalogTitleScreen() {
@@ -30,8 +36,8 @@ export default function CatalogTitleScreen() {
   const provider = isCatalogProvider(params.provider) ? params.provider : null;
   const contentType = isCatalogContentType(params.contentType) ? params.contentType : null;
   const externalId = typeof params.externalId === 'string' ? params.externalId : null;
-  const [seasonInput, setSeasonInput] = useState('');
-  const [seasonNumber, setSeasonNumber] = useState<number | null>(null);
+  const [seasonSelections, setSeasonSelections] = useState<Record<string, number>>({});
+  const [trackingFeedback, setTrackingFeedback] = useState<string | null>(null);
   const validParams = provider && contentType && externalId
     ? { provider, contentType, externalId }
     : null;
@@ -54,6 +60,30 @@ export default function CatalogTitleScreen() {
     staleTime: 300_000,
   });
   useErrorToast(details.error, 'Não foi possível carregar os detalhes deste título. Tente novamente.');
+  const seasons = useQuery({
+    queryKey: ['catalog-seasons', provider, externalId],
+    queryFn: ({ signal }) => {
+      if (!provider || !externalId) {
+        throw new Error('O endereço desta série é inválido.');
+      }
+
+      return fetchCatalogSeasons(provider, externalId, signal);
+    },
+    enabled: provider !== null && contentType === 'series' && externalId !== null && details.isSuccess,
+    staleTime: 300_000,
+  });
+  useErrorToast(seasons.error, 'Não foi possível carregar as temporadas disponíveis.');
+  const availableSeasons = seasons.data ?? [];
+  const seriesKey = `${provider}:${externalId}`;
+  const savedSeasonNumber = seasonSelections[seriesKey];
+  const defaultSeasonNumber = availableSeasons.find((seasonInfo) => seasonInfo.seasonNumber > 0)?.seasonNumber ??
+    availableSeasons[0]?.seasonNumber ?? null;
+  const seasonNumber = availableSeasons.some((seasonInfo) => seasonInfo.seasonNumber === savedSeasonNumber)
+    ? savedSeasonNumber
+    : defaultSeasonNumber;
+  const setSeasonNumber = (number: number) => {
+    setSeasonSelections((current) => ({ ...current, [seriesKey]: number }));
+  };
   const season = useQuery({
     queryKey: ['catalog-season', provider, externalId, seasonNumber],
     queryFn: ({ signal }) => {
@@ -67,6 +97,18 @@ export default function CatalogTitleScreen() {
     staleTime: 300_000,
   });
   useErrorToast(season.error, 'Não foi possível carregar os episódios desta temporada.');
+  const pendingEpisodes = usePendingEpisodes(
+    season.data?.seriesId ?? '',
+    seasonNumber ?? -1,
+    provider ?? 'tmdb',
+  );
+  const progress = useSeasonProgress(
+    season.data?.seriesId ?? '',
+    seasonNumber ?? -1,
+    provider ?? 'tmdb',
+  );
+  const markEpisode = useMarkEpisodeWatched();
+  const removeEpisode = useRemoveWatchedEpisode();
 
   if (!session) {
     return <Redirect href="/" />;
@@ -78,7 +120,7 @@ export default function CatalogTitleScreen() {
         <Text accessibilityRole="alert" style={styles.title}>
           O endereço deste título é inválido.
         </Text>
-        <PrimaryButton label="Voltar" onPress={() => router.back()} />
+        <BackButton />
       </View>
     );
   }
@@ -99,12 +141,13 @@ export default function CatalogTitleScreen() {
           Não foi possível abrir este título.
         </Text>
         <PrimaryButton label="Tentar novamente" onPress={() => void details.refetch()} />
-        <PrimaryButton label="Voltar" onPress={() => router.back()} variant="secondary" />
+        <BackButton />
       </View>
     );
   }
 
   const title = details.data;
+  const todayUtc = new Date().toISOString().slice(0, 10);
   const releaseDate = title.releaseDate
     ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' })
       .format(new Date(`${title.releaseDate}T00:00:00`))
@@ -112,13 +155,7 @@ export default function CatalogTitleScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => router.back()}
-        style={styles.backButton}
-      >
-        <Text style={styles.backText}>Voltar</Text>
-      </Pressable>
+      <BackButton />
       {title.backdropUrl ? (
         <Image
           contentFit="cover"
@@ -152,25 +189,43 @@ export default function CatalogTitleScreen() {
       {title.contentType === 'series' ? (
         <View style={styles.seasons}>
           <Text accessibilityRole="header" style={styles.sectionTitle}>Temporadas e episódios</Text>
-          <Text style={styles.secondaryText}>
-            Informe o número da temporada para consultar episódios disponíveis.
-          </Text>
-          <TextInput
-            accessibilityLabel="Número da temporada"
-            keyboardType="number-pad"
-            onChangeText={setSeasonInput}
-            placeholder="Ex.: 1"
-            placeholderTextColor={colors.textSecondary}
-            style={styles.seasonInput}
-            value={seasonInput}
-          />
-          <PrimaryButton
-            label="Carregar episódios"
-            disabled={!/^\d{1,3}$/.test(seasonInput.trim())}
-            loading={season.isFetching}
-            variant="secondary"
-            onPress={() => setSeasonNumber(Number(seasonInput.trim()))}
-          />
+          {seasons.isPending ? <ActivityIndicator color={colors.brand} /> : null}
+          {seasons.isError ? (
+            <PrimaryButton
+              label="Tentar carregar temporadas"
+              variant="secondary"
+              onPress={() => void seasons.refetch()}
+            />
+          ) : null}
+          {!seasons.isPending && !seasons.isError && availableSeasons.length === 0 ? (
+            <Text style={styles.secondaryText}>Nenhuma temporada disponível no catálogo.</Text>
+          ) : null}
+          {availableSeasons.length > 0 ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.seasonTabs}>
+              {availableSeasons.map((seasonInfo) => {
+                const selected = seasonInfo.seasonNumber === seasonNumber;
+                return (
+                  <Pressable
+                    key={seasonInfo.seasonNumber}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected }}
+                    onPress={() => setSeasonNumber(seasonInfo.seasonNumber)}
+                    style={[styles.seasonTab, selected && styles.selectedSeasonTab]}
+                  >
+                    <Text style={[styles.seasonTabText, selected && styles.selectedSeasonTabText]}>
+                      {seasonInfo.seasonNumber === 0 ? 'Especiais' : `Temporada ${seasonInfo.seasonNumber}`}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          ) : null}
+          {season.isPending && seasonNumber !== null ? (
+            <View style={styles.loadingSeason}>
+              <ActivityIndicator color={colors.brand} />
+              <Text style={styles.secondaryText}>Carregando episódios...</Text>
+            </View>
+          ) : null}
           {season.isError ? (
             <PrimaryButton
               label="Tentar novamente"
@@ -181,35 +236,101 @@ export default function CatalogTitleScreen() {
           {season.data ? (
             <View style={styles.episodeList}>
               {season.data.title ? <Text style={styles.secondaryText}>{season.data.title}</Text> : null}
+              {progress.data ? (
+                <Text style={styles.secondaryText}>
+                  {progress.data.watchedEpisodeCount} de {progress.data.availableEpisodeCount} episódios assistidos
+                </Text>
+              ) : null}
+              {trackingFeedback ? (
+                <Text accessibilityLiveRegion="polite" style={styles.trackingFeedback}>
+                  {trackingFeedback}
+                </Text>
+              ) : null}
               {season.data.episodes.length === 0 ? (
                 <Text style={styles.secondaryText}>Nenhum episódio disponível nesta temporada.</Text>
-              ) : season.data.episodes.map((episode) => (
-                <View key={episode.id} style={styles.episodeCard}>
-                  <View style={styles.episodeCopy}>
-                    <Text style={styles.episodeTitle}>
-                      {episode.episodeNumber === null
-                        ? episode.title
-                        : `E${episode.episodeNumber}: ${episode.title}`}
-                    </Text>
-                    {episode.overview ? (
-                      <Text numberOfLines={3} style={styles.secondaryText}>{episode.overview}</Text>
-                    ) : null}
+              ) : season.data.episodes.map((episode) => {
+                const episodeIsPending = pendingEpisodes.data?.some(
+                  (pending) => pending.episodeId === episode.id,
+                );
+                const episodeIsUpcoming =
+                  episode.releaseDate !== null && episode.releaseDate > todayUtc;
+                const trackingIsBusy = markEpisode.isPending || removeEpisode.isPending;
+                return (
+                  <View key={episode.id} style={styles.episodeCard}>
+                    <View style={styles.episodeCopy}>
+                      <Text style={styles.episodeTitle}>
+                        {episode.episodeNumber === null
+                          ? episode.title
+                          : `E${episode.episodeNumber}: ${episode.title}`}
+                      </Text>
+                      {episode.releaseDate ? (
+                        <Text style={styles.secondaryText}>
+                          Lançamento: {formatCatalogDate(episode.releaseDate)}
+                        </Text>
+                      ) : null}
+                      {episode.overview ? (
+                        <Text numberOfLines={3} style={styles.secondaryText}>{episode.overview}</Text>
+                      ) : null}
+                    </View>
+                    {pendingEpisodes.isPending ? (
+                      <View style={styles.loadingSeason}>
+                        <ActivityIndicator color={colors.brand} />
+                        <Text style={styles.secondaryText}>Verificando acompanhamento...</Text>
+                      </View>
+                    ) : pendingEpisodes.isError ? (
+                      <PrimaryButton
+                        label="Tentar carregar estado"
+                        variant="secondary"
+                        onPress={() => void pendingEpisodes.refetch()}
+                      />
+                    ) : episodeIsUpcoming ? (
+                      <Text style={styles.secondaryText}>Ainda não lançado</Text>
+                    ) : (
+                      <Pressable
+                        accessibilityRole="checkbox"
+                        accessibilityLabel={`${episodeIsPending ? 'Marcar como assistido' : 'Desmarcar como assistido'}: ${episode.title}`}
+                        accessibilityState={{ checked: !episodeIsPending, disabled: trackingIsBusy }}
+                        disabled={trackingIsBusy}
+                        onPress={() => {
+                          setTrackingFeedback(null);
+                          if (episodeIsPending) {
+                            markEpisode.mutate(
+                              { seriesId: season.data.seriesId, episodeId: episode.id },
+                              { onSuccess: () => setTrackingFeedback('Episódio marcado como assistido.') },
+                            );
+                          } else {
+                            removeEpisode.mutate(
+                              { seriesId: season.data.seriesId, episodeId: episode.id },
+                              { onSuccess: () => setTrackingFeedback('Episódio removido do acompanhamento.') },
+                            );
+                          }
+                        }}
+                        style={styles.watchedToggle}
+                      >
+                        <Text style={[styles.watchedIcon, episodeIsPending && styles.unwatchedIcon]}>
+                          {episodeIsPending ? '○' : '✓'}
+                        </Text>
+                        <Text style={styles.secondaryText}>
+                          {episodeIsPending ? 'Marcar como assistido' : 'Assistido'}
+                        </Text>
+                      </Pressable>
+                    )}
+                    <PrimaryButton
+                      label="Avaliar episódio"
+                      variant="secondary"
+                      onPress={() => router.push({
+                        pathname: '/episode/[provider]/[externalSeriesId]/[seasonNumber]/[episodeId]',
+                        params: {
+                          provider: title.provider,
+                          externalSeriesId: title.externalId,
+                          seasonNumber: String(season.data.seasonNumber),
+                          episodeId: episode.id,
+                        },
+                      })}
+                    />
                   </View>
-                  <PrimaryButton
-                    label="Avaliar episódio"
-                    variant="secondary"
-                    onPress={() => router.push({
-                      pathname: '/episode/[provider]/[externalSeriesId]/[seasonNumber]/[episodeId]',
-                      params: {
-                        provider: title.provider,
-                        externalSeriesId: title.externalId,
-                        seasonNumber: String(season.data.seasonNumber),
-                        episodeId: episode.id,
-                      },
-                    })}
-                  />
-                </View>
-              ))}
+                );
+              })}
             </View>
           ) : null}
         </View>
@@ -250,6 +371,27 @@ const styles = StyleSheet.create({
     fontSize: typography.bodySmall,
     fontFamily: fontFamily.semiBold,
   },
+  seasonTabs: { gap: spacing.small, paddingEnd: spacing.medium },
+  seasonTab: {
+    minHeight: dimensions.minimumTouchTarget,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.medium,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface,
+  },
+  selectedSeasonTab: { backgroundColor: colors.brand },
+  seasonTabText: {
+    color: colors.textSecondary,
+    fontSize: typography.bodySmall,
+    fontFamily: fontFamily.semiBold,
+  },
+  selectedSeasonTabText: { color: colors.background },
+  loadingSeason: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.small,
+    paddingVertical: spacing.medium,
+  },
   backdrop: {
     width: '100%',
     aspectRatio: 16 / 9,
@@ -282,17 +424,6 @@ const styles = StyleSheet.create({
   seasons: {
     gap: spacing.small,
   },
-  seasonInput: {
-    minHeight: dimensions.minimumTouchTarget,
-    paddingHorizontal: spacing.medium,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.small,
-    backgroundColor: colors.surface,
-    color: colors.textPrimary,
-    fontSize: typography.body,
-    fontFamily: fontFamily.regular,
-  },
   episodeList: {
     gap: spacing.small,
     marginTop: spacing.small,
@@ -308,6 +439,27 @@ const styles = StyleSheet.create({
   episodeCopy: {
     gap: spacing.extraSmall,
   },
+  watchedToggle: {
+    minHeight: dimensions.minimumTouchTarget,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.small,
+  },
+  watchedIcon: {
+    width: dimensions.minimumTouchTarget,
+    height: dimensions.minimumTouchTarget,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    color: colors.success,
+    fontSize: typography.section,
+    fontFamily: fontFamily.bold,
+  },
+  trackingFeedback: {
+    color: colors.success,
+    fontSize: typography.bodySmall,
+    fontFamily: fontFamily.semiBold,
+  },
+  unwatchedIcon: { color: colors.textSecondary },
   episodeTitle: {
     color: colors.textPrimary,
     fontSize: typography.body,
@@ -332,4 +484,9 @@ function isCatalogProvider(value: unknown): value is 'tmdb' | 'omdb' {
 
 function isCatalogContentType(value: unknown): value is 'movie' | 'series' {
   return value === 'movie' || value === 'series';
+}
+
+function formatCatalogDate(date: string) {
+  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' })
+    .format(new Date(`${date}T12:00:00`));
 }

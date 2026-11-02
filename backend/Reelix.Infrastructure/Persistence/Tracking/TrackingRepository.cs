@@ -123,7 +123,36 @@ public sealed class TrackingRepository(ReelixDbContext dbContext) : ITrackingRep
                 record.WatchedAt))
             .ToListAsync(cancellationToken);
 
-        return new TrackingPage<TrackingHistoryEntry>(items, page, pageSize, totalCount);
+        var referenceIds = items
+            .SelectMany(item => item.SeriesId is { } seriesId
+                ? new[] { item.TargetId, seriesId }
+                : new[] { item.TargetId })
+            .Distinct()
+            .ToArray();
+        var references = await dbContext.ExternalCatalogReferences.AsNoTracking()
+            .Where(reference => referenceIds.Contains(reference.Id))
+            .ToDictionaryAsync(reference => reference.Id, cancellationToken);
+        var enrichedItems = items.Select(item =>
+        {
+            references.TryGetValue(item.TargetId, out var targetReference);
+            ExternalCatalogReference? seriesReference = null;
+            if (item.SeriesId is { } seriesId)
+            {
+                references.TryGetValue(seriesId, out seriesReference);
+            }
+
+            var titleReference = item.Type == TrackingItemType.Movie
+                ? targetReference
+                : seriesReference;
+            return item with
+            {
+                Provider = titleReference?.Provider,
+                ExternalId = item.Type == TrackingItemType.Movie ? targetReference?.ExternalId : null,
+                SeriesExternalId = seriesReference?.ExternalId,
+            };
+        }).ToArray();
+
+        return new TrackingPage<TrackingHistoryEntry>(enrichedItems, page, pageSize, totalCount);
     }
 
     public async Task<TrackingPage<TrackedSeries>> GetSeriesAsync(
@@ -149,15 +178,48 @@ public sealed class TrackingRepository(ReelixDbContext dbContext) : ITrackingRep
                 SeriesId = group.Key,
                 WatchedEpisodeCount = group.Count(),
                 LastWatchedAt = group.Max(record => record.WatchedAt),
+                LatestEpisodeId = group.OrderByDescending(record => record.WatchedAt)
+                    .ThenByDescending(record => record.Id).Select(record => record.TargetId).First(),
             })
             .OrderByDescending(group => group.LastWatchedAt)
             .ThenBy(group => group.SeriesId)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(group => new TrackedSeries(group.SeriesId, group.WatchedEpisodeCount))
+            .Select(group => new TrackedSeries(group.SeriesId, group.WatchedEpisodeCount,
+                null, null, group.LatestEpisodeId, null))
             .ToListAsync(cancellationToken);
 
-        return new TrackingPage<TrackedSeries>(items, page, pageSize, totalCount);
+        var seriesIds = items.Select(item => item.SeriesId).ToArray();
+        var references = await dbContext.ExternalCatalogReferences.AsNoTracking()
+            .Where(reference => seriesIds.Contains(reference.Id))
+            .ToDictionaryAsync(reference => reference.Id, cancellationToken);
+        var enriched = new List<TrackedSeries>(items.Count);
+        foreach (var item in items)
+        {
+            if (!references.TryGetValue(item.SeriesId, out var reference))
+            {
+                enriched.Add(item);
+                continue;
+            }
+
+            var prefix = reference.ExternalId + ":";
+            var seasonIds = await dbContext.ExternalCatalogReferences.AsNoTracking()
+                .Where(season => season.Provider == reference.Provider &&
+                    season.ContentType == "season" && season.ExternalId.StartsWith(prefix))
+                .Select(season => season.ExternalId)
+                .ToArrayAsync(cancellationToken);
+            var seasonNumbers = seasonIds.Select(id => int.TryParse(id[prefix.Length..], out var number)
+                    ? (int?)number : null)
+                .Where(number => number >= 0).Select(number => number!.Value).Distinct().Order().ToArray();
+            enriched.Add(item with
+            {
+                Provider = reference.Provider,
+                ExternalId = reference.ExternalId,
+                KnownSeasonNumbers = seasonNumbers,
+            });
+        }
+
+        return new TrackingPage<TrackedSeries>(enriched, page, pageSize, totalCount);
     }
 
     public Task<int> GetWatchedEpisodeCountAsync(

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Redirect, useRouter } from 'expo-router';
+import { Redirect } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import { TitlePosterCard } from '@/components/discovery/title-poster-card';
+import { BackButton } from '@/components/navigation/back-button';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
 import { searchCatalog } from '@/services/api-client';
@@ -20,7 +21,6 @@ import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/th
 type ContentType = 'movie' | 'series';
 
 export default function CatalogSearchScreen() {
-  const router = useRouter();
   const { session } = useAuthSession();
   const [type, setType] = useState<ContentType>('movie');
   const [searchText, setSearchText] = useState('');
@@ -52,13 +52,7 @@ export default function CatalogSearchScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => router.back()}
-        style={styles.backButton}
-      >
-        <Text style={styles.backText}>Voltar</Text>
-      </Pressable>
+      <BackButton />
       <Text accessibilityRole="header" style={styles.heading}>Pesquisar catálogo</Text>
 
       <View accessibilityRole="tablist" style={styles.tabs}>

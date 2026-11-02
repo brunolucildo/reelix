@@ -21,6 +21,19 @@ public sealed record RatingSummary(
     int PublicCount,
     OwnRating? MyRating);
 
+public sealed record OwnRatingEntry(
+    Guid Id,
+    Guid TargetId,
+    ReviewTargetType TargetType,
+    decimal Score,
+    ReviewAudience Audience,
+    DateTimeOffset UpdatedAt,
+    string Provider,
+    string ExternalId,
+    string? SeriesExternalId);
+
+public sealed record OwnRatingsPage(IReadOnlyList<OwnRatingEntry> Items, int Page, int PageSize, int TotalCount);
+
 public sealed record CommentInput(
     string Content,
     bool ContainsSpoiler,
@@ -64,6 +77,8 @@ public sealed record SpoilerClassification(
 
 public interface IRatingsCommentsRepository
 {
+    Task<OwnRatingsPage> GetOwnRatingsAsync(Guid accountId, int page, int pageSize, CancellationToken cancellationToken);
+
     Task<bool> CatalogTargetExistsAsync(
         Guid targetId,
         Catalog.CatalogReferenceType expectedType,

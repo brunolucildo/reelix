@@ -66,6 +66,17 @@ public static class CatalogEndpoints
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
             .ProducesProblem(StatusCodes.Status504GatewayTimeout);
 
+        group.MapGet("/{provider}/series/{externalSeriesId}/seasons", GetSeasons)
+            .WithName("GetCatalogSeasons")
+            .WithSummary("Get the available seasons for a series.")
+            .Produces<IReadOnlyList<CatalogSeasonSummary>>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
+            .ProducesProblem(StatusCodes.Status502BadGateway)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
+            .ProducesProblem(StatusCodes.Status504GatewayTimeout);
+
         return group;
     }
 
@@ -218,6 +229,31 @@ public static class CatalogEndpoints
                     language,
                     context.RequestAborted);
                 return season is null ? Results.NotFound() : Results.Ok(season);
+            });
+    }
+
+    private static async Task<IResult> GetSeasons(
+        HttpContext context,
+        CatalogService catalog,
+        string provider,
+        string externalSeriesId,
+        string language = "pt-BR")
+    {
+        if (!TryParseProvider(provider, out var parsedProvider))
+        {
+            return InvalidParameter();
+        }
+
+        return await ExecuteAsync(
+            context,
+            async () =>
+            {
+                var seasons = await catalog.GetSeasonsAsync(
+                    parsedProvider,
+                    externalSeriesId,
+                    language,
+                    context.RequestAborted);
+                return seasons is null ? Results.NotFound() : Results.Ok(seasons);
             });
     }
 

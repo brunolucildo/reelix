@@ -23,6 +23,9 @@ const trackingHistoryEntrySchema = z.object({
   targetId: z.string().uuid(),
   seriesId: z.string().uuid().nullable(),
   watchedAt: z.string().datetime({ offset: true }),
+  provider: z.enum(['tmdb', 'omdb']).nullable(),
+  externalId: z.string().nullable(),
+  seriesExternalId: z.string().nullable(),
 });
 const trackingHistoryPageSchema = z.object({
   items: z.array(trackingHistoryEntrySchema),
@@ -33,6 +36,10 @@ const trackingHistoryPageSchema = z.object({
 const trackedSeriesSchema = z.object({
   seriesId: z.string().uuid(),
   watchedEpisodeCount: z.number().int().nonnegative(),
+  provider: z.enum(['tmdb', 'omdb']).nullable().optional(),
+  externalId: z.string().nullable().optional(),
+  latestEpisodeId: z.string().uuid().nullable().optional(),
+  knownSeasonNumbers: z.array(z.number().int().nonnegative()).nullable().optional(),
 });
 const trackedSeriesPageSchema = trackingHistoryPageSchema.extend({
   items: z.array(trackedSeriesSchema),

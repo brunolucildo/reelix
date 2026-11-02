@@ -172,6 +172,43 @@ public sealed class OmdbCatalogProvider(
                 .ToArray());
     }
 
+    public async Task<IReadOnlyList<ProviderCatalogSeasonSummary>?> GetSeasonsAsync(
+        string externalSeriesId,
+        string language,
+        CancellationToken cancellationToken)
+    {
+        _ = language;
+        using var response = await SendAsync(
+            new Dictionary<string, string>
+            {
+                ["i"] = externalSeriesId,
+                ["plot"] = "short",
+            },
+            cancellationToken);
+        response.EnsureSuccessStatusCodeOrThrow(Provider, logger);
+        var result = await CatalogProviderHttp.ReadJsonAsync<OmdbResponse>(
+            response,
+            Provider,
+            logger,
+            cancellationToken);
+        if (!IsSuccessful(result.Response))
+        {
+            ThrowOmdbError(result.Error, searchRequest: false);
+        }
+
+        if (!TryParseOmdbType(result.Type, out var type) || type != CatalogContentType.Series)
+        {
+            return null;
+        }
+
+        var totalSeasons = ParseNonNegativeInt(result.TotalSeasons);
+        return totalSeasons is null
+            ? []
+            : Enumerable.Range(1, totalSeasons.Value)
+                .Select(number => new ProviderCatalogSeasonSummary(number, null, null))
+                .ToArray();
+    }
+
     private async Task<HttpResponseMessage> SendAsync(
         IReadOnlyDictionary<string, string> parameters,
         CancellationToken cancellationToken)
@@ -323,6 +360,9 @@ internal sealed class OmdbResponse
     public string? Error { get; set; }
 
     public string? TotalResults { get; set; }
+
+    [JsonPropertyName("totalSeasons")]
+    public string? TotalSeasons { get; set; }
 
     public List<OmdbSearchItem> Search { get; set; } = [];
 

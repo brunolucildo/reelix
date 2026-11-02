@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
+import { Image } from 'expo-image';
 import { Redirect, useRouter } from 'expo-router';
-import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AuthScreen } from '@/components/auth/auth-screen';
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { BackButton } from '@/components/navigation/back-button';
+import { MediaTitleRow } from '@/components/discovery/media-title-row';
 import {
   useMarkMovieWatched,
   useMarkEpisodeWatched,
@@ -16,10 +19,12 @@ import {
 } from '@/hooks/use-tracking';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
-import { searchCatalog } from '@/services/api-client';
+import { fetchCatalogTitleDetails, searchCatalog } from '@/services/api-client';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 
-const PAGE_SIZE = 10;
+const HISTORY_PREVIEW_SIZE = 5;
+const HISTORY_PAGE_SIZE = 20;
+const SERIES_PAGE_SIZE = 10;
 const watchDateFormatter = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'medium',
   timeStyle: 'short',
@@ -42,6 +47,7 @@ export default function TrackingScreen() {
 function AuthenticatedTracking() {
   const router = useRouter();
   const [historyPage, setHistoryPage] = useState(1);
+  const [showAllHistory, setShowAllHistory] = useState(false);
   const [seriesPage, setSeriesPage] = useState(1);
   const [movieSearch, setMovieSearch] = useState('');
   const [submittedSearch, setSubmittedSearch] = useState('');
@@ -58,8 +64,39 @@ function AuthenticatedTracking() {
   const [seasonNumber, setSeasonNumber] = useState(-1);
   const [episodeValidation, setEpisodeValidation] = useState<string | null>(null);
   const [episodeFocusedInput, setEpisodeFocusedInput] = useState<'search' | 'season' | null>(null);
-  const history = useTrackingHistory(historyPage, PAGE_SIZE);
-  const series = useTrackedSeries(seriesPage, PAGE_SIZE);
+  const historyPageSize = showAllHistory ? HISTORY_PAGE_SIZE : HISTORY_PREVIEW_SIZE;
+  const history = useTrackingHistory(historyPage, historyPageSize);
+  const series = useTrackedSeries(seriesPage, SERIES_PAGE_SIZE);
+  const historyTitleQueries = useQueries({
+    queries: (history.data?.items ?? []).map((entry) => {
+      const contentType = entry.type === 'movie' ? 'movie' : 'series';
+      const externalId = entry.type === 'movie' ? entry.externalId : entry.seriesExternalId;
+      return {
+        queryKey: ['tracking', 'history-title', entry.id, entry.provider, externalId],
+        queryFn: ({ signal }: { signal: AbortSignal }) => {
+          if (!entry.provider || !externalId) {
+            throw new Error('Os detalhes deste conteúdo não estão disponíveis.');
+          }
+          return fetchCatalogTitleDetails(entry.provider, contentType, externalId, signal);
+        },
+        enabled: Boolean(entry.provider && externalId),
+        staleTime: 300_000,
+      };
+    }),
+  });
+  const seriesTitleQueries = useQueries({
+    queries: (series.data?.items ?? []).map((item) => ({
+      queryKey: ['tracking', 'series-title', item.seriesId, item.provider, item.externalId],
+      queryFn: ({ signal }: { signal: AbortSignal }) => {
+        if (!item.provider || !item.externalId) {
+          throw new Error('Os detalhes desta série não estão disponíveis.');
+        }
+        return fetchCatalogTitleDetails(item.provider, 'series', item.externalId, signal);
+      },
+      enabled: Boolean(item.provider && item.externalId),
+      staleTime: 300_000,
+    })),
+  });
   const markMovie = useMarkMovieWatched();
   const removeMovie = useRemoveWatchedMovie();
   const markEpisode = useMarkEpisodeWatched();
@@ -93,6 +130,10 @@ function AuthenticatedTracking() {
   );
   const isSaving = markMovie.isPending || removeMovie.isPending ||
     markEpisode.isPending || removeEpisode.isPending;
+  const historyTitleError = historyTitleQueries.find((result) => result.error)?.error;
+  useErrorToast(historyTitleError, 'Não foi possível carregar alguns títulos do histórico.');
+  const seriesTitleError = seriesTitleQueries.find((result) => result.error)?.error;
+  useErrorToast(seriesTitleError, 'Não foi possível carregar alguns títulos acompanhados.');
 
   const beginEditingWatchedAt = (entryId: string, watchedAt: string) => {
     setEditingEntryId(entryId);
@@ -193,17 +234,7 @@ function AuthenticatedTracking() {
       title="Seu acompanhamento"
       subtitle="Veja seu histórico de visualização e os episódios que você já assistiu."
     >
-      <PrimaryButton
-        label="Voltar"
-        variant="secondary"
-        onPress={() => {
-          if (router.canGoBack()) {
-            router.back();
-          } else {
-            router.replace('/home');
-          }
-        }}
-      />
+      <BackButton />
       <View style={styles.section}>
         <Text accessibilityRole="header" style={styles.sectionTitle}>Registrar um filme</Text>
         <Text style={styles.description}>
@@ -425,6 +456,16 @@ function AuthenticatedTracking() {
           <RetryState onRetry={() => void history.refetch()} />
         ) : history.data ? (
           <>
+            {history.data.totalCount > HISTORY_PREVIEW_SIZE ? (
+              <PrimaryButton
+                label={showAllHistory ? 'Mostrar apenas os cinco mais recentes' : 'Ver todos os registros'}
+                variant="secondary"
+                onPress={() => {
+                  setShowAllHistory((current) => !current);
+                  setHistoryPage(1);
+                }}
+              />
+            ) : null}
             {history.data.items.length === 0 ? (
               <Text style={styles.description}>
                 {history.data.totalCount === 0
@@ -436,11 +477,34 @@ function AuthenticatedTracking() {
                 <Text style={styles.description}>
                   Os nomes dos títulos ainda não estão disponíveis neste histórico.
                 </Text>
-                {history.data.items.map((entry) => (
+                {history.data.items.map((entry, index) => {
+                  const title = historyTitleQueries[index]?.data;
+                  return (
                   <View key={entry.id} style={styles.card}>
-                    <Text style={styles.cardTitle}>
-                      {entry.type === 'movie' ? 'Filme assistido' : 'Episódio assistido'}
-                    </Text>
+                    {title ? (
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={`Abrir detalhes de ${title.title}`}
+                        onPress={() => router.push(
+                          `/title/${title.provider}/${title.contentType}/${encodeURIComponent(title.externalId)}`,
+                        )}
+                        style={styles.historyTitle}
+                      >
+                        {title.posterUrl ? (
+                          <Image contentFit="cover" source={{ uri: title.posterUrl }} style={styles.historyPoster} />
+                        ) : null}
+                        <View style={styles.historyTitleCopy}>
+                          <Text style={styles.cardTitle}>{title.title}</Text>
+                          <Text style={styles.description}>
+                            {entry.type === 'movie' ? 'Filme' : 'Série · episódio'}
+                          </Text>
+                        </View>
+                      </Pressable>
+                    ) : (
+                      <Text style={styles.cardTitle}>
+                        {entry.type === 'movie' ? 'Filme assistido' : 'Episódio assistido'}
+                      </Text>
+                    )}
                     <Text style={styles.description}>
                       {watchDateFormatter.format(new Date(entry.watchedAt))}
                     </Text>
@@ -523,13 +587,15 @@ function AuthenticatedTracking() {
                       />
                     ) : null}
                   </View>
-                ))}
+                  );
+                })}
               </>
             )}
             {history.isError ? <RetryState onRetry={() => void history.refetch()} /> : null}
             <Pagination
               label="histórico"
               page={historyPage}
+              pageSize={historyPageSize}
               totalCount={history.data.totalCount}
               isFetching={history.isFetching}
               onChange={setHistoryPage}
@@ -560,24 +626,41 @@ function AuthenticatedTracking() {
                 <Text style={styles.description}>
                   Os nomes das séries ainda não estão disponíveis neste acompanhamento.
                 </Text>
-                {series.data.items.map((item, index) => (
-                  <View key={item.seriesId} style={styles.card}>
-                    <Text style={styles.cardTitle}>
-                      Série acompanhada · {(seriesPage - 1) * PAGE_SIZE + index + 1}
-                    </Text>
-                    <Text style={styles.watchedCount}>
-                      {item.watchedEpisodeCount}{' '}
-                      {item.watchedEpisodeCount === 1 ? 'episódio assistido' : 'episódios assistidos'}
-                    </Text>
-                    <Text style={styles.description}>Total disponível: desconhecido</Text>
-                  </View>
-                ))}
+                {series.data.items.map((item, index) => {
+                  const title = seriesTitleQueries[index]?.data;
+                  return title ? (
+                    <MediaTitleRow key={item.seriesId} title={title}>
+                      <View style={styles.seriesMeta}>
+                        <Text style={styles.watchedCount}>
+                          {item.watchedEpisodeCount}{' '}
+                          {item.watchedEpisodeCount === 1 ? 'episódio assistido' : 'episódios assistidos'}
+                        </Text>
+                        <Text style={styles.description}>Total disponível: desconhecido</Text>
+                      </View>
+                    </MediaTitleRow>
+                  ) : (
+                    <View key={item.seriesId} style={styles.card}>
+                      {seriesTitleQueries[index]?.isPending ? (
+                        <LoadingState label="Carregando dados da série..." />
+                      ) : (
+                        <Text style={styles.cardTitle}>
+                          Série acompanhada · {(seriesPage - 1) * SERIES_PAGE_SIZE + index + 1}
+                        </Text>
+                      )}
+                      <Text style={styles.watchedCount}>
+                        {item.watchedEpisodeCount}{' '}
+                        {item.watchedEpisodeCount === 1 ? 'episódio assistido' : 'episódios assistidos'}
+                      </Text>
+                    </View>
+                  );
+                })}
               </>
             )}
             {series.isError ? <RetryState onRetry={() => void series.refetch()} /> : null}
             <Pagination
               label="séries acompanhadas"
               page={seriesPage}
+              pageSize={SERIES_PAGE_SIZE}
               totalCount={series.data.totalCount}
               isFetching={series.isFetching}
               onChange={setSeriesPage}
@@ -638,12 +721,14 @@ function parseLocalDateTimeInput(value: string): string | null {
 function Pagination({
   label,
   page,
+  pageSize,
   totalCount,
   isFetching,
   onChange,
 }: {
   label: string;
   page: number;
+  pageSize: number;
   totalCount: number;
   isFetching: boolean;
   onChange: (page: number) => void;
@@ -657,18 +742,31 @@ function Pagination({
       <Text accessibilityLiveRegion="polite" style={styles.description}>
         Página {page} · {totalCount} {label === 'histórico' ? 'registros' : 'séries'}
       </Text>
-      <PrimaryButton
-        label={`Página anterior de ${label}`}
-        variant="secondary"
-        disabled={page <= 1 || isFetching}
-        onPress={() => onChange(page - 1)}
-      />
-      <PrimaryButton
-        label={`Próxima página de ${label}`}
-        variant="secondary"
-        disabled={page * PAGE_SIZE >= totalCount || isFetching}
-        onPress={() => onChange(page + 1)}
-      />
+      <View style={styles.paginationControls}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Página anterior de ${label}`}
+          accessibilityState={{ disabled: page <= 1 || isFetching }}
+          disabled={page <= 1 || isFetching}
+          onPress={() => onChange(page - 1)}
+          style={[styles.paginationArrow, (page <= 1 || isFetching) && styles.paginationArrowDisabled]}
+        >
+          <Text style={styles.paginationArrowText}>←</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Próxima página de ${label}`}
+          accessibilityState={{ disabled: page * pageSize >= totalCount || isFetching }}
+          disabled={page * pageSize >= totalCount || isFetching}
+          onPress={() => onChange(page + 1)}
+          style={[
+            styles.paginationArrow,
+            (page * pageSize >= totalCount || isFetching) && styles.paginationArrowDisabled,
+          ]}
+        >
+          <Text style={styles.paginationArrowText}>→</Text>
+        </Pressable>
+      </View>
       {isFetching ? <LoadingState label="Atualizando..." /> : null}
     </View>
   );
@@ -713,6 +811,20 @@ const styles = StyleSheet.create({
     borderRadius: radii.medium,
     backgroundColor: colors.surfaceElevated,
   },
+  historyTitle: {
+    minHeight: 96,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.medium,
+  },
+  historyPoster: {
+    width: 64,
+    height: 96,
+    borderRadius: radii.small,
+    backgroundColor: colors.surface,
+  },
+  historyTitleCopy: { flex: 1, gap: spacing.extraSmall },
+  seriesMeta: { gap: spacing.extraSmall },
   cardTitle: {
     color: colors.textPrimary,
     fontFamily: fontFamily.semiBold,
@@ -732,5 +844,23 @@ const styles = StyleSheet.create({
   },
   pagination: {
     gap: spacing.small,
+  },
+  paginationControls: {
+    flexDirection: 'row',
+    gap: spacing.small,
+  },
+  paginationArrow: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.small,
+    backgroundColor: colors.surfaceElevated,
+  },
+  paginationArrowDisabled: { opacity: 0.45 },
+  paginationArrowText: {
+    color: colors.textPrimary,
+    fontSize: typography.section,
+    fontFamily: fontFamily.bold,
   },
 });

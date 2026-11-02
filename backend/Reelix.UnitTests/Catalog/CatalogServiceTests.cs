@@ -129,6 +129,15 @@ public sealed class CatalogServiceTests
                             new DateOnly(2008, 1, 20),
                             null),
                     ]));
+
+        public Task<IReadOnlyList<ProviderCatalogSeasonSummary>?> GetSeasonsAsync(
+            string externalSeriesId,
+            string language,
+            CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<ProviderCatalogSeasonSummary>?>(
+            [
+                new ProviderCatalogSeasonSummary(1, "Season 1", new DateOnly(2008, 1, 20)),
+            ]);
     }
 
     private sealed class StubReferenceRepository : IExternalCatalogReferenceRepository

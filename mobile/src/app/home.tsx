@@ -13,9 +13,15 @@ import {
 import { PrimaryButton } from '@/components/auth/primary-button';
 import { DiscoveryFeedSection } from '@/components/discovery/discovery-feed-section';
 import { FavoriteTitleSection } from '@/components/discovery/favorite-title-section';
+import { StartWatchingSection } from '@/components/discovery/start-watching-section';
 import { TrackedSeriesSection } from '@/components/discovery/tracked-series-section';
+import { UpcomingCalendarSection } from '@/components/discovery/upcoming-calendar-section';
+import { UserDrawer } from '@/components/navigation/user-drawer';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Logo from '../../assets/brand/logos/logo-white.svg';
+import SearchIcon from '../../assets/brand/navigation-icons/search.svg';
 import { useAuthSession } from '@/providers/auth-provider';
-import { useErrorToast, useToast } from '@/providers/toast-provider';
+import { useErrorToast } from '@/providers/toast-provider';
 import { fetchOnboarding } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 
@@ -23,9 +29,8 @@ type ContentType = 'movie' | 'series';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { session, signOut } = useAuthSession();
-  const { showError } = useToast();
-  const [contentType, setContentType] = useState<ContentType>('movie');
+  const { session } = useAuthSession();
+  const [contentType, setContentType] = useState<ContentType>('series');
   const onboarding = useQuery({
     queryKey: ['onboarding'],
     queryFn: fetchOnboarding,
@@ -69,33 +74,26 @@ export default function HomeScreen() {
     : onboarding.data.seriesGenreIds;
   const label = contentType === 'movie' ? 'Filmes' : 'Séries';
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      showError(error instanceof Error ? error.message : 'Não foi possível encerrar a sessão.');
-    }
-  };
-
   return (
+    <SafeAreaView style={styles.screen}>
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <View style={styles.brand}>
-          <Text style={styles.brandName}>reelix</Text>
-          <Text style={styles.subtitle}>Descubra sua próxima história.</Text>
+          <Logo width={dimensions.logoWidth} height={dimensions.logoHeight} accessibilityLabel="Reelix" />
         </View>
         <Pressable
           accessibilityLabel="Pesquisar no catálogo"
           accessibilityRole="button"
-          onPress={() => router.push('./search')}
+          onPress={() => router.push('/search')}
           style={styles.searchButton}
         >
-          <Text style={styles.searchButtonText}>Pesquisar</Text>
+          <View pointerEvents="none"><SearchIcon width={dimensions.iconSize} height={dimensions.iconSize} /></View>
         </Pressable>
+        <UserDrawer />
       </View>
 
       <View accessibilityRole="tablist" style={styles.contentTabs}>
-        {(['movie', 'series'] as const).map((type) => {
+        {(['series', 'movie'] as const).map((type) => {
           const selected = type === contentType;
           return (
             <Pressable
@@ -113,60 +111,19 @@ export default function HomeScreen() {
         })}
       </View>
 
-      <View style={styles.quickLinks}>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.push('/profile')}
-          style={styles.quickLink}
-        >
-          <Text style={styles.quickLinkText}>Meu perfil</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.push('/lists')}
-          style={styles.quickLink}
-        >
-          <Text style={styles.quickLinkText}>Favoritos e listas</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.push('/tracking')}
-          style={styles.quickLink}
-        >
-          <Text style={styles.quickLinkText}>Acompanhamento</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.push('/social')}
-          style={styles.quickLink}
-        >
-          <Text style={styles.quickLinkText}>Amigos e atividades</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.push('/notifications')}
-          style={styles.quickLink}
-        >
-          <Text style={styles.quickLinkText}>Notificações</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.push('/gamification')}
-          style={styles.quickLink}
-        >
-          <Text style={styles.quickLinkText}>Conquistas e estatísticas</Text>
-        </Pressable>
-      </View>
-
       <View style={styles.feeds}>
+        {contentType === 'series' ? (
+          <>
+            <TrackedSeriesSection onOpenTracking={() => router.push('/tracking')} />
+            <StartWatchingSection />
+            <UpcomingCalendarSection />
+          </>
+        ) : null}
         <DiscoveryFeedSection title={`${label} em destaque`} type={contentType} category="popular" />
         <FavoriteTitleSection
           type={contentType}
           title={contentType === 'movie' ? 'Seus filmes favoritos' : 'Suas séries favoritas'}
         />
-        {contentType === 'series' ? (
-          <TrackedSeriesSection onOpenTracking={() => router.push('/tracking')} />
-        ) : null}
         {genreIds.length > 0 ? (
           <DiscoveryFeedSection
             title="Sugestões para você"
@@ -194,18 +151,13 @@ export default function HomeScreen() {
         />
       </View>
 
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => void handleSignOut()}
-        style={styles.signOut}
-      >
-        <Text style={styles.signOutText}>Sair da conta</Text>
-      </Pressable>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.background },
   content: {
     gap: spacing.large,
     padding: spacing.medium,
@@ -225,21 +177,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.medium,
-    paddingTop: spacing.large,
   },
   brand: {
     flex: 1,
     gap: spacing.extraSmall,
-  },
-  brandName: {
-    color: colors.brand,
-    fontSize: typography.title,
-    fontFamily: fontFamily.extraBold,
-  },
-  subtitle: {
-    color: colors.textSecondary,
-    fontSize: typography.bodySmall,
-    fontFamily: fontFamily.regular,
   },
   title: {
     color: colors.textPrimary,
@@ -254,15 +195,11 @@ const styles = StyleSheet.create({
   },
   searchButton: {
     minHeight: dimensions.minimumTouchTarget,
+    minWidth: dimensions.minimumTouchTarget,
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.medium,
     borderRadius: radii.pill,
     backgroundColor: colors.surfaceElevated,
-  },
-  searchButtonText: {
-    color: colors.textPrimary,
-    fontSize: typography.bodySmall,
-    fontFamily: fontFamily.semiBold,
   },
   contentTabs: {
     flexDirection: 'row',
@@ -287,24 +224,6 @@ const styles = StyleSheet.create({
   selectedTabText: {
     color: colors.background,
   },
-  quickLinks: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.small,
-  },
-  quickLink: {
-    minHeight: dimensions.minimumTouchTarget,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.medium,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.pill,
-  },
-  quickLinkText: {
-    color: colors.textSecondary,
-    fontSize: typography.caption,
-    fontFamily: fontFamily.medium,
-  },
   feeds: {
     gap: spacing.large,
   },
@@ -318,15 +237,5 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontSize: typography.body,
     fontFamily: fontFamily.bold,
-  },
-  signOut: {
-    minHeight: dimensions.minimumTouchTarget,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  signOutText: {
-    color: colors.textSecondary,
-    fontSize: typography.bodySmall,
-    fontFamily: fontFamily.medium,
   },
 });

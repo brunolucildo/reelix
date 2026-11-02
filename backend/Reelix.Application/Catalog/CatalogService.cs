@@ -168,6 +168,24 @@ public sealed class CatalogService(
                 episode.RuntimeMinutes)).ToArray());
     }
 
+    public async Task<IReadOnlyList<CatalogSeasonSummary>?> GetSeasonsAsync(
+        CatalogProvider provider,
+        string externalSeriesId,
+        string language,
+        CancellationToken cancellationToken)
+    {
+        ValidateExternalId(externalSeriesId);
+        ValidateLanguage(language);
+        var seasons = await GetProvider(provider).GetSeasonsAsync(
+            externalSeriesId.Trim(),
+            language,
+            cancellationToken);
+        return seasons?.Select(season => new CatalogSeasonSummary(
+            season.SeasonNumber,
+            season.Title,
+            season.ReleaseDate)).ToArray();
+    }
+
     private ICatalogProvider GetProvider(CatalogProvider provider) =>
         providers.SingleOrDefault(candidate => candidate.Provider == provider)
         ?? throw new CatalogProviderException(

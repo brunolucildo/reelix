@@ -8,7 +8,10 @@ public sealed record TrackingHistoryEntry(
     TrackingItemType Type,
     Guid TargetId,
     Guid? SeriesId,
-    DateTimeOffset WatchedAt);
+    DateTimeOffset WatchedAt,
+    string? Provider = null,
+    string? ExternalId = null,
+    string? SeriesExternalId = null);
 
 public sealed record TrackingPage<T>(
     IReadOnlyList<T> Items,
@@ -18,7 +21,11 @@ public sealed record TrackingPage<T>(
 
 public sealed record TrackedSeries(
     Guid SeriesId,
-    int WatchedEpisodeCount);
+    int WatchedEpisodeCount,
+    string? Provider = null,
+    string? ExternalId = null,
+    Guid? LatestEpisodeId = null,
+    IReadOnlyList<int>? KnownSeasonNumbers = null);
 
 public sealed record SeriesProgress(
     Guid SeriesId,

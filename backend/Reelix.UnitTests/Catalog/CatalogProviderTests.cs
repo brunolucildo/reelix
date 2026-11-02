@@ -202,6 +202,46 @@ public sealed class CatalogProviderTests
     }
 
     [Fact]
+    public async Task TmdbSeasons_MapsAvailableSeasonNumbersAndDates()
+    {
+        using var client = CreateClient(request =>
+        {
+            Assert.Equal("/3/tv/1396?language=pt-BR", request.RequestUri!.PathAndQuery);
+            return JsonResponse(
+                """
+                {
+                  "id": 1396,
+                  "seasons": [
+                    { "name": "Specials", "season_number": 0, "air_date": null },
+                    { "name": "Season 1", "season_number": 1, "air_date": "2024-01-01" }
+                  ]
+                }
+                """);
+        });
+        var provider = new TmdbCatalogProvider(
+            client,
+            Options.Create(new TmdbCatalogOptions { AccessToken = "test-token" }),
+            NullLogger<TmdbCatalogProvider>.Instance);
+
+        var seasons = await provider.GetSeasonsAsync("1396", "pt-BR", CancellationToken.None);
+
+        Assert.NotNull(seasons);
+        Assert.Collection(
+            seasons,
+            special =>
+            {
+                Assert.Equal(0, special.SeasonNumber);
+                Assert.Equal("Specials", special.Title);
+                Assert.Null(special.ReleaseDate);
+            },
+            firstSeason =>
+            {
+                Assert.Equal(1, firstSeason.SeasonNumber);
+                Assert.Equal(new DateOnly(2024, 1, 1), firstSeason.ReleaseDate);
+            });
+    }
+
+    [Fact]
     public async Task TmdbGenreList_MapsOfficialIdsAndLocalizedNames()
     {
         using var client = CreateClient(request =>

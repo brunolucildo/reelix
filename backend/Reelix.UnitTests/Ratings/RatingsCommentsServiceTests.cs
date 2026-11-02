@@ -9,6 +9,21 @@ namespace Reelix.UnitTests.Ratings;
 public sealed class RatingsCommentsServiceTests
 {
     [Fact]
+    public async Task OwnRatings_ResolveAccountAndValidatePagination()
+    {
+        var subject = Guid.NewGuid();
+        var accounts = new FakeAccounts(subject);
+        var repository = new FakeRatingsCommentsRepository();
+        var service = CreateService(accounts, repository);
+        var page = await service.GetOwnRatingsAsync(subject, 2, 10, CancellationToken.None);
+        Assert.Equal(accounts.Account.Id, repository.RatingsAccountId);
+        Assert.Equal(2, page.Page);
+        Assert.Equal(10, page.PageSize);
+        await Assert.ThrowsAsync<ArgumentException>(() => service.GetOwnRatingsAsync(subject, 0, 10, CancellationToken.None));
+        await Assert.ThrowsAsync<ArgumentException>(() => service.GetOwnRatingsAsync(subject, 1, 51, CancellationToken.None));
+    }
+
+    [Fact]
     public async Task UpsertRating_UsesResolvedAccountAndStoresItsAudience()
     {
         var subject = Guid.NewGuid();
@@ -145,6 +160,13 @@ public sealed class RatingsCommentsServiceTests
 
     private sealed class FakeRatingsCommentsRepository : IRatingsCommentsRepository
     {
+        public Guid? RatingsAccountId { get; private set; }
+        public Task<OwnRatingsPage> GetOwnRatingsAsync(Guid accountId, int page, int pageSize, CancellationToken cancellationToken)
+        {
+            RatingsAccountId = accountId;
+            return Task.FromResult(new OwnRatingsPage([], page, pageSize, 0));
+        }
+
         public bool CatalogTargetExists { get; init; }
 
         public bool EpisodeBelongsToSeries { get; init; }

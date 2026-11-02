@@ -45,6 +45,11 @@ export const dimensions = {
   posterWidth: 120,
   posterHeight: 180,
   minimumTouchTarget: 44,
+  drawerWidth: 320,
+  avatarSize: 56,
+  logoWidth: 120,
+  logoHeight: 36,
+  iconSize: 24,
 } as const;
 
 export const fontFamily = {

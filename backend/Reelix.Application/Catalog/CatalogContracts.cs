@@ -102,6 +102,16 @@ public sealed record ProviderCatalogSeason(
     DateOnly? ReleaseDate,
     IReadOnlyList<ProviderCatalogEpisode> Episodes);
 
+public sealed record ProviderCatalogSeasonSummary(
+    int SeasonNumber,
+    string? Title,
+    DateOnly? ReleaseDate);
+
+public sealed record CatalogSeasonSummary(
+    int SeasonNumber,
+    string? Title,
+    DateOnly? ReleaseDate);
+
 public sealed record CatalogEpisode(
     Guid Id,
     string ExternalId,
@@ -141,6 +151,11 @@ public interface ICatalogProvider
     Task<ProviderCatalogSeason?> GetSeasonAsync(
         string externalSeriesId,
         int seasonNumber,
+        string language,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<ProviderCatalogSeasonSummary>?> GetSeasonsAsync(
+        string externalSeriesId,
         string language,
         CancellationToken cancellationToken);
 }

@@ -6,6 +6,9 @@ catálogo.
 
 ## Seções
 
+Séries aparece antes de Filmes e é a seleção inicial. Na aba Séries, acompanhamento
+vem antes de destaques, favoritos, sugestões e estreias. Filmes mantém suas seções.
+
 | Tela | Seção | Fonte e regra |
 |---|---|---|
 | Filmes | Em destaque | TMDB, filmes ordenados por popularidade. |
@@ -14,15 +17,51 @@ catálogo.
 | Filmes | Próximos lançamentos | Filmes com data de lançamento entre hoje (UTC) e os próximos 12 meses, quando o provedor informar a data. |
 | Séries | Em destaque | TMDB, séries ordenadas por popularidade. |
 | Séries | Suas séries favoritas | Favoritos do usuário autenticado, com metadados consultados no catálogo. |
-| Séries | Séries em acompanhamento | Resumo do total no endpoint autenticado de tracking, com acesso à tela de acompanhamento. |
+| Séries | Continuar Assistindo | Até oito séries, por registro mais recente, com episódio mais recente, progresso e episódios restantes da temporada conhecida. |
+| Séries | Começar a Assistir | Favoritos e watchlist ainda não acompanhados; abre os detalhes da série sem criar tracking fictício. |
+| Séries | Calendário | Próximos episódios datados das 12 séries acompanhadas mais recentes; oferece filtros Todos, Estreia e Final. |
 | Séries | Sugestões para você | Séries populares filtradas pelos gêneros de séries salvos no onboarding. |
 | Séries | Estreias de séries | Séries com primeira data de exibição entre hoje (UTC) e os próximos 12 meses. Não é um calendário de próximos episódios. |
 
 Sem gêneros salvos, a seção personalizada é substituída por um atalho para editar preferências;
 as demais seções continuam disponíveis. Favoritos são limitados aos oito primeiros títulos
-da categoria nesta Home. O endpoint atual de tracking retorna IDs internos e contagens, mas não
-nomes nem referências de catálogo; por isso a Home mostra o total e encaminha à tela própria,
-sem exibir IDs ou fazer uma consulta de detalhes por série.
+da categoria nesta Home. O resumo de tracking inclui, de forma opcional, `provider`,
+`externalId`, `latestEpisodeId` e `knownSeasonNumbers`, preservando IDs e contagens existentes.
+As temporadas já conhecidas são cruzadas com o episódio registrado mais recentemente para
+identificar a temporada. Pôster e nome vêm dos detalhes do catálogo; assistidos, restantes e
+percentual vêm do progresso dessa temporada. A contagem considera episódios disponíveis,
+não episódios futuros nem um inventário completo presumido da série. Sem metadados, exibe
+somente a contagem real de assistidos e informa que o progresso ainda não é conhecido.
+Registrar ou remover episódios invalida todas as consultas de acompanhamento e gamificação.
+O calendário consulta os metadados de temporada do catálogo e considera as duas temporadas regulares
+mais recentes, além de temporadas com estreia futura informada. Datas não fornecidas pelo catálogo
+não são estimadas; temporadas especiais só entram quando o provedor as identifica como futuras.
+
+## Menu pessoal
+
+O avatar abre o menu lateral com perfil, favoritos, listas, watchlist, acompanhamento,
+avaliações, conquistas, amigos, notificações, configurações e saída. Os atalhos redundantes
+e a saída direta foram removidos da Home. Favoritos, listas e watchlist usam a mesma tela
+com `section=favorites`, `section=lists` ou `section=watchlist`. O menu usa áreas seguras,
+rolagem, botão de fechar, toque fora e retorno do dispositivo; sair exige confirmação.
+
+Configurações organiza links para os controles reais existentes. Minhas avaliações consulta
+`GET /api/v1/ratings/mine?page=1&pageSize=20`, filtrado pela conta autenticada, incluindo notas
+privadas, com paginação de até 50 itens. Salvar ou remover notas atualiza essa coleção.
+
+## Gamificação e conquistas
+
+O JWT `sub` identifica o usuário Supabase, não a chave interna de `user_accounts`.
+`GamificationService` resolve a conta com `IUserAccountRepository.GetOrCreateAsync` antes
+das operações pessoais de dashboard, estatísticas, preferências e ranking. Badges públicos
+continuam recebendo o ID interno do perfil consultado. Tratar os dois IDs como iguais
+causava falha no dashboard e impedia também as conquistas do perfil.
+
+Dashboard e conquistas usam os mesmos dados reais, com contrato validado por Zod. Falha de
+atualização preserva dados anteriores; falha inicial mostra nova tentativa e toast. Estatísticas
+do período e ranking falham independentemente. Sessão expirada solicita novo login.
+As migrações existentes até `AddGamification` precisam estar aplicadas; esta mudança não
+adiciona tabelas ou migrações. Reinicie a API recompilada para carregar a correção de identidade.
 
 ## API de descoberta
 
@@ -51,6 +90,8 @@ cache local é limpo ao encerrar a sessão.
 
 - `mobile/src/app/search.tsx` pesquisa filmes ou séries pela operação autenticada
   `GET /api/v1/catalog/search`.
+- `GET /api/v1/catalog/{provider}/series/{externalSeriesId}/seasons` lista as temporadas
+  disponíveis no provedor, incluindo temporada especial quando informada.
 - `mobile/src/app/title/[provider]/[contentType]/[externalId].tsx` consulta os detalhes
   normalizados do catálogo ao selecionar um cartão.
 - O retorno da tela de detalhes usa a navegação existente e preserva o contexto da Home ou

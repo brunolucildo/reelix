@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { BackButton } from '@/components/navigation/back-button';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast, useToast } from '@/providers/toast-provider';
 import {
@@ -104,9 +105,7 @@ export default function NotificationsScreen() {
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.container}>
         <View style={styles.topBar}>
-          <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backLabel}>Voltar</Text>
-          </Pressable>
+          <BackButton />
           <Text style={styles.eyebrow}>CENTRAL DE AVISOS</Text>
         </View>
 

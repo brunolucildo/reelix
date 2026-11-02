@@ -10,6 +10,24 @@ namespace Reelix.Infrastructure.Persistence.Ratings;
 public sealed class RatingsCommentsRepository(ReelixDbContext dbContext)
     : IRatingsCommentsRepository
 {
+    public async Task<OwnRatingsPage> GetOwnRatingsAsync(
+        Guid accountId, int page, int pageSize, CancellationToken cancellationToken)
+    {
+        var ratings = dbContext.UserRatings.AsNoTracking().Where(rating => rating.AccountId == accountId);
+        var count = await ratings.CountAsync(cancellationToken);
+        var items = await (
+            from rating in ratings
+            join reference in dbContext.ExternalCatalogReferences on rating.TargetId equals reference.Id
+            join series in dbContext.ExternalCatalogReferences on rating.SeriesId equals (Guid?)series.Id into seriesReferences
+            from series in seriesReferences.DefaultIfEmpty()
+            orderby rating.UpdatedAt descending, rating.Id descending
+            select new OwnRatingEntry(rating.Id, rating.TargetId, rating.TargetType, rating.Value,
+                rating.Audience, rating.UpdatedAt, reference.Provider, reference.ExternalId,
+                series == null ? null : series.ExternalId))
+            .Skip((page - 1) * pageSize).Take(pageSize).ToArrayAsync(cancellationToken);
+        return new OwnRatingsPage(items, page, pageSize, count);
+    }
+
     public Task<bool> CatalogTargetExistsAsync(
         Guid targetId,
         CatalogReferenceType expectedType,

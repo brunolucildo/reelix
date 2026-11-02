@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { CatalogTitle } from '@/services/api-client';
@@ -12,16 +13,24 @@ type PosterTitle = Pick<
   genres?: string[];
 };
 
-export function TitlePosterCard({ title }: { title: PosterTitle }) {
+export function TitlePosterCard({
+  title,
+  children,
+  actionLabel,
+}: {
+  title: PosterTitle;
+  children?: ReactNode;
+  actionLabel?: string;
+}) {
   const router = useRouter();
   const releaseYear = title.releaseDate?.slice(0, 4);
 
   return (
     <Pressable
-      accessibilityLabel={`Abrir detalhes de ${title.title}`}
+      accessibilityLabel={`${actionLabel ?? 'Abrir detalhes de'} ${title.title}`}
       accessibilityRole="button"
       onPress={() => router.push(
-        `./title/${title.provider}/${title.contentType}/${encodeURIComponent(title.externalId)}`,
+        `/title/${title.provider}/${title.contentType}/${encodeURIComponent(title.externalId)}`,
       )}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
@@ -39,6 +48,8 @@ export function TitlePosterCard({ title }: { title: PosterTitle }) {
       )}
       <Text numberOfLines={2} style={styles.title}>{title.title}</Text>
       {releaseYear ? <Text style={styles.year}>{releaseYear}</Text> : null}
+      {actionLabel ? <Text style={styles.action}>{actionLabel}</Text> : null}
+      {children}
     </Pressable>
   );
 }
@@ -77,5 +88,10 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: typography.caption,
     fontFamily: fontFamily.regular,
+  },
+  action: {
+    color: colors.brandSecondary,
+    fontSize: typography.caption,
+    fontFamily: fontFamily.semiBold,
   },
 });

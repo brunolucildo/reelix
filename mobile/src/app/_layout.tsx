@@ -118,6 +118,8 @@ function RootNavigator() {
         <Stack.Screen name="social" />
         <Stack.Screen name="notifications" />
         <Stack.Screen name="gamification" />
+        <Stack.Screen name="settings" />
+        <Stack.Screen name="my-ratings" />
         <Stack.Screen name="social-profile/[accountId]" />
         <Stack.Screen name="title/[provider]/[contentType]/[externalId]" />
         <Stack.Screen name="auth/reset-password" />

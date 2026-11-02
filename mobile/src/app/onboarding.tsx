@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { BackButton } from '@/components/navigation/back-button';
 import { useErrorToast, useToast } from '@/providers/toast-provider';
 import {
   completeOnboarding,
@@ -209,9 +210,7 @@ function OnboardingFlow({
           {step === 'welcome' && !isEditing ? (
             <View style={styles.backButton} />
           ) : (
-            <Pressable accessibilityRole="button" onPress={goBack} style={styles.backButton}>
-              <Text style={styles.backLabel}>Voltar</Text>
-            </Pressable>
+            <BackButton onPress={goBack} />
           )}
           <Text style={styles.stepCount}>
             {isEditing ? 'EDITANDO PREFERÊNCIAS' : `ETAPA ${safeIndex + 1} DE ${steps.length}`}

@@ -604,6 +604,12 @@ internal static class CatalogEndpointTestServices
             string language,
             CancellationToken cancellationToken) =>
             Task.FromResult<ProviderCatalogSeason?>(null);
+
+        public Task<IReadOnlyList<ProviderCatalogSeasonSummary>?> GetSeasonsAsync(
+            string externalSeriesId,
+            string language,
+            CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<ProviderCatalogSeasonSummary>?>([]);
     }
 
     public sealed class TmdbGenreProvider : ICatalogGenreProvider

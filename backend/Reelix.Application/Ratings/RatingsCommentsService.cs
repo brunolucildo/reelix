@@ -9,6 +9,14 @@ public sealed class RatingsCommentsService(
     IRatingsCommentsRepository repository,
     ICommentModerationConfiguration moderationConfiguration)
 {
+    public async Task<OwnRatingsPage> GetOwnRatingsAsync(
+        Guid supabaseUserId, int page, int pageSize, CancellationToken cancellationToken)
+    {
+        ValidatePage(page, pageSize);
+        var account = await accounts.GetOrCreateAsync(supabaseUserId, cancellationToken);
+        return await repository.GetOwnRatingsAsync(account.Id, page, pageSize, cancellationToken);
+    }
+
     public async Task<RatingSummary> GetRatingSummaryAsync(
         Guid supabaseUserId,
         Guid targetId,

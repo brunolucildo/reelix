@@ -167,6 +167,9 @@ public sealed class CommentModerationTests
     private sealed class FakeRatingsCommentsRepository(
         IReadOnlyList<ModerationWorkItem> workItems) : IRatingsCommentsRepository
     {
+        public Task<OwnRatingsPage> GetOwnRatingsAsync(Guid accountId, int page, int pageSize, CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
         public List<ModerationWorkItem> FailedItems { get; } = [];
         public List<ModerationWorkItem> CompletedItems { get; } = [];
         public int MaxAttempts { get; private set; }

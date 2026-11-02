@@ -1,21 +1,25 @@
 using System.Globalization;
+using Reelix.Application.Authentication;
 
 namespace Reelix.Application.Gamification;
 
-public sealed class GamificationService(IGamificationRepository repository)
+public sealed class GamificationService(
+    IGamificationRepository repository,
+    IUserAccountRepository accounts)
 {
-    public Task<GamificationDashboard> GetDashboardAsync(
-        Guid accountId,
+    public async Task<GamificationDashboard> GetDashboardAsync(
+        Guid supabaseUserId,
         CancellationToken cancellationToken) =>
-        repository.GetDashboardAsync(accountId, cancellationToken);
+        await repository.GetDashboardAsync(
+            await GetAccountIdAsync(supabaseUserId, cancellationToken), cancellationToken);
 
-    public Task<GamificationPreferencesData> UpdatePreferencesAsync(
-        Guid accountId,
+    public async Task<GamificationPreferencesData> UpdatePreferencesAsync(
+        Guid supabaseUserId,
         bool badgesPublic,
         bool rankingEnabled,
         CancellationToken cancellationToken) =>
-        repository.UpdatePreferencesAsync(
-            accountId,
+        await repository.UpdatePreferencesAsync(
+            await GetAccountIdAsync(supabaseUserId, cancellationToken),
             badgesPublic,
             rankingEnabled,
             cancellationToken);
@@ -25,8 +29,8 @@ public sealed class GamificationService(IGamificationRepository repository)
         CancellationToken cancellationToken) =>
         repository.GetPublicBadgesAsync(accountId, cancellationToken);
 
-    public Task<GamificationStatistics> GetStatisticsAsync(
-        Guid accountId,
+    public async Task<GamificationStatistics> GetStatisticsAsync(
+        Guid supabaseUserId,
         DateTimeOffset periodStart,
         DateTimeOffset periodEnd,
         CancellationToken cancellationToken)
@@ -39,11 +43,12 @@ public sealed class GamificationService(IGamificationRepository repository)
                 "O período deve ser válido e não pode exceder 366 dias.");
         }
 
-        return repository.GetStatisticsAsync(accountId, start, end, cancellationToken);
+        return await repository.GetStatisticsAsync(
+            await GetAccountIdAsync(supabaseUserId, cancellationToken), start, end, cancellationToken);
     }
 
-    public Task<GamificationRankingPage> GetMonthlyRankingAsync(
-        Guid accountId,
+    public async Task<GamificationRankingPage> GetMonthlyRankingAsync(
+        Guid supabaseUserId,
         int year,
         int month,
         string? cursor,
@@ -62,13 +67,24 @@ public sealed class GamificationService(IGamificationRepository repository)
 
         var start = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
         var cursorValue = ParseCursor(cursor);
-        return repository.GetMonthlyRankingAsync(
-            accountId,
+        return await repository.GetMonthlyRankingAsync(
+            await GetAccountIdAsync(supabaseUserId, cancellationToken),
             start,
             start.AddMonths(1),
             cursorValue,
             limit,
             cancellationToken);
+    }
+
+    private async Task<Guid> GetAccountIdAsync(Guid supabaseUserId, CancellationToken cancellationToken)
+    {
+        if (supabaseUserId == Guid.Empty)
+        {
+            throw new ArgumentException("Informe uma conta autenticada.", nameof(supabaseUserId));
+        }
+
+        var account = await accounts.GetOrCreateAsync(supabaseUserId, cancellationToken);
+        return account.Id;
     }
 
     private static GamificationRankingCursor? ParseCursor(string? cursor)

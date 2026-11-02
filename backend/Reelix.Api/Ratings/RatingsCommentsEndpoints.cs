@@ -12,6 +12,13 @@ public static class RatingsCommentsEndpoints
             .WithTags("Ratings and comments")
             .RequireAuthorization();
 
+        group.MapGet("/ratings/mine", GetOwnRatings)
+            .WithName("GetOwnRatings")
+            .WithSummary("Get the authenticated account's ratings, including private ratings, with pagination.")
+            .Produces<OwnRatingsPage>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
+
         group.MapGet("/ratings/{targetType}/{targetId:guid}", GetRating)
             .WithName("GetRatingSummary")
             .WithSummary("Get public rating statistics and the caller's own rating.")
@@ -78,6 +85,18 @@ public static class RatingsCommentsEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         return group;
+    }
+
+    private static async Task<IResult> GetOwnRatings(
+        HttpContext context, RatingsCommentsService service, int? page, int? pageSize,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(context, out var userId))
+        {
+            return Results.Unauthorized();
+        }
+
+        return await ExecuteAsync(() => service.GetOwnRatingsAsync(userId, page ?? 1, pageSize ?? 20, cancellationToken));
     }
 
     private static async Task<IResult> GetRating(

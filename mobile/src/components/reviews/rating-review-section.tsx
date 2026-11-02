@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { formatRatingStars } from '@/components/reviews/rating-stars';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
 import {
@@ -85,6 +86,7 @@ export function RatingReviewSection({
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ratingKey }),
       queryClient.invalidateQueries({ queryKey: commentsKey }),
+      queryClient.invalidateQueries({ queryKey: ['reviews', 'mine'] }),
     ]);
   };
 
@@ -212,13 +214,21 @@ export function RatingReviewSection({
           </View>
         ) : (
           <>
-            <Text style={styles.secondaryText}>
-              {rating.data.averageScore === null
-                ? 'Ainda sem avaliações públicas.'
-                : `Média pública ${rating.data.averageScore.toFixed(1)} de 5 · ${rating.data.publicCount} ${
-                  rating.data.publicCount === 1 ? 'avaliação' : 'avaliações'
-                }`}
-            </Text>
+            {rating.data.averageScore === null ? (
+              <Text style={styles.secondaryText}>Ainda sem avaliações públicas.</Text>
+            ) : (
+              <View style={styles.publicRating}>
+                <Text
+                  accessibilityLabel={`Média pública ${rating.data.averageScore.toFixed(1)} de 5 estrelas`}
+                  style={styles.publicRatingStars}
+                >
+                  {formatRatingStars(rating.data.averageScore)}
+                </Text>
+                <Text style={styles.secondaryText}>
+                  {rating.data.publicCount} {rating.data.publicCount === 1 ? 'avaliação' : 'avaliações'}
+                </Text>
+              </View>
+            )}
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={styles.scoreOptions}>
                 {scoreOptions.map((score) => (
@@ -239,7 +249,7 @@ export function RatingReviewSection({
                         selectedScore === score ? styles.selectedScoreText : null,
                       ]}
                     >
-                      {score === 0 ? '0' : `${score}★`}
+                      {formatRatingStars(score)}
                     </Text>
                   </Pressable>
                 ))}
@@ -522,6 +532,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.extraSmall,
     paddingVertical: spacing.extraSmall,
+  },
+  publicRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.small,
+  },
+  publicRatingStars: {
+    color: colors.brandSecondary,
+    fontSize: typography.body,
+    fontFamily: fontFamily.bold,
   },
   scoreButton: {
     minWidth: 48,

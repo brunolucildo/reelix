@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useQueries } from '@tanstack/react-query';
-import { Redirect, useRouter } from 'expo-router';
+import { Redirect, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { MediaTitleRow } from '@/components/discovery/media-title-row';
+import { BackButton } from '@/components/navigation/back-button';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast, useToast } from '@/providers/toast-provider';
 import {
@@ -41,11 +43,12 @@ import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 type Section = 'favorites' | 'watchlist' | 'lists';
 
 export default function ListsScreen() {
-  const router = useRouter();
+  const params = useLocalSearchParams<{ section?: string }>();
   const { session } = useAuthSession();
   const queryClient = useQueryClient();
   const { showError } = useToast();
-  const [section, setSection] = useState<Section>('favorites');
+  const [section, setSection] = useState<Section>(() =>
+    params.section === 'lists' || params.section === 'watchlist' ? params.section : 'favorites');
   const [page, setPage] = useState(1);
   const [listPage, setListPage] = useState(1);
   const [watchlistOldestFirst, setWatchlistOldestFirst] = useState(false);
@@ -274,11 +277,7 @@ export default function ListsScreen() {
         ) : null}
         {search.data?.length === 0 ? <Text style={styles.muted}>Nenhum título encontrado.</Text> : null}
         {search.data?.map((title) => (
-          <View key={title.id} style={styles.searchResult}>
-            <View style={styles.titleCopy}>
-              <Text style={styles.itemTitle}>{title.title}</Text>
-              <Text style={styles.muted}>{title.contentType === 'movie' ? 'Filme' : 'Série'}</Text>
-            </View>
+          <MediaTitleRow key={title.id} title={title}>
             <View style={styles.searchActions}>
               {statusByTitleId.get(title.id)?.isFavorite ? (
                 <Text style={styles.statusLabel}>Já é favorito</Text>
@@ -312,7 +311,7 @@ export default function ListsScreen() {
                 <SmallButton label="Adicionar à lista" onPress={() => void addSearchTitle(title, 'lists')} />
               ) : null}
             </View>
-          </View>
+          </MediaTitleRow>
         ))}
       </View>
 
@@ -442,17 +441,14 @@ export default function ListsScreen() {
           {!isPending && displayedPage?.items.length === 0 ? (
             <Text style={styles.muted}>Ainda não há títulos nesta seção.</Text>
           ) : null}
-          {displayedPage?.items.map((reference, index) => (
+          {displayedPage?.items.map((reference, index) => titleDetails[index]?.data ? (
+            <MediaTitleRow key={reference.titleId} title={titleDetails[index].data}>
+              <SmallButton label="Remover" onPress={() => void removeTitle(reference)} />
+            </MediaTitleRow>
+          ) : (
             <View key={reference.titleId} style={styles.titleRow}>
               {titleDetails[index]?.isPending ? (
                 <ActivityIndicator color={colors.brand} />
-              ) : titleDetails[index]?.data ? (
-                <View style={styles.titleCopy}>
-                  <Text style={styles.itemTitle}>{titleDetails[index].data.title}</Text>
-                  <Text style={styles.muted}>
-                    {reference.contentType === 'movie' ? 'Filme' : 'Série'}
-                  </Text>
-                </View>
               ) : (
                 <View style={styles.titleCopy}>
                   <Text style={styles.muted}>Detalhes indisponíveis no catálogo.</Text>
@@ -486,26 +482,8 @@ export default function ListsScreen() {
           {selectedList.data?.titles.items.length === 0 ? (
             <Text style={styles.muted}>Esta lista ainda não tem títulos.</Text>
           ) : null}
-          {selectedList.data?.titles.items.map((reference, index) => (
-            <View key={reference.titleId} style={styles.titleRow}>
-              {titleDetails[index]?.isPending ? (
-                <ActivityIndicator color={colors.brand} />
-              ) : titleDetails[index]?.data ? (
-                <View style={styles.titleCopy}>
-                  <Text style={styles.itemTitle}>{titleDetails[index].data.title}</Text>
-                  <Text style={styles.muted}>
-                    {reference.contentType === 'movie' ? 'Filme' : 'Série'}
-                  </Text>
-                </View>
-              ) : (
-                <View style={styles.titleCopy}>
-                  <Text style={styles.muted}>Detalhes indisponíveis no catálogo.</Text>
-                  <SmallButton
-                    label="Tentar carregar detalhes"
-                    onPress={() => void titleDetails[index]?.refetch()}
-                  />
-                </View>
-              )}
+          {selectedList.data?.titles.items.map((reference, index) => titleDetails[index]?.data ? (
+            <MediaTitleRow key={reference.titleId} title={titleDetails[index].data}>
               <SmallButton label="Remover" onPress={() => void removeTitle(reference)} />
               <View style={styles.orderActions}>
                 <SmallButton
@@ -522,6 +500,21 @@ export default function ListsScreen() {
                   onPress={() => void moveListTitle(reference.titleId, 1)}
                 />
               </View>
+            </MediaTitleRow>
+          ) : (
+            <View key={reference.titleId} style={styles.titleRow}>
+              {titleDetails[index]?.isPending ? (
+                <ActivityIndicator color={colors.brand} />
+              ) : (
+                <View style={styles.titleCopy}>
+                  <Text style={styles.muted}>Detalhes indisponíveis no catálogo.</Text>
+                  <SmallButton
+                    label="Tentar carregar detalhes"
+                    onPress={() => void titleDetails[index]?.refetch()}
+                  />
+                </View>
+              )}
+              <SmallButton label="Remover" onPress={() => void removeTitle(reference)} />
             </View>
           ))}
           {selectedList.data ? (
@@ -535,7 +528,7 @@ export default function ListsScreen() {
         </View>
       ) : null}
 
-      <PrimaryButton label="Voltar" onPress={() => router.back()} variant="quiet" />
+      <BackButton />
     </ScrollView>
   );
 }
@@ -566,25 +559,30 @@ function SmallButton({
   label,
   onPress,
   disabled = false,
+  accessibilityLabel = label,
+  iconOnly = false,
 }: {
   label: string;
   onPress: () => void;
   disabled?: boolean;
+  accessibilityLabel?: string;
+  iconOnly?: boolean;
 }) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
         styles.smallButton,
+        iconOnly ? styles.pagerIconButton : null,
         pressed ? styles.pressed : null,
         disabled ? styles.disabled : null,
       ]}
     >
-      <Text style={styles.smallButtonLabel}>{label}</Text>
+      <Text style={[styles.smallButtonLabel, iconOnly ? styles.pagerIconLabel : null]}>{label}</Text>
     </Pressable>
   );
 }
@@ -607,9 +605,21 @@ function Pager({
 
   return (
     <View style={styles.pager}>
-      <SmallButton label="Página anterior" onPress={() => onChange(Math.max(1, page - 1))} />
+      <SmallButton
+        accessibilityLabel="Página anterior"
+        disabled={page <= 1}
+        iconOnly
+        label="←"
+        onPress={() => onChange(Math.max(1, page - 1))}
+      />
       <Text style={styles.muted}>Página {page} de {totalPages}</Text>
-      <SmallButton label="Próxima página" onPress={() => onChange(Math.min(totalPages, page + 1))} />
+      <SmallButton
+        accessibilityLabel="Próxima página"
+        disabled={page >= totalPages}
+        iconOnly
+        label="→"
+        onPress={() => onChange(Math.min(totalPages, page + 1))}
+      />
     </View>
   );
 }
@@ -750,11 +760,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.small,
     backgroundColor: colors.surfaceElevated,
   },
+  pagerIconButton: {
+    minWidth: 44,
+    paddingHorizontal: spacing.medium,
+  },
   smallButtonLabel: {
     color: colors.textPrimary,
     fontSize: typography.caption,
     fontFamily: fontFamily.semiBold,
     textAlign: 'center',
+  },
+  pagerIconLabel: {
+    fontSize: typography.section,
+    lineHeight: typography.section + 4,
   },
   listCard: {
     gap: spacing.small,

@@ -248,6 +248,29 @@ const ratingSummarySchema = z.object({
   publicCount: z.number().int().nonnegative(),
   myRating: ownRatingSchema.nullable(),
 });
+
+const ownRatingsPageSchema = z.object({
+  items: z.array(z.object({
+    id: z.string().uuid(),
+    targetId: z.string().uuid(),
+    targetType: reviewTargetTypeSchema,
+    score: z.number().min(0).max(5),
+    audience: reviewAudienceSchema,
+    updatedAt: z.string().datetime({ offset: true }),
+    provider: z.enum(['tmdb', 'omdb']),
+    externalId: z.string(),
+    seriesExternalId: z.string().nullable(),
+  })),
+  page: z.number().int().positive(),
+  pageSize: z.number().int().positive(),
+  totalCount: z.number().int().nonnegative(),
+});
+
+export type OwnRatingEntry = z.infer<typeof ownRatingsPageSchema>['items'][number];
+
+export function fetchOwnRatings(page: number, signal?: AbortSignal) {
+  return apiRequest(`/api/v1/ratings/mine?page=${page}&pageSize=20`, ownRatingsPageSchema, { signal });
+}
 const commentItemSchema = z.object({
   id: z.string().uuid(),
   targetId: z.string().uuid(),
@@ -291,6 +314,11 @@ const catalogSeasonSchema = z.object({
     runtimeMinutes: z.number().int().positive().nullable(),
   })),
 });
+const catalogSeasonSummarySchema = z.object({
+  seasonNumber: z.number().int().nonnegative(),
+  title: z.string().nullable(),
+  releaseDate: z.string().nullable(),
+});
 
 export type AuthenticatedAccount = z.infer<typeof accountSchema>;
 export type OnboardingPreferences = z.infer<typeof onboardingSchema>;
@@ -324,6 +352,7 @@ export type RatingSummary = z.infer<typeof ratingSummarySchema>;
 export type CommentItem = z.infer<typeof commentItemSchema>;
 export type PagedComments = z.infer<typeof pagedCommentsSchema>;
 export type CatalogSeason = z.infer<typeof catalogSeasonSchema>;
+export type CatalogSeasonSummary = z.infer<typeof catalogSeasonSummarySchema>;
 
 export type OnboardingProgress = Omit<OnboardingPreferences, 'isComplete' | 'currentStep'> & {
   currentStep: Exclude<OnboardingPreferences['currentStep'], 'completed'>;
@@ -777,6 +806,18 @@ export async function fetchCatalogSeason(
   return apiRequest(
     `/api/v1/catalog/${provider}/series/${encodeURIComponent(externalSeriesId)}/seasons/${seasonNumber}?language=pt-BR`,
     catalogSeasonSchema,
+    { signal },
+  );
+}
+
+export async function fetchCatalogSeasons(
+  provider: CatalogTitle['provider'],
+  externalSeriesId: string,
+  signal?: AbortSignal,
+): Promise<CatalogSeasonSummary[]> {
+  return apiRequest(
+    `/api/v1/catalog/${provider}/series/${encodeURIComponent(externalSeriesId)}/seasons?language=pt-BR`,
+    z.array(catalogSeasonSummarySchema),
     { signal },
   );
 }

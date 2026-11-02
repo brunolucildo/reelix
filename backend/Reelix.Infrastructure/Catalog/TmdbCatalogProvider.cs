@@ -229,6 +229,36 @@ public sealed class TmdbCatalogProvider(
                 .ToArray());
     }
 
+    public async Task<IReadOnlyList<ProviderCatalogSeasonSummary>?> GetSeasonsAsync(
+        string externalSeriesId,
+        string language,
+        CancellationToken cancellationToken)
+    {
+        var id = ParseNumericId(externalSeriesId);
+        using var response = await SendAsync(
+            $"3/tv/{id}?language={Uri.EscapeDataString(language)}",
+            cancellationToken);
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCodeOrThrow(Provider, logger);
+        var details = await CatalogProviderHttp.ReadJsonAsync<TmdbTitleResponse>(
+            response,
+            Provider,
+            logger,
+            cancellationToken);
+        return details.Seasons
+            .Where(season => season.SeasonNumber >= 0)
+            .Select(season => new ProviderCatalogSeasonSummary(
+                season.SeasonNumber,
+                EmptyToNull(season.Name),
+                ParseDate(season.AirDate)))
+            .OrderBy(season => season.SeasonNumber)
+            .ToArray();
+    }
+
     private async Task<HttpResponseMessage> SendAsync(string relativeUri, CancellationToken cancellationToken)
     {
         var token = options.Value.AccessToken;
@@ -388,6 +418,8 @@ internal sealed class TmdbTitleResponse
 
     public List<TmdbGenre> Genres { get; set; } = [];
 
+    public List<TmdbSeriesSeasonResponse> Seasons { get; set; } = [];
+
     [JsonPropertyName("release_date")]
     public string? ReleaseDate { get; set; }
 
@@ -404,6 +436,17 @@ internal sealed class TmdbTitleResponse
 
     [JsonPropertyName("backdrop_path")]
     public string? BackdropPath { get; set; }
+}
+
+internal sealed class TmdbSeriesSeasonResponse
+{
+    public string? Name { get; set; }
+
+    [JsonPropertyName("season_number")]
+    public int SeasonNumber { get; set; }
+
+    [JsonPropertyName("air_date")]
+    public string? AirDate { get; set; }
 }
 
 internal sealed class TmdbGenre
