@@ -164,6 +164,8 @@ export default function NotificationsScreen() {
             <Pressable
               key={item.id}
               accessibilityRole="button"
+              accessibilityLabel={`${item.title}. ${item.body}. ${item.readAt ? 'Lida' : 'Não lida'}.`}
+              accessibilityHint="Abre a área relacionada à notificação."
               onPress={() => {
                 if (!item.readAt) {
                   readMutation.mutate(item.id);

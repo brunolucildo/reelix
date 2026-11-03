@@ -6,9 +6,10 @@ O repositório reúne o aplicativo mobile em React Native/Expo e uma API ASP.NET
 
 ## Estado atual do projeto
 
-**Atualizado em 02/11/2026.** A tabela descreve implementação no repositório, não
-confirma implantação em produção. Migrations e credenciais precisam ser verificadas
-separadamente em cada ambiente.
+**Fotografia do código em 03/11/2026.** O status completo, as limitações de validação
+e os próximos passos estão em [PROJECT_STATUS.md](PROJECT_STATUS.md). A tabela descreve
+implementação no repositório, não confirma implantação em produção. Migrations e
+credenciais precisam ser verificadas separadamente em cada ambiente.
 
 | Módulo | Estado no código | Limites operacionais conhecidos |
 |---|---|---|
@@ -24,6 +25,16 @@ separadamente em cada ambiente.
 As especificações por módulo, incluindo decisões e limitações, estão em
 [docs/specs](docs/specs/). As páginas de desenvolvimento são planos históricos;
 use este quadro e as especificações como estado atual.
+
+Para continuidade técnica, consulte o [backlog da auditoria](DEVELOPMENT_BACKLOG.md) e
+o [roadmap recomendado](ROADMAP.md). O resultado dos testes não equivale a uma
+validação funcional em produção ou em dispositivos nativos.
+
+O workflow [.github/workflows/ci.yml](.github/workflows/ci.yml) roda testes backend,
+lint/type-check mobile e auditoria de dependências em pull requests e pushes. Ele também
+gera um script idempotente de migrations como artefato para revisão; não aplica schema.
+O audit atual reporta advisories npm moderados transitivos do Expo, rastreados no
+backlog para evitar um downgrade incompatível do SDK.
 
 ## Funcionalidades implementadas
 
@@ -139,6 +150,9 @@ npx expo lint
 
 ## Documentação
 
+- [Status atual e limites da auditoria](PROJECT_STATUS.md)
+- [Backlog técnico rastreável](DEVELOPMENT_BACKLOG.md)
+- [Roadmap recomendado](ROADMAP.md)
 - [Configuração de autenticação e ambiente local](docs/authentication-setup.md)
 - [Configuração do catálogo, provedores e teste no Swagger](docs/catalog-setup.md)
 - [Avaliação de tecnologias adicionais](docs/technology-stack-evaluation.md)

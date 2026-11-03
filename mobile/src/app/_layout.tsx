@@ -8,7 +8,7 @@ import {
 } from '@expo-google-fonts/sora';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter } from 'expo-router';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useEffect } from 'react';
 import * as Notifications from 'expo-notifications';
 
@@ -99,9 +99,14 @@ function RootNavigator() {
           Não foi possível iniciar o Reelix
         </Text>
         <Text style={styles.errorText}>{initializationError}</Text>
-        <Text accessibilityRole="button" onPress={retryInitialization} style={styles.retry}>
-          Tentar novamente
-        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Tentar novamente"
+          onPress={retryInitialization}
+          style={styles.retry}
+        >
+          <Text style={styles.retryText}>Tentar novamente</Text>
+        </Pressable>
       </View>
     );
   }
@@ -205,9 +210,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   retry: {
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.medium,
+  },
+  retryText: {
     color: colors.brand,
     fontSize: typography.body,
     fontFamily: fontFamily.bold,
-    padding: 12,
   },
 });

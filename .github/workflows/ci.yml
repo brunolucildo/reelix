@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore backend
+        run: dotnet restore Reelix.sln --source https://api.nuget.org/v3/index.json
+
+      - name: Test backend
+        run: dotnet test Reelix.sln --no-restore --configuration Release
+
+      - name: Restore local tools
+        run: dotnet tool restore
+
+      - name: Prepare migration artifact
+        run: mkdir -p artifacts
+
+      - name: Generate idempotent migration script
+        env:
+          Supabase__Url: https://migration-script.invalid
+          ConnectionStrings__Reelix: Host=localhost;Database=reelix_ci;Username=postgres;Password=not-used
+        run: >-
+          dotnet tool run dotnet-ef migrations script --idempotent --no-build
+          --configuration Release
+          --project backend/Reelix.Infrastructure/Reelix.Infrastructure.csproj
+          --startup-project backend/Reelix.Api/Reelix.Api.csproj
+          --output artifacts/reelix-migrations.sql
+
+      - name: Upload migration script for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: reelix-idempotent-migrations
+          path: artifacts/reelix-migrations.sql
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Audit NuGet packages
+        run: dotnet package list --project Reelix.sln --no-restore --vulnerable --include-transitive --source https://api.nuget.org/v3/index.json
+
+  mobile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install mobile dependencies
+        run: npm ci
+
+      - name: Lint mobile
+        run: npm run lint
+
+      - name: Type-check mobile
+        run: npx tsc --noEmit
+
+      - name: Audit production npm dependencies
+        run: npm audit --omit=dev --audit-level=high

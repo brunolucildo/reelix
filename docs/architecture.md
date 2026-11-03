@@ -76,7 +76,7 @@ A change should not be considered complete until relevant checks pass:
 7. Documentation updates for changed contracts, configuration, or architectural decisions.
 8. For mobile UI changes, compliance with the [UX standards](#ux-standards-for-every-mobile-screen) and an updated visual wireframe.
 
-### Current implementation snapshot · 02/11/2026
+### Current implementation snapshot · 03/11/2026
 
 This document includes both architectural standards and future options. The active
 implementation in this repository is:
@@ -98,6 +98,11 @@ implementation in this repository is:
 - A feature present in source is not proof that its migration or provider credentials
   are deployed in a particular environment. The README status table and module
   specifications record these boundaries.
+- For the complete module-by-module status, validation limits, audit findings, and
+  implementation queue, see the root [PROJECT_STATUS.md](../PROJECT_STATUS.md),
+  [DEVELOPMENT_BACKLOG.md](../DEVELOPMENT_BACKLOG.md), and [ROADMAP.md](../ROADMAP.md).
+  Architectural standards and optional technologies elsewhere in this document are
+  guidance, not evidence that the corresponding capability is deployed.
 
 ## 2. Architecture decisions
 
@@ -366,6 +371,11 @@ Vercel is not the default host for an ASP.NET Core API. Do not assume a Next.js 
 - **CI checks:** Formatting, linting, type checking, build, tests, dependency audit, and secret scanning.
 
 Do not chase a coverage percentage without testing meaningful behavior. Prioritize critical user journeys and regression-prone business rules.
+
+The current [GitHub Actions workflow](../.github/workflows/ci.yml) runs backend tests,
+mobile lint/type checks, and dependency audits. It uploads an idempotent migration
+script for manual review; it does not apply migrations. Mobile automated tests and
+repository-level secret scanning/branch protections remain follow-up work.
 
 ## 14. Initial MVP implementation order (historical)
 

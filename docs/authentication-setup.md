@@ -56,11 +56,27 @@ Para testar endpoints autenticados pelo Swagger local, use a página auxiliar de
 
 ## Banco e verificações
 
-Depois de configurar um PostgreSQL local/de desenvolvimento, aplique as migrations:
+Para revisar as alterações antes de qualquer aplicação, gere um script idempotente.
+O comando compila/consulta o modelo, mas não conecta ao banco:
 
 ```powershell
-dotnet ef database update --project backend\Reelix.Infrastructure\Reelix.Infrastructure.csproj --startup-project backend\Reelix.Api\Reelix.Api.csproj
+dotnet tool restore
+$env:Supabase__Url = "https://migration-script.invalid"
+$env:ConnectionStrings__Reelix = "Host=localhost;Database=reelix_migration;Username=postgres;Password=not-used"
+dotnet tool run dotnet-ef migrations script --idempotent --project backend\Reelix.Infrastructure\Reelix.Infrastructure.csproj --startup-project backend\Reelix.Api\Reelix.Api.csproj --output artifacts\reelix-migrations.sql
 ```
+
+Revise o SQL gerado e confirme o ambiente de destino antes de executar qualquer
+migration. Para desenvolvimento local autorizado, com o banco iniciado e a connection
+string apontando explicitamente para ele, aplique as migrations:
+
+```powershell
+dotnet tool run dotnet-ef database update --project backend\Reelix.Infrastructure\Reelix.Infrastructure.csproj --startup-project backend\Reelix.Api\Reelix.Api.csproj
+```
+
+Nunca use connection string de produção ou de banco compartilhado sem autorização
+explícita. O CI também publica o script idempotente como artefato temporário para revisão;
+isso não aplica migrations automaticamente.
 
 Verificações disponíveis:
 
