@@ -182,22 +182,22 @@ o audit completo reportou 24 advisories (3 low, 21 moderate), sem high/critical,
 limiar configurado. Localmente, a suíte Release passou com 202 testes mesmo com as
 configurações externas Supabase/PostgreSQL vazias; lint/type-check mobile também passaram.
 O audit NuGet via nuget.org não encontrou vulnerabilidades. Gitleaks percorreu os 77 commits
-locais sem encontrar segredos. Branch protection ainda não está configurada; a página de
-configurações do GitHub exigiu autenticação.
+locais sem encontrar segredos. A regra de proteção de `main` está ativa e exige pull request,
+checks `backend` e `mobile` aprovados e branch atualizada; administradores não podem ignorá-la.
+Não exige aprovação de reviewer.
 
 **Evidências:** [Reelix.sln](Reelix.sln), [Reelix.UnitTests.csproj](backend/Reelix.UnitTests/Reelix.UnitTests.csproj),
 [package.json](mobile/package.json) e
 [architecture.md](docs/architecture.md#13-testing-and-quality).
 
-**Impacto:** A qualidade depende de execução manual e o estado de vulnerabilidades/
-**Impacto:** Sem checks obrigatórios na branch, mudanças podem ser integradas mesmo quando
-um job falha; os advisories low/moderate permanecem registrados até correção upstream.
+**Impacto:** A proteção reduz o risco de integrar mudanças com gates falhos; advisories
+low/moderate continuam pendentes de correção upstream.
 
-**Solução proposta:** Configurar checks obrigatórios de branch e reavaliar os advisories npm
-quando houver versão Expo compatível que resolva as vulnerabilidades sem downgrade.
+**Solução proposta:** Manter a proteção ativa, verificar o novo workflow após o próximo push e
+reavaliar os advisories npm quando houver versão Expo compatível, sem downgrade.
 
 **Plano técnico de implementação:**
-1. Configurar `backend` e `mobile` como checks obrigatórios de branch.
+1. Verificar os checks obrigatórios após publicar as alterações locais do workflow.
 2. Manter Gitleaks no job backend e validar o artefato TRX quando houver falha.
 3. Corrigir vulnerabilidades npm quando uma versão compatível com o SDK estiver publicada.
 4. Garantir que falha de feed NuGet seja tratada como resultado inconclusivo.
@@ -206,13 +206,12 @@ quando houver versão Expo compatível que resolva as vulnerabilidades sem downg
 **Arquivos provavelmente envolvidos:** [.github/workflows/ci.yml](.github/workflows/ci.yml),
 `Reelix.sln`, `mobile/package.json`, `mobile/package-lock.json` e configurações de
 proteção do repositório (fora do Git).
-**Dependências:** Acesso autenticado às configurações do GitHub e release upstream do Expo
-que corrija os advisories sem downgrade.
+**Dependências:** Release upstream do Expo que corrija os advisories sem downgrade.
 **Critérios de aceitação:** Workflow executa checks em PR; vulnerabilidades altas/críticas
 fazem CI falhar; secret scanning está ativo; o risco moderado atual é rastreado sem
 downgrade forçado de Expo.
-**Estimativa de complexidade:** Média — workflow foi criado; proteções do repositório e
-correção de dependências dependem da plataforma e do upstream.
+**Estimativa de complexidade:** Média — workflow e proteção de branch estão configurados;
+validação remota dos ajustes locais e correção de dependências ainda dependem do upstream.
 
 ---
 
