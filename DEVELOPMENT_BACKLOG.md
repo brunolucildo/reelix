@@ -174,11 +174,13 @@ verificações de dependências/segredos.
 **Estado atual:** `.github/workflows/ci.yml` agora executa testes backend, lint e
 type-check mobile, gera o script idempotente de migrations e audita NuGet/npm. O workflow
 agora inclui Gitleaks CLI com imagem pinada por digest e actions pinadas por SHA em runtime
-Node 24. A suíte backend passou com 202 testes; lint/type-check mobile passaram; o audit
-NuGet via nuget.org não encontrou vulnerabilidades. O audit npm encontrou 8 moderadas em
-`glob`/`minimatch`; a correção automática ainda propõe downgrade para Expo SDK 51 e não foi
-aplicada. Gitleaks percorreu os 75 commits locais sem encontrar segredos. O workflow ainda
-aguarda primeira execução remota no GitHub.
+Node 24. Localmente, a suíte Release passou com 202 testes e gera artefato TRX; lint e
+type-check mobile passaram; o audit NuGet via nuget.org não encontrou vulnerabilidades.
+O audit npm encontrou 8 moderadas em `glob`/`minimatch`; a correção automática ainda propõe
+downgrade para Expo SDK 51 e não foi aplicada. Gitleaks percorreu os 77 commits locais sem
+encontrar segredos. O último run remoto teve Gitleaks e mobile aprovados, mas o passo
+`dotnet test` do backend falhou; os logs detalhados exigem sessão GitHub. O workflow passou
+a publicar os resultados TRX na próxima execução.
 
 **Evidências:** [Reelix.sln](Reelix.sln), [Reelix.UnitTests.csproj](backend/Reelix.UnitTests/Reelix.UnitTests.csproj),
 [package.json](mobile/package.json) e
@@ -187,12 +189,13 @@ aguarda primeira execução remota no GitHub.
 **Impacto:** A qualidade depende de execução manual e o estado de vulnerabilidades/
 segredos pode ficar desconhecido antes de integrar mudanças.
 
-**Solução proposta:** Confirmar a execução remota, configurar checks obrigatórios de branch
-e reavaliar os advisories npm quando houver versão compatível do Expo.
+**Solução proposta:** Diagnosticar a falha remota com o TRX, obter um run backend verde,
+configurar checks obrigatórios de branch e reavaliar os advisories npm quando houver versão
+compatível do Expo.
 
 **Plano técnico de implementação:**
-1. Executar o workflow no GitHub e definir checks obrigatórios de branch.
-2. Manter Gitleaks ativo e habilitar a proteção de branch nas configurações do repositório.
+1. Reexecutar o workflow no GitHub e inspecionar o artefato TRX do backend.
+2. Configurar checks obrigatórios de branch e manter Gitleaks ativo.
 3. Corrigir vulnerabilidades npm quando uma versão compatível com o SDK estiver publicada.
 4. Garantir que falha de feed NuGet seja tratada como resultado inconclusivo.
 5. Manter revisão do artefato SQL manual; CI não o aplica.
@@ -200,8 +203,8 @@ e reavaliar os advisories npm quando houver versão compatível do Expo.
 **Arquivos provavelmente envolvidos:** [.github/workflows/ci.yml](.github/workflows/ci.yml),
 `Reelix.sln`, `mobile/package.json`, `mobile/package-lock.json` e configurações de
 proteção do repositório (fora do Git).
-**Dependências:** Primeira execução remota e proteção de branch no GitHub; release upstream
-compatível do Expo.
+**Dependências:** Acesso autenticado para inspecionar logs e configurar branch protection;
+release upstream compatível do Expo.
 **Critérios de aceitação:** Workflow executa checks em PR; vulnerabilidades altas/críticas
 fazem CI falhar; secret scanning está ativo; o risco moderado atual é rastreado sem
 downgrade forçado de Expo.

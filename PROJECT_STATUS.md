@@ -78,14 +78,16 @@ que implementação seja confundida com operação verificada.
    Social, notificações e gamificação ainda dependem de aplicação autorizada.
 2. **Cobertura de integração/autorização:** 47 testes focados exercitam rejeição anônima
    em rotas HTTP; 10 testes Testcontainers aplicam as migrations num PostgreSQL efêmero
-    e cobrem isolamento/consentimento em perfil, tracking, listas, avaliações, social,
-    notificações e gamificação. Ainda não há testes mobile nem cobertura de integração de
-    todos os endpoints e cenários concorrentes.
+   e cobrem isolamento/consentimento em perfil, tracking, listas, avaliações, social,
+   notificações e gamificação. Ainda não há testes mobile nem cobertura de integração de
+   todos os endpoints e cenários concorrentes.
 3. **Automação de qualidade:** workflow versionado executa os gates, gera artefato de
-  migrations e inclui Gitleaks. A primeira execução remota no GitHub e branch protection
-  ainda não foram verificadas. O audit npm encontrou 8 vulnerabilidades moderadas
-  transitivas no Expo (`glob` e `minimatch`); correção forçada rebaixaria o SDK e não foi
-  aplicada. O audit NuGet via nuget.org não encontrou vulnerabilidades.
+   migrations e inclui Gitleaks. O último run remoto teve Gitleaks e mobile aprovados, mas
+   falhou no passo de testes backend; os logs completos exigem sessão GitHub. Localmente,
+   Release passou com 202 testes. Branch protection ainda não está configurada/verificada.
+   O audit npm encontrou 8 vulnerabilidades moderadas transitivas no Expo (`glob` e
+   `minimatch`); correção forçada rebaixaria o SDK e não foi aplicada. O audit NuGet via
+   nuget.org não encontrou vulnerabilidades.
 4. **Entrega externa:** credenciais/projetos TMDB, OMDb, Expo e OpenAI, hosting dos
    workers e configuração de build não foram verificados em ambiente operacional.
 5. **Privacidade de ciclo de vida:** exclusão, exportação e retenção de dados da conta
@@ -128,7 +130,8 @@ Nenhuma credencial ou valor de segredo é reproduzido aqui.
   sugerido pelo npm não foi aplicado. O audit NuGet via `nuget.org` não encontrou pacotes
   vulneráveis.
 - Gitleaks v8.30.1 verificou o histórico local (75 commits), sem findings. A CI agora
-  executa o scanner com saída redigida; a primeira execução no GitHub ainda está pendente.
+- Gitleaks v8.30.1 verificou o histórico local (77 commits), sem findings. A CI executa
+  o scanner com saída redigida; o job remoto de secret scanning passou.
 - O banco Supabase de desenvolvimento foi consultado para confirmar migrations, RLS e
   auditar marcadores de testes iniciais. Seis contas internas sem vínculo em `auth.users`
   e seus registros identificados por marcadores foram removidos em transação. Outros
