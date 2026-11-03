@@ -295,6 +295,23 @@ public sealed class CatalogProviderTests
     }
 
     [Fact]
+    public async Task TmdbUnavailableProvider_ReturnsSanitizedServiceUnavailable()
+    {
+        using var client = CreateClient(_ => throw new HttpRequestException("private network details"));
+        var provider = new TmdbCatalogProvider(
+            client,
+            Options.Create(new TmdbCatalogOptions { AccessToken = "test-token" }),
+            NullLogger<TmdbCatalogProvider>.Instance);
+
+        var exception = await Assert.ThrowsAsync<CatalogProviderException>(() =>
+            provider.SearchAsync("test", CatalogContentType.Movie, 1, "en-US", CancellationToken.None));
+
+        Assert.Equal(503, exception.StatusCode);
+        Assert.Equal("catalog_provider_unavailable", exception.Code);
+        Assert.DoesNotContain("private network details", exception.Message);
+    }
+
+    [Fact]
     public async Task OmdbDetails_NormalizesResponseAndDoesNotExposePosterUrl()
     {
         using var client = CreateClient(request =>

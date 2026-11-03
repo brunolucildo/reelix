@@ -6,12 +6,12 @@ atualizadas após as alterações de follow-up.
 “Bloqueado” indica dependência externa necessária antes de concluir. Prioridades são
 relativas à prontidão e aos riscos visíveis no repositório, não estimativas de prazo.
 
-**Escopo:** 18 pendências abertas, além de 1 item resolvido nesta etapa. As exceções
+**Escopo:** 17 pendências abertas, além de 2 itens resolvidos nesta etapa. As exceções
 solicitadas — testes mobile (REELIX-003), IA (REELIX-011 e REELIX-012) e Widgets
 (REELIX-013) — permanecem registradas sem implementação.
 
-**Distribuição das abertas:** 6 Alta, 7 Média e 5 Baixa. Nenhuma foi classificada como
-Crítica com a evidência disponível. Estados: 1 Pendente, 4 Parcialmente implementados,
+**Distribuição das abertas:** 5 Alta, 7 Média e 5 Baixa. Nenhuma foi classificada como
+Crítica com a evidência disponível. Estados: 1 Pendente, 3 Parcialmente implementados,
 5 Bloqueados e 8 Aguardando decisão.
 
 ---
@@ -71,16 +71,19 @@ mas usa migrations EF Core já existentes.
 **Módulo:** API / segurança / persistência
 **Categoria:** Testing
 **Prioridade:** Alta
-**Status:** Parcialmente implementado
+**Status:** Concluído
 
 **Descrição:** Cobrir fluxos HTTP, autorização por recurso e isolamento entre contas
 com banco PostgreSQL real, além dos testes unitários/modelo existentes.
 
-**Estado atual:** Além dos testes de autenticação/perfil existentes, a matriz HTTP agora
-verifica rejeição anônima em rotas de catálogo, perfil, tracking, ratings, listas,
-social, notificações e gamificação. Os 47 testes da classe de API passaram. Ainda não
-há suíte abrangente usando PostgreSQL real nem matriz completa de autorização entre
-duas contas para todos os módulos.
+**Estado atual:** A matriz HTTP verifica rejeição anônima nas rotas críticas e inclui
+10 testes Testcontainers que aplicam as migrations em PostgreSQL efêmero. Os cenários
+cobrem isolamento entre contas em perfil, listas, avaliações, tracking, inbox e preferências
+de notificações, badges/ranking, pedidos de amizade e feed com consentimento; também verificam
+tentativas por terceiros e gravações concorrentes idempotentes. Testes do provider cobrem
+indisponibilidade de catálogo e resposta sanitizada. A API usa diretamente o container, sem
+conectar ao Supabase. O job backend da CI está configurado para executar a suíte; a execução
+local passou com 202 testes. A workflow do GitHub ainda precisa da primeira execução remota.
 
 **Evidências:** [Reelix.UnitTests.csproj](backend/Reelix.UnitTests/Reelix.UnitTests.csproj),
 [Program.cs](backend/Reelix.Api/Program.cs) e endpoints sob
@@ -107,9 +110,9 @@ autenticadas/não autenticadas.
 `backend/Reelix.Api/Program.cs`, endpoints de `backend/Reelix.Api/` e configurações
 de persistência em `backend/Reelix.Infrastructure/Persistence/`.
 **Dependências:** PostgreSQL descartável ou estratégia equivalente de integração.
-**Critérios de aceitação:** Testes exercitam requests HTTP reais, schema/migrations e
-acesso entre duas contas; os testes negativos falham se a autorização for removida;
-execução automatizada é documentada.
+**Critérios de aceitação:** Atendidos para os fluxos críticos cobertos: requests HTTP reais,
+schema/migrations em PostgreSQL, isolamento entre contas, respostas negativas de autorização,
+concorrência/idempotência e execução automatizada documentada.
 **Estimativa de complexidade:** Alta — vários módulos e contratos, além de infraestrutura
 de banco efêmero.
 

@@ -87,3 +87,7 @@ Set-Location mobile
 npx tsc --noEmit
 npx expo lint
 ```
+
+A suíte backend inclui um teste de integração que exige Docker Desktop em execução.
+Ele sobe um PostgreSQL descartável, aplica as migrations e remove o container ao final;
+não usa nem altera o banco Supabase configurado nos User Secrets.
