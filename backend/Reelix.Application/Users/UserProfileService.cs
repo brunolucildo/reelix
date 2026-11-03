@@ -24,6 +24,7 @@ public sealed class UserProfileService(
         ArgumentNullException.ThrowIfNull(update);
         var account = await accounts.GetOrCreateAsync(supabaseUserId, cancellationToken);
         var profile = await profiles.GetOrCreateAsync(account.Id, cancellationToken);
+        if (update.AvatarKey is not null) profile.SetAvatar(update.AvatarKey);
         profile.Update(
             update.DisplayName,
             update.Biography,
@@ -56,7 +57,8 @@ public sealed class UserProfileService(
             profile.Biography,
             null,
             savedPreferences?.FavoriteMovieIds ?? [],
-            savedPreferences?.FavoriteSeriesIds ?? []);
+            savedPreferences?.FavoriteSeriesIds ?? [],
+            profile.AvatarKey);
     }
 
     private static UserProfileData ToData(UserProfile profile) => new(
@@ -69,5 +71,6 @@ public sealed class UserProfileService(
         profile.IsDiscoverable,
         profile.WatchHistorySharedWithFriends,
         profile.FavoritesSharedWithFriends,
-        profile.RatingsSharedWithFriends);
+        profile.RatingsSharedWithFriends,
+        profile.AvatarKey);
 }

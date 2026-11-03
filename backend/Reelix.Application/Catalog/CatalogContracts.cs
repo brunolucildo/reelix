@@ -94,7 +94,8 @@ public sealed record ProviderCatalogEpisode(
     string Title,
     string? Overview,
     DateOnly? ReleaseDate,
-    int? RuntimeMinutes);
+    int? RuntimeMinutes,
+    string? StillUrl = null);
 
 public sealed record ProviderCatalogSeason(
     string? Title,
@@ -119,7 +120,8 @@ public sealed record CatalogEpisode(
     string Title,
     string? Overview,
     DateOnly? ReleaseDate,
-    int? RuntimeMinutes);
+    int? RuntimeMinutes,
+    string? StillUrl = null);
 
 public sealed record CatalogSeason(
     Guid Id,

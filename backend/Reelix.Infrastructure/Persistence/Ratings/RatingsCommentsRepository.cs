@@ -219,7 +219,10 @@ public sealed class RatingsCommentsRepository(ReelixDbContext dbContext)
                 item.Comment.ModerationStatus,
                 item.Comment.AccountId == viewerAccountId,
                 item.Comment.CreatedAt,
-                item.Comment.UpdatedAt))
+                item.Comment.UpdatedAt)
+            {
+                AuthorAvatarKey = item.Profile != null && (item.Comment.AccountId == viewerAccountId || item.Profile.ProfileIsPublic) ? item.Profile.AvatarKey : null,
+            })
             .ToArrayAsync(cancellationToken);
 
         return new PagedComments(items, page, pageSize, totalCount);

@@ -30,7 +30,10 @@ public sealed record SocialActivity(
     string TargetType,
     string Provider,
     string ExternalId,
-    DateTimeOffset OccurredAt);
+    DateTimeOffset OccurredAt)
+{
+    public string? ActorAvatarKey { get; init; }
+}
 
 public sealed record SocialActivityPage(
     IReadOnlyList<SocialActivity> Items,
@@ -44,7 +47,17 @@ public sealed record FriendProfile(
     Guid AccountId,
     string DisplayName,
     string? Biography,
-    IReadOnlyList<SharedFavorite> Favorites);
+    IReadOnlyList<SharedFavorite> Favorites)
+{
+    public FriendRelationshipStatus? RelationshipStatus { get; init; }
+    public Guid? RelationshipId { get; init; }
+    public bool RequestSentByMe { get; init; }
+    public bool IsSelf { get; init; }
+    public bool FavoritesShared { get; init; }
+    public bool WatchHistoryShared { get; init; }
+    public bool RatingsShared { get; init; }
+    public string? AvatarKey { get; init; }
+}
 
 public sealed record SharedFavorite(
     Guid TitleId,
@@ -99,5 +112,6 @@ public interface ISocialRepository
         Guid accountId,
         SocialCursor? cursor,
         int limit,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        Guid? actorAccountId = null);
 }

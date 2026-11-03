@@ -77,6 +77,7 @@ const profileSchema = z.object({
   displayName: z.string().nullable(),
   biography: z.string().nullable(),
   avatarUrl: z.string().url().nullable(),
+  avatarKey: z.string().nullable().optional(),
   profileIsPublic: z.boolean(),
   favoritesArePublic: z.boolean(),
   watchHistoryIsPublic: z.boolean(),
@@ -123,6 +124,7 @@ const socialActivitySchema = z.object({
   id: z.string().uuid(),
   actorAccountId: z.string().uuid(),
   actorDisplayName: z.string(),
+  actorAvatarKey: z.string().nullable().optional(),
   activityType: z.string(),
   targetId: z.string().uuid(),
   targetType: z.enum(['movie', 'series', 'episode']),
@@ -139,6 +141,14 @@ const friendProfileSchema = z.object({
   displayName: z.string(),
   biography: z.string().nullable(),
   avatarUrl: z.string().url().nullable().optional(),
+  avatarKey: z.string().nullable().optional(),
+  relationshipStatus: friendRelationshipStatusSchema.nullable(),
+  relationshipId: z.string().uuid().nullable(),
+  requestSentByMe: z.boolean(),
+  isSelf: z.boolean(),
+  favoritesShared: z.boolean(),
+  watchHistoryShared: z.boolean(),
+  ratingsShared: z.boolean(),
   favorites: z.array(z.object({
     titleId: z.string().uuid(),
     contentType: z.enum(['movie', 'series']),
@@ -284,6 +294,7 @@ const commentItemSchema = z.object({
   targetType: reviewTargetTypeSchema,
   seriesId: z.string().uuid().nullable(),
   authorName: z.string(),
+  authorAvatarKey: z.string().nullable().optional(),
   content: z.string().nullable(),
   containsSpoiler: z.boolean(),
   possibleSpoiler: z.boolean(),
@@ -315,6 +326,7 @@ const catalogSeasonSchema = z.object({
     id: z.string().uuid(),
     externalId: z.string(),
     episodeNumber: z.number().int().nullable(),
+    stillUrl: z.string().url().nullable().optional(),
     title: z.string(),
     overview: z.string().nullable(),
     releaseDate: z.string().nullable(),
@@ -587,6 +599,15 @@ export async function fetchSocialFeed(
 ): Promise<SocialActivityPage> {
   const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
   return apiRequest(`/api/v1/social/feed${query}`, socialActivityPageSchema, { signal });
+}
+
+export async function fetchFriendActivities(
+  accountId: string,
+  cursor?: string,
+  signal?: AbortSignal,
+): Promise<SocialActivityPage> {
+  const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
+  return apiRequest(`/api/v1/social/friends/${accountId}/activities${query}`, socialActivityPageSchema, { signal });
 }
 
 export async function fetchNotificationPreferences(): Promise<NotificationPreferences> {

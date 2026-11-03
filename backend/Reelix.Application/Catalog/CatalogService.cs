@@ -165,7 +165,8 @@ public sealed class CatalogService(
                 episode.Title,
                 episode.Overview,
                 episode.ReleaseDate,
-                episode.RuntimeMinutes)).ToArray());
+                episode.RuntimeMinutes,
+                episode.StillUrl)).ToArray());
     }
 
     public async Task<IReadOnlyList<CatalogSeasonSummary>?> GetSeasonsAsync(

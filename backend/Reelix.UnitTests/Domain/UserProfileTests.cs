@@ -54,6 +54,33 @@ public sealed class UserProfileTests
     }
 
     [Theory]
+    [InlineData("noir")]
+    [InlineData("cosmic")]
+    [InlineData("phantom")]
+    [InlineData("comedy")]
+    [InlineData("animation")]
+    [InlineData("adventure")]
+    [InlineData("robot")]
+    [InlineData("vampire")]
+    [InlineData("maestro")]
+    public void Avatar_AcceptsFixedChoicesAndPreservesThemWhenProfileTextChanges(string key)
+    {
+        var profile = UserProfile.Create(Guid.NewGuid());
+        profile.SetAvatar(key);
+        profile.Update("Nome", null, false, false, false);
+        Assert.Equal(key, profile.AvatarKey);
+        profile.SetAvatar("initials");
+        Assert.Null(profile.AvatarKey);
+    }
+
+    [Theory]
+    [InlineData("https://example.com/avatar.png")]
+    [InlineData("unknown")]
+    [InlineData("")]
+    public void Avatar_RejectsUnknownChoices(string key) =>
+        Assert.Throws<ArgumentException>(() => UserProfile.Create(Guid.NewGuid()).SetAvatar(key));
+
+    [Theory]
     [InlineData(51, 0)]
     [InlineData(0, 281)]
     public void Update_RejectsTextAboveFieldLimits(int displayNameLength, int biographyLength)

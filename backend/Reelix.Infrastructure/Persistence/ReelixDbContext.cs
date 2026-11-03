@@ -106,6 +106,7 @@ public sealed class ReelixDbContext(DbContextOptions<ReelixDbContext> options)
                 table.HasCheckConstraint(
                     "CK_user_profiles_friend_ratings_consent",
                     "ratings_shared_with_friends = (ratings_shared_with_friends_since IS NOT NULL)");
+                table.HasCheckConstraint("CK_user_profiles_avatar_key", "avatar_key IS NULL OR avatar_key IN ('noir', 'cosmic', 'phantom', 'comedy', 'animation', 'adventure', 'robot', 'vampire', 'maestro')");
             });
             entity.HasKey(profile => profile.AccountId);
             entity.Property(profile => profile.AccountId).HasColumnName("account_id");
@@ -115,6 +116,7 @@ public sealed class ReelixDbContext(DbContextOptions<ReelixDbContext> options)
             entity.Property(profile => profile.Biography)
                 .HasColumnName("biography")
                 .HasMaxLength(280);
+            entity.Property(profile => profile.AvatarKey).HasColumnName("avatar_key").HasMaxLength(24);
             entity.Property(profile => profile.ProfileIsPublic)
                 .HasColumnName("profile_is_public")
                 .HasDefaultValue(false);

@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PrimaryButton } from '@/components/auth/primary-button';
 import { AchievementGrid } from '@/components/gamification/achievement-grid';
 import { BackButton } from '@/components/navigation/back-button';
+import { avatarOptions, UserAvatar } from '@/components/user-avatar';
 import { useErrorToast, useToast } from '@/providers/toast-provider';
 import {
   fetchGamificationDashboard,
@@ -13,12 +14,14 @@ import {
   saveProfile,
   type ProfileData,
 } from '@/services/api-client';
-import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import TmdbLogo from '../../assets/brand/logos/tmdb-logo-blue.svg';
+import CheckIcon from '../../assets/brand/navigation-icons/check.svg';
 
-type ProfileDraft = Omit<ProfileData, 'avatarUrl' | 'displayName' | 'biography'> & {
+type ProfileDraft = Omit<ProfileData, 'avatarUrl' | 'avatarKey' | 'displayName' | 'biography'> & {
   displayName: string;
   biography: string;
+  avatarKey: string;
 };
 
 export default function ProfileScreen() {
@@ -58,6 +61,7 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
   const [draft, setDraft] = useState<ProfileDraft>(() => ({
     displayName: initialProfile.displayName ?? '',
     biography: initialProfile.biography ?? '',
+    avatarKey: initialProfile.avatarKey ?? 'initials',
     profileIsPublic: initialProfile.profileIsPublic,
     favoritesArePublic: initialProfile.favoritesArePublic,
     watchHistoryIsPublic: initialProfile.watchHistoryIsPublic,
@@ -76,6 +80,7 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
       setDraft({
         displayName: saved.displayName ?? '',
         biography: saved.biography ?? '',
+        avatarKey: saved.avatarKey ?? 'initials',
         profileIsPublic: saved.profileIsPublic,
         favoritesArePublic: saved.favoritesArePublic,
         watchHistoryIsPublic: saved.watchHistoryIsPublic,
@@ -85,6 +90,8 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
         ratingsSharedWithFriends: saved.ratingsSharedWithFriends,
       });
       setFeedback('Perfil atualizado.');
+      void queryClient.invalidateQueries({ queryKey: ['social'] });
+      void queryClient.invalidateQueries({ queryKey: ['reviews'] });
     },
     onError: (error) => {
       showError(error instanceof Error ? error.message : 'Não foi possível salvar o perfil.');
@@ -106,13 +113,25 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
         </View>
 
         <View style={styles.heading}>
-          <View accessibilityLabel="Avatar padrão" style={styles.avatar}>
-            <Text style={styles.avatarInitial}>{initials}</Text>
-          </View>
+          <UserAvatar name={draft.displayName || initials} avatarKey={draft.avatarKey} size={dimensions.avatarSize} />
           <View style={styles.headingText}>
             <Text accessibilityRole="header" style={styles.title}>Seu perfil</Text>
             <Text style={styles.secondaryText}>Sua identidade no Reelix.</Text>
           </View>
+        </View>
+
+        <View style={styles.formSection}>
+          <Text style={styles.sectionTitle}>Seu avatar</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} accessibilityRole="radiogroup" contentContainerStyle={styles.avatarChoices}>
+            {[{ key: 'initials', label: 'Iniciais', category: 'Seu nome' }, ...avatarOptions].map((option) => <Pressable key={option.key} accessibilityRole="radio" accessibilityLabel={`${option.label}, ${option.category}`} accessibilityState={{ selected: draft.avatarKey === option.key }} disabled={saveMutation.isPending} onPress={() => update({ avatarKey: option.key })} style={[styles.avatarChoice, draft.avatarKey === option.key && styles.avatarChoiceSelected]}>
+              <UserAvatar name={draft.displayName || initials} avatarKey={option.key} size={dimensions.avatarSize} />
+              <View style={styles.avatarChoiceText}>
+                <Text numberOfLines={2} style={styles.avatarChoiceLabel}>{option.label}</Text>
+                <Text numberOfLines={2} style={styles.avatarChoiceCategory}>{option.category}</Text>
+              </View>
+              <View style={styles.avatarChoiceIndicator}>{draft.avatarKey === option.key ? <CheckIcon width={dimensions.iconSize} height={dimensions.iconSize} /> : null}</View>
+            </Pressable>)}
+          </ScrollView>
         </View>
 
         <View style={styles.formSection}>
@@ -304,6 +323,13 @@ function PrivacyToggle({
 }
 
 const styles = StyleSheet.create({
+  avatarChoices: { flexDirection: 'row', gap: spacing.small, paddingBottom: spacing.small },
+  avatarChoice: { width: dimensions.posterWidth, height: dimensions.posterHeight, gap: spacing.small, padding: spacing.small, borderWidth: 2, borderColor: colors.border, borderRadius: radii.small, alignItems: 'center', justifyContent: 'center' },
+  avatarChoiceSelected: { borderColor: colors.brand, backgroundColor: colors.brandSurface },
+  avatarChoiceText: { width: '100%', gap: spacing.extraSmall },
+  avatarChoiceIndicator: { position: 'absolute', top: spacing.extraSmall, right: spacing.extraSmall, width: dimensions.iconSize, height: dimensions.iconSize },
+  avatarChoiceLabel: { color: colors.textPrimary, fontFamily: fontFamily.medium, fontSize: typography.bodySmall, lineHeight: typography.bodySmall + spacing.extraSmall, minHeight: (typography.bodySmall + spacing.extraSmall) * 2, textAlign: 'center' },
+  avatarChoiceCategory: { color: colors.textSecondary, fontFamily: fontFamily.regular, fontSize: typography.caption, lineHeight: typography.caption + spacing.extraSmall, minHeight: (typography.caption + spacing.extraSmall) * 2, textAlign: 'center' },
   content: {
     flexGrow: 1,
     backgroundColor: colors.background,

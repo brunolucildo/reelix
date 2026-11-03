@@ -1,7 +1,9 @@
 import type { PropsWithChildren } from 'react';
+import { usePathname } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import ReelixLogo from '../../../assets/brand/logos/logo-horizontal.svg';
+import { BackButton } from '@/components/navigation/back-button';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 
 type AuthScreenProps = PropsWithChildren<{
@@ -10,6 +12,7 @@ type AuthScreenProps = PropsWithChildren<{
 }>;
 
 export function AuthScreen({ title, subtitle, children }: AuthScreenProps) {
+  const pathname = usePathname();
   return (
     <ScrollView
       contentContainerStyle={styles.content}
@@ -17,6 +20,7 @@ export function AuthScreen({ title, subtitle, children }: AuthScreenProps) {
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.container}>
+        {pathname !== '/' ? <BackButton /> : null}
         <View style={styles.brandBlock}>
           <ReelixLogo
             accessibilityLabel="Reelix — filmes e séries"

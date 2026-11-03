@@ -71,6 +71,8 @@ public sealed class AuthenticationEndpointTests
     [InlineData("/api/v1/ratings/movie/00000000-0000-0000-0000-000000000001")]
     [InlineData("/api/v1/comments/movie/00000000-0000-0000-0000-000000000001")]
     [InlineData("/api/v1/gamification/dashboard")]
+    [InlineData("/api/v1/social/friends/00000000-0000-0000-0000-000000000001/profile")]
+    [InlineData("/api/v1/social/friends/00000000-0000-0000-0000-000000000001/activities")]
     public async Task UserEndpoints_RejectAnonymousRequests(string path)
     {
         using var response = await _client.GetAsync(path);

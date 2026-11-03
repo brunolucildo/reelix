@@ -1064,6 +1064,11 @@ namespace Reelix.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("account_id");
 
+                    b.Property<string>("AvatarKey")
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("avatar_key");
+
                     b.Property<string>("Biography")
                         .HasMaxLength(280)
                         .HasColumnType("character varying(280)")
@@ -1131,6 +1136,8 @@ namespace Reelix.Infrastructure.Persistence.Migrations
 
                     b.ToTable("user_profiles", null, t =>
                         {
+                            t.HasCheckConstraint("CK_user_profiles_avatar_key", "avatar_key IS NULL OR avatar_key IN ('noir', 'cosmic', 'phantom', 'comedy', 'animation', 'adventure', 'robot', 'vampire', 'maestro')");
+
                             t.HasCheckConstraint("CK_user_profiles_friend_history_consent", "watch_history_shared_with_friends = (watch_history_shared_with_friends_since IS NOT NULL)");
 
                             t.HasCheckConstraint("CK_user_profiles_friend_ratings_consent", "ratings_shared_with_friends = (ratings_shared_with_friends_since IS NOT NULL)");

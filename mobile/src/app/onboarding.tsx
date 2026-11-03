@@ -207,11 +207,7 @@ function OnboardingFlow({
     >
       <View style={styles.container}>
         <View style={styles.topBar}>
-          {step === 'welcome' && !isEditing ? (
-            <View style={styles.backButton} />
-          ) : (
-            <BackButton onPress={goBack} />
-          )}
+          <BackButton onPress={step === 'welcome' && !isEditing ? undefined : goBack} />
           <Text style={styles.stepCount}>
             {isEditing ? 'EDITANDO PREFERÊNCIAS' : `ETAPA ${safeIndex + 1} DE ${steps.length}`}
           </Text>

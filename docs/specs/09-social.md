@@ -115,3 +115,31 @@ perfil contextual e feed estão presentes no código. A migration deve ser aplic
 validada em cada PostgreSQL alvo; a presença de endpoints não significa que o schema
 do ambiente já foi atualizado. Busca/feed respeitam autorização e consentimentos.
 Chat, bloqueio e seguidores públicos continuam fora do escopo.
+
+## Redesign mobile · 03/11/2026
+
+- A tela Amigos abre no feed cronológico; Feed, Solicitações, Amigos, Descobrir e Atividades são destinos exclusivos de navegação compacta por ícones.
+- O cabeçalho oferece atalhos para adicionar e pesquisar pessoas. Busca por nome mantém os estados do relacionamento e as ações existentes; não há sugestões artificiais.
+- Solicitações separa recebidas e enviadas. O indicador conta recebidas carregadas, com `+` quando existe outra página, sem afirmar um total que a API não retorna.
+- O feed usa lista virtualizada, paginação por cursor, atualização por gesto e acesso ao perfil e aos detalhes de filmes/séries. Cartões visíveis consultam o catálogo com cache por título para nome e pôster reais. Episódios não possuem metadados de série suficientes nesse contrato e não geram um link presumido.
+- Atividades apresenta o mesmo feed autorizado em formato compacto; filtros de assistidos e avaliações operam sobre as páginas carregadas, com opção de carregar mais.
+- Carregamento, vazio e nova tentativa são distintos; erros permanecem no toast. Remoção de amizade usa confirmação no modal compartilhado, inclusive na versão web.
+- O contrato atual não fornece nota, texto de comentário, avatar do autor ou conquistas no feed. Curtidas, comentários em publicações e salvamento de posts não foram simulados. O avatar do feed usa iniciais; o nome e o pôster vêm do catálogo quando disponíveis.
+- Nenhuma regra de autorização, consentimento ou persistência foi alterada.
+
+## Perfil social contextual · 03/11/2026
+
+- O perfil usa cabeçalho com avatar/iniciais, nome, biografia permitida, estado de amizade e quatro abas: Visão geral, Atividades, Favoritos e Conquistas. Não é uma página pública anônima: os endpoints continuam autenticados.
+- `GET /api/v1/social/friends/{accountId}/profile` acrescenta `relationshipStatus`, `relationshipId`, `requestSentByMe`, `isSelf`, `favoritesShared`, `watchHistoryShared` e `ratingsShared`. A identidade básica pode ser consultada pelo próprio titular, por participantes de uma relação aceita/pendente ou quando o perfil é público/descobrível. Biografia continua restrita a perfil público; descoberta não concede acesso a ela.
+- Favoritos exigem amizade aceita e consentimento próprio, com limite existente de 100. A aplicação também elimina favoritos e flags sociais quando não existe amizade aceita. Os tipos de conteúdo são normalizados para `movie`/`series` na resposta.
+- `GET /api/v1/social/friends/{accountId}/activities?cursor=...` filtra o autor no servidor, preservando cursor, amizade aceita e consentimentos com data de ativação. Um autor indisponível retorna uma coleção vazia, sem confirmar existência de conta.
+- Foi corrigido o feed de avaliações, inclusive o feed geral: além do consentimento social, `Audience` deve ser `Public`. Avaliações privadas não podem gerar atividades visíveis. Comentários não entram nesta consulta.
+- Adicionar, cancelar, aceitar, recusar e remover usam as mutações existentes. A tela invalida as consultas sociais após a operação; remoção limpa imediatamente o conteúdo compartilhado em cache. Solicitações duplicadas continuam bloqueadas pelas regras do domínio.
+- A grade usa `TitlePosterCard` e dados reais do catálogo, filtros de filmes/séries e carregamento incremental em lotes de 12. Visão geral limita favoritos a quatro e atividades a duas. A lista de atividades é virtualizada e usa o mesmo `SocialActivityCard` de Amigos.
+- Medalhas públicas usam `AchievementMedal`; somente a interação revela nome, descrição/critério textual e data no `ModalDialog`. Não são exibidos progresso ou conquistas privadas.
+- Indicadores mostram apenas a quantidade disponível de favoritos explicitamente compartilhados e medalhas públicas; o limite de favoritos não representa uma contagem irrestrita do banco. Username, número de amigos, filmes assistidos e séries acompanhadas não são inferidos.
+- Avatar personalizado não é fornecido por esse backend; o perfil usa iniciais. Notas em estrelas, comentários, números de temporada/episódio, início/fim de série e conquistas como eventos do feed também não estão disponíveis no contrato social. Não são simulados.
+- Não houve alteração de schema ou nova migration. Aplicação/backend precisam ser atualizados junto com o cliente porque o perfil acrescenta campos de contrato.
+
+Validação detalhada, limitações e classificação de cada requisito estão no
+[relatório do redesign do perfil social](../implementation-report-social-profile.md).

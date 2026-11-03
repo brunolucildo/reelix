@@ -62,6 +62,11 @@ public static class SocialEndpoints
         group.MapDelete("/friends/{relationshipId:guid}", RemoveFriend)
             .WithName("RemoveFriend")
             .RequireRateLimiting("social-write");
+        group.MapGet("/friends/{accountId:guid}/activities", GetFriendActivities)
+            .WithName("GetFriendActivities")
+            .Produces<SocialActivityPage>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
         group.MapGet("/feed", GetFeed)
             .WithName("GetSocialFeed")
             .Produces<SocialActivityPage>()
@@ -321,6 +326,31 @@ public static class SocialEndpoints
         try
         {
             return Results.Ok(await service.GetActivityFeedAsync(userId, cursor, cancellationToken));
+        }
+        catch (ArgumentException exception)
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Cursor inválido.",
+                detail: exception.Message);
+        }
+    }
+
+    private static async Task<IResult> GetFriendActivities(
+        HttpContext context,
+        SocialService service,
+        Guid accountId,
+        string? cursor,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(context, out var userId))
+        {
+            return Results.Unauthorized();
+        }
+
+        try
+        {
+            return Results.Ok(await service.GetActivityFeedAsync(userId, cursor, cancellationToken, accountId));
         }
         catch (ArgumentException exception)
         {

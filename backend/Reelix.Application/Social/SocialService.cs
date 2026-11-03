@@ -181,16 +181,32 @@ public sealed class SocialService(
         CancellationToken cancellationToken)
     {
         var accountId = await GetAccountIdAsync(supabaseUserId, cancellationToken);
-        return await socialRepository.GetFriendProfileAsync(
+        var profile = await socialRepository.GetFriendProfileAsync(
             accountId,
             friendAccountId,
             cancellationToken);
+        if (profile is null)
+        {
+            return null;
+        }
+
+        var areFriends = profile.RelationshipStatus == Reelix.Domain.Social.FriendRelationshipStatus.Accepted;
+        return profile with
+        {
+            Favorites = areFriends && profile.FavoritesShared ? profile.Favorites
+                .Select(favorite => favorite with { ContentType = favorite.ContentType.ToLowerInvariant() })
+                .ToArray() : [],
+            FavoritesShared = areFriends && profile.FavoritesShared,
+            WatchHistoryShared = areFriends && profile.WatchHistoryShared,
+            RatingsShared = areFriends && profile.RatingsShared,
+        };
     }
 
     public async Task<SocialActivityPage> GetActivityFeedAsync(
         Guid supabaseUserId,
         string? encodedCursor,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Guid? actorAccountId = null)
     {
         var cursor = DecodeCursor(encodedCursor);
         var accountId = await GetAccountIdAsync(supabaseUserId, cancellationToken);
@@ -198,7 +214,8 @@ public sealed class SocialService(
             accountId,
             cursor,
             ActivityPageSize + 1,
-            cancellationToken);
+            cancellationToken,
+            actorAccountId);
         var hasMore = activities.Count > ActivityPageSize;
         var page = activities.Take(ActivityPageSize).ToArray();
         return new SocialActivityPage(

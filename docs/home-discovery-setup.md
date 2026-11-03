@@ -7,10 +7,12 @@ catálogo.
 ## Seções
 
 Séries aparece antes de Filmes e é a seleção inicial. Na aba Séries, acompanhamento
-vem antes de destaques, favoritos, sugestões e estreias. Filmes mantém suas seções.
+vem antes de destaques, favoritos, sugestões e estreias. Filmes começa por Quero assistir,
+acima de Filmes em destaque.
 
 | Tela | Seção | Fonte e regra |
-|---|---|---|
+| --- | --- | --- |
+| Filmes | Quero assistir | Até oito filmes reais da watchlist, por inclusão recente; percorre páginas mistas até reunir filmes ou chegar ao fim. Atalho para a watchlist completa. |
 | Filmes | Em destaque | TMDB, filmes ordenados por popularidade. |
 | Filmes | Seus filmes favoritos | Favoritos do usuário autenticado, com metadados consultados no catálogo. |
 | Filmes | Sugestões para você | Filmes populares filtrados pelos gêneros de filmes salvos no onboarding. |
@@ -48,6 +50,24 @@ mais recentes, além de temporadas com estreia futura informada. Datas não forn
 não são estimadas; temporadas especiais só entram quando o provedor as identifica como futuras.
 
 ## Menu pessoal
+
+### Navegação e Ações Compactas · 03/11/2026
+
+- O componente compartilhado de Voltar apresenta Home ao lado, com área de toque de 44 px e rótulos acessíveis. Home usa a rota autenticada quando existe sessão e a página inicial pública quando não existe, sem contornar as proteções do Expo Router ou o onboarding.
+- O retorno sem histórico tem fallback para a página inicial. Autenticação e primeira etapa do onboarding também reutilizam a navegação; a Home não recebe um botão de voltar para ela mesma.
+- Em atividades sociais, pôster e conteúdo de filmes/séries abrem os detalhes diretamente; o botão separado Ver título foi removido. Episódios continuam sem link presumido quando falta a referência da série.
+- Os detalhes do catálogo têm ícones para Quero assistir, favoritos, lista pessoal e acompanhamento. Os ícones apresentam tooltip no hover/foco, rótulo acessível, estado selecionado e bloqueio durante salvamento.
+- Watchlist e favoritos usam `POST /api/v1/title-status` para consultar estado e os `PUT`/`DELETE` existentes em `/api/v1/watchlist/{titleId}` e `/api/v1/favorites/{titleId}`. Alterações invalidam o cache das coleções e da Home.
+- O seletor de listas consulta `GET /api/v1/lists`, permite paginação e usa `PUT /api/v1/lists/{listId}/titles/{titleId}`. Também permite criar uma lista com `POST /api/v1/lists` e adicionar o título, mantendo feedback de sucesso inline e falhas no toast.
+- Filmes mantêm marcar/desmarcar como assistido e a elegibilidade de avaliações, agora por ícone. Para séries, o atalho leva às temporadas/episódios; não chama o endpoint de filmes nem marca uma série inteira sem confirmação.
+- A imagem real de destaque (ou pôster quando não existe backdrop) dissolve no fundo com `expo-linear-gradient` compatível com SDK 58. O degradê usa os tokens de fundo, sem transformar a imagem em um card arredondado.
+
+Verificações web: seção Quero assistir antes de Filmes em destaque, adição temporária
+à watchlist com resposta 200, exibição do título na Home e remoção dessa inclusão de
+teste com resposta 204. Estado original preservado. Seletor de listas vazio validado
+com dados reais; criação de lista temporária respondeu 201, inclusão do título 200 e
+exclusão somente da lista de teste 204. Clique direto da atividade e controles de filme/série conferidos.
+TypeScript e lint fazem parte dos gates; não representa validação de builds nativos.
 
 O avatar abre o menu lateral com perfil, medalhas de conquistas ativas junto ao avatar,
 favoritos, listas, watchlist, acompanhamento, avaliações, conquistas, amigos, configurações e saída.

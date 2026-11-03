@@ -4,9 +4,20 @@
 
 O mobile oferece onboarding retomável após autenticação, seleção de gêneros oficiais TMDB, busca de filmes/séries no catálogo e edição do perfil próprio. O backend usa o `sub` do JWT Supabase validado para resolver a conta; o cliente não escolhe o proprietário dos dados.
 
-As preferências guardam IDs de gênero TMDB e IDs internos de títulos já presentes em `catalog_external_references`. Metadados do catálogo não são duplicados. Upload/persistência de avatar continua fora do escopo atual; o perfil usa um avatar padrão local quando `avatarUrl` é `null`. Estatísticas e conquistas são fornecidas pelo módulo de Gamificação, descrito em [11-gamification.md](specs/11-gamification.md); histórico pertence ao Tracking.
+As preferências guardam IDs de gênero TMDB e IDs internos de títulos já presentes em `catalog_external_references`. Metadados do catálogo não são duplicados. Avatares fixos são escolhidos em uma faixa horizontal rolável com nove desenhos originais e opção de iniciais; a chave é persistida no perfil. Upload continua fora do escopo. Estatísticas e conquistas são fornecidas pelo módulo de Gamificação, descrito em [11-gamification.md](specs/11-gamification.md); histórico pertence ao Tracking.
 
 ## Banco de dados
+
+`20261103133240_AddFixedAvatars` acrescenta `avatar_key` opcional e validado;
+`20261103134321_ExpandFixedAvatars` amplia a restrição para aceitar também `robot`,
+`vampire` e `maestro`, preservando as seis escolhas anteriores e os dados existentes.
+Ambas foram aplicadas ao banco configurado nesta validação. Outros ambientes precisam
+receber essas migrations antes de usar os novos avatares. RLS e privilégios não foram alterados.
+
+`GET/PUT /api/v1/profile` inclui `avatarKey`. Omitir esse campo preserva a seleção;
+`initials` limpa a escolha. URLs e chaves desconhecidas são rejeitadas. A faixa horizontal
+tem cartões de tamanho estável com avatar, nome/tema e check de seleção, com rótulos de rádio acessíveis.
+Catálogo de opções: [avatares Reelix](../mobile/assets/brand/avatars/README.md).
 
 A migration `20261031014300_AddUserOnboardingAndProfiles` cria `user_profiles`, `user_preferences`, `user_genre_preferences` e `user_favorite_titles`. As tabelas têm RLS habilitado e privilégios revogados para os papéis do Supabase Data API; somente a API acessa o PostgreSQL com a connection string do servidor.
 
@@ -19,7 +30,7 @@ A seleção de gêneros consulta TMDB usando `Catalog:Tmdb:AccessToken`, somente
 Todas as rotas abaixo exigem `Authorization: Bearer <access-token>` válido do Supabase.
 
 | Método | Rota | Descrição |
-|---|---|---|
+| --- | --- | --- |
 | `GET` | `/api/v1/catalog/genres?type=movie&provider=tmdb&language=pt-BR` | Gêneros oficiais de filmes ou séries (`type=series`). |
 | `GET` | `/api/v1/onboarding` | Preferências e etapa persistida da conta autenticada. |
 | `PUT` | `/api/v1/onboarding/progress` | Salva a etapa atual, gêneros e títulos favoritos. |

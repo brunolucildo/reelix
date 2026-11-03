@@ -11,6 +11,10 @@ import {
 } from 'react-native';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
+import { IconAction } from '@/components/icon-action';
+import { UserAvatar } from '@/components/user-avatar';
+import LockIcon from '../../../assets/brand/navigation-icons/lock.svg';
+import GlobeIcon from '../../../assets/brand/navigation-icons/globe.svg';
 import { formatRatingStars } from '@/components/reviews/rating-stars';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
@@ -27,7 +31,7 @@ import {
   type ReviewAudience,
   type ReviewTargetType,
 } from '@/services/api-client';
-import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 
 type RatingReviewSectionProps = {
   targetId: string;
@@ -312,7 +316,7 @@ export function RatingReviewSection({
                 </Text>
               ) : null}
             </View>
-            <AudienceSelector
+            <AudienceSelector disabled={saveRatingMutation.isPending || deleteRatingMutation.isPending}
               audience={ratingAudience}
               onChange={(audience) => setRatingDraft({ score: selectedScore, audience })}
             />
@@ -355,7 +359,7 @@ export function RatingReviewSection({
           label={containsSpoiler ? 'Este comentário contém spoiler' : 'Marcar como spoiler'}
           onPress={() => setContainsSpoiler((value) => !value)}
         />
-        <AudienceSelector audience={commentAudience} onChange={setCommentAudience} />
+        <AudienceSelector audience={commentAudience} onChange={setCommentAudience} disabled={isSavingComment} />
         <PrimaryButton
           label={editingComment ? 'Salvar alterações' : 'Publicar comentário'}
           loading={isSavingComment}
@@ -427,23 +431,16 @@ export function RatingReviewSection({
 function AudienceSelector({
   audience,
   onChange,
+  disabled = false,
 }: {
   audience: ReviewAudience;
   onChange: (audience: ReviewAudience) => void;
+  disabled?: boolean;
 }) {
   return (
-    <View style={styles.audienceRow}>
-      {(['private', 'public'] as const).map((value) => (
-        <Pressable
-          key={value}
-          accessibilityRole="radio"
-          accessibilityState={{ selected: audience === value }}
-          onPress={() => onChange(value)}
-          style={[styles.audienceButton, audience === value ? styles.selectedAudience : null]}
-        >
-          <Text style={styles.audienceText}>{value === 'private' ? 'Privada' : 'Pública'}</Text>
-        </Pressable>
-      ))}
+    <View accessibilityRole="radiogroup" style={styles.audienceRow}>
+      <IconAction radio label="Privada: somente você" selected={audience === 'private'} disabled={disabled} onPress={() => onChange('private')}><LockIcon width={dimensions.iconSize} height={dimensions.iconSize} /></IconAction>
+      <IconAction radio label="Pública: visível para outras pessoas" selected={audience === 'public'} disabled={disabled} onPress={() => onChange('public')}><GlobeIcon width={dimensions.iconSize} height={dimensions.iconSize} /></IconAction>
     </View>
   );
 }
@@ -496,7 +493,11 @@ function CommentCard({
   return (
     <View style={styles.commentCard}>
       <View style={styles.commentMeta}>
+        <UserAvatar name={comment.authorName} avatarKey={comment.authorAvatarKey} />
         <Text style={styles.author}>{comment.authorName}</Text>
+        <View accessible accessibilityRole="image" accessibilityLabel={comment.audience === 'private' ? 'Comentário privado' : 'Comentário público'}>
+          {comment.audience === 'private' ? <LockIcon width={dimensions.iconSize} height={dimensions.iconSize} /> : <GlobeIcon width={dimensions.iconSize} height={dimensions.iconSize} />}
+        </View>
         <Text style={styles.commentDate}>
           {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' })
             .format(new Date(comment.createdAt))}
@@ -732,6 +733,8 @@ const styles = StyleSheet.create({
     gap: spacing.small,
   },
   author: {
+    flex: 1,
+    minWidth: 0,
     color: colors.textPrimary,
     fontSize: typography.bodySmall,
     fontFamily: fontFamily.semiBold,

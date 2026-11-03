@@ -54,7 +54,10 @@ public sealed record CommentItem(
     CommentModerationStatus ModerationStatus,
     bool IsOwn,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt)
+{
+    public string? AuthorAvatarKey { get; init; }
+}
 
 public sealed record PagedComments(
     IReadOnlyList<CommentItem> Items,

@@ -225,7 +225,8 @@ public sealed class TmdbCatalogProvider(
                     episode.Name!,
                     EmptyToNull(episode.Overview),
                     ParseDate(episode.AirDate),
-                    episode.Runtime is > 0 ? episode.Runtime : null))
+                    episode.Runtime is > 0 ? episode.Runtime : null,
+                    GetImageUrl(episode.StillPath, "w500")))
                 .ToArray());
     }
 
@@ -489,4 +490,7 @@ internal sealed class TmdbEpisodeResponse
     public string? AirDate { get; set; }
 
     public int? Runtime { get; set; }
+
+    [JsonPropertyName("still_path")]
+    public string? StillPath { get; set; }
 }

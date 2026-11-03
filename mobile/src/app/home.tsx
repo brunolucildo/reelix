@@ -97,6 +97,7 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.feeds}>
+        {contentType === 'movie' ? <FavoriteTitleSection type="movie" title="Quero assistir" collection="watchlist" /> : null}
         {contentType === 'series' ? (
           <>
             <TrackedSeriesSection onOpenTracking={() => router.push('/tracking')} />

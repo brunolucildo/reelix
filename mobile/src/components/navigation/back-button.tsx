@@ -1,7 +1,10 @@
 import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, dimensions, fontFamily, typography } from '@/theme/tokens';
+import { IconAction } from '@/components/icon-action';
+import { useAuthSession } from '@/providers/auth-provider';
+import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';
+import HomeIcon from '../../../assets/brand/navigation-icons/home.svg';
 
 type Props = {
   onPress?: () => void;
@@ -9,41 +12,32 @@ type Props = {
 
 export function BackButton({ onPress }: Props) {
   const router = useRouter();
+  const { session } = useAuthSession();
 
   const goBack = () => {
     if (onPress) {
       onPress();
-    } else {
+    } else if (router.canGoBack()) {
       router.back();
+    } else {
+      router.replace(session ? '/home' : '/');
     }
   };
 
   return (
-    <Pressable
-      accessibilityLabel="Voltar"
-      accessibilityRole="button"
-      onPress={goBack}
-      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
-    >
-      <Text style={styles.icon}>←</Text>
-    </Pressable>
+    <View style={styles.navigation}>
+      <IconAction label="Voltar" onPress={goBack}><Text style={styles.icon}>←</Text></IconAction>
+      <IconAction label="Ir para Home" onPress={() => { if (session) router.dismissTo('/home'); else router.replace('/'); }}><HomeIcon width={dimensions.iconSize} height={dimensions.iconSize} /></IconAction>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
-    width: dimensions.minimumTouchTarget,
-    height: dimensions.minimumTouchTarget,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: dimensions.minimumTouchTarget / 2,
-    backgroundColor: colors.surface,
-  },
+  navigation: { flexDirection: 'row', alignItems: 'center', gap: spacing.small, alignSelf: 'flex-start', zIndex: 1 },
   icon: {
     color: colors.textPrimary,
     fontSize: typography.title,
     lineHeight: typography.title + 4,
     fontFamily: fontFamily.medium,
   },
-  pressed: { opacity: 0.7 },
 });

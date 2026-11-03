@@ -3,6 +3,7 @@ export const colors = {
   brandSecondary: '#FF6688',
   brandSurface: '#35131D',
   background: '#080B0F',
+  backgroundTransparent: '#080B0F00',
   surface: '#1A1A1E',
   surfaceElevated: '#2A2A2E',
   border: '#2A2A2E',

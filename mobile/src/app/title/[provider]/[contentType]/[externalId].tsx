@@ -1,7 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { type ComponentRef, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -13,6 +14,12 @@ import {
 
 import { PrimaryButton } from '@/components/auth/primary-button';
 import { BackButton } from '@/components/navigation/back-button';
+import { IconAction } from '@/components/icon-action';
+import { TitleCollectionActions } from '@/components/discovery/title-collection-actions';
+import EyeIcon from '../../../../../assets/brand/navigation-icons/eye.svg';
+import CheckIcon from '../../../../../assets/brand/navigation-icons/check.svg';
+import RatingIcon from '../../../../../assets/brand/navigation-icons/rating.svg';
+import SeriesIcon from '../../../../../assets/brand/navigation-icons/series.svg';
 import { RatingReviewSection } from '@/components/reviews/rating-review-section';
 import {
   useMarkMovieWatched,
@@ -31,6 +38,8 @@ import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/th
 
 export default function CatalogTitleScreen() {
   const router = useRouter();
+  const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
+  const [seasonsOffset, setSeasonsOffset] = useState(0);
   const { session } = useAuthSession();
   const params = useLocalSearchParams<{
     provider?: string;
@@ -158,16 +167,12 @@ export default function CatalogTitleScreen() {
     : null;
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
-      <BackButton />
-      {title.backdropUrl ? (
-        <Image
-          contentFit="cover"
-          source={{ uri: title.backdropUrl }}
-          style={styles.backdrop}
-          transition={150}
-        />
-      ) : null}
+    <ScrollView ref={scroll} contentContainerStyle={styles.content}>
+      {title.backdropUrl || title.posterUrl ? <View style={styles.hero}>
+        <Image accessibilityLabel={`Imagem de ${title.title}`} contentFit="cover" source={{ uri: title.backdropUrl ?? title.posterUrl! }} style={StyleSheet.absoluteFill} transition={150} />
+        <LinearGradient pointerEvents="none" colors={[colors.backgroundTransparent, colors.backgroundTransparent, colors.background]} locations={[0, 0.35, 1]} style={StyleSheet.absoluteFill} />
+        <View style={styles.heroNavigation}><BackButton /></View>
+      </View> : <BackButton />}
       <Text accessibilityRole="header" style={styles.title}>{title.title}</Text>
       {title.originalTitle && title.originalTitle !== title.title ? (
         <Text style={styles.secondaryText}>{title.originalTitle}</Text>
@@ -181,6 +186,10 @@ export default function CatalogTitleScreen() {
           <Text style={styles.metadataText}>{title.runtimeMinutes} min</Text>
         ) : null}
       </View>
+      <View style={styles.titleActions}>
+        <TitleCollectionActions key={title.id} title={title} />
+        {title.contentType === 'movie' ? <MovieWatchedAction titleId={title.id} title={title.title} /> : <IconAction label="Marcar episódios como assistidos" onPress={() => scroll.current?.scrollTo({ y: seasonsOffset, animated: true })}><EyeIcon width={dimensions.iconSize} height={dimensions.iconSize} /></IconAction>}
+      </View>
       {title.genres.length > 0 ? (
         <Text style={styles.secondaryText}>{title.genres.join(' · ')}</Text>
       ) : null}
@@ -191,10 +200,10 @@ export default function CatalogTitleScreen() {
         </View>
       ) : null}
       {title.contentType === 'movie' ? (
-        <MovieTrackingControls titleId={title.id} title={title.title} />
+        <MovieTrackingControls titleId={title.id} />
       ) : null}
       {title.contentType === 'series' ? (
-        <View style={styles.seasons}>
+        <View style={styles.seasons} onLayout={(event) => setSeasonsOffset(event.nativeEvent.layout.y)}>
           <Text accessibilityRole="header" style={styles.sectionTitle}>Temporadas e episódios</Text>
           {seasons.isPending ? <ActivityIndicator color={colors.brand} /> : null}
           {seasons.isError ? (
@@ -255,7 +264,7 @@ export default function CatalogTitleScreen() {
               ) : null}
               {season.data.episodes.length === 0 ? (
                 <Text style={styles.secondaryText}>Nenhum episódio disponível nesta temporada.</Text>
-              ) : season.data.episodes.map((episode) => {
+              ) : <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.episodeRail}>{season.data.episodes.map((episode) => {
                 const episodeIsPending = pendingEpisodes.data?.some(
                   (pending) => pending.episodeId === episode.id,
                 );
@@ -268,8 +277,9 @@ export default function CatalogTitleScreen() {
                 const trackingIsBusy = markEpisode.isPending || removeEpisode.isPending;
                 return (
                   <View key={episode.id} style={styles.episodeCard}>
+                    {episode.stillUrl ? <Image accessibilityLabel={`Cena de ${episode.title}`} source={{ uri: episode.stillUrl }} contentFit="cover" style={styles.episodeImage} /> : <View style={[styles.episodeImage, styles.episodeImageFallback]}><SeriesIcon width={dimensions.avatarSize} height={dimensions.avatarSize} /></View>}
                     <View style={styles.episodeCopy}>
-                      <Text style={styles.episodeTitle}>
+                      <Text numberOfLines={2} style={styles.episodeTitle}>
                         {episode.episodeNumber === null
                           ? episode.title
                           : `E${episode.episodeNumber}: ${episode.title}`}
@@ -283,25 +293,13 @@ export default function CatalogTitleScreen() {
                         <Text numberOfLines={3} style={styles.secondaryText}>{episode.overview}</Text>
                       ) : null}
                     </View>
-                    {pendingEpisodes.isPending ? (
-                      <View style={styles.loadingSeason}>
-                        <ActivityIndicator color={colors.brand} />
-                        <Text style={styles.secondaryText}>Verificando acompanhamento...</Text>
-                      </View>
-                    ) : pendingEpisodes.isError ? (
-                      <PrimaryButton
-                        label="Tentar carregar estado"
-                        variant="secondary"
-                        onPress={() => void pendingEpisodes.refetch()}
-                      />
-                    ) : episodeIsUpcoming ? (
-                      <Text style={styles.secondaryText}>Ainda não lançado</Text>
-                    ) : (
-                      <Pressable
-                        accessibilityRole="checkbox"
-                        accessibilityLabel={`${episodeIsPending ? 'Marcar como assistido' : 'Desmarcar como assistido'}: ${episode.title}`}
-                        accessibilityState={{ checked: !episodeIsPending, disabled: trackingIsBusy }}
-                        disabled={trackingIsBusy}
+                    {episodeIsUpcoming ? <Text style={styles.secondaryText}>Ainda não lançado</Text> : null}
+                    <View style={styles.episodeActions}>
+                      {pendingEpisodes.isError ? <IconAction label={`Tentar carregar estado de ${episode.title}`} onPress={() => void pendingEpisodes.refetch()}><EyeIcon width={dimensions.iconSize} height={dimensions.iconSize} /></IconAction> : <IconAction
+                        label={`${episodeIsWatched ? 'Desmarcar como assistido' : 'Marcar como assistido'}: ${episode.title}`}
+                        selected={episodeIsWatched}
+                        loading={pendingEpisodes.isPending || (markEpisode.isPending && markEpisode.variables?.episodeId === episode.id) || (removeEpisode.isPending && removeEpisode.variables?.episodeId === episode.id)}
+                        disabled={!pendingEpisodes.isSuccess || episodeIsUpcoming || trackingIsBusy}
                         onPress={() => {
                           setTrackingFeedback(null);
                           if (episodeIsPending) {
@@ -316,22 +314,11 @@ export default function CatalogTitleScreen() {
                             );
                           }
                         }}
-                        style={styles.watchedToggle}
                       >
-                        <Text style={[styles.watchedIcon, episodeIsPending && styles.unwatchedIcon]}>
-                          {episodeIsPending ? '○' : '✓'}
-                        </Text>
-                      </Pressable>
-                    )}
-                    <PrimaryButton
-                      label={pendingEpisodes.isPending
-                        ? 'Verificando acompanhamento...'
-                        : pendingEpisodes.isError
-                          ? 'Não foi possível verificar o episódio'
-                          : episodeIsPending
-                            ? 'Marque como assistido para avaliar'
-                            : 'Avaliar episódio'}
-                      variant="secondary"
+                        {episodeIsWatched ? <CheckIcon width={dimensions.iconSize} height={dimensions.iconSize} /> : <EyeIcon width={dimensions.iconSize} height={dimensions.iconSize} />}
+                      </IconAction>}
+                    <IconAction
+                      label={episodeIsWatched ? `Avaliar ${episode.title}` : `Assista ao episódio para avaliar: ${episode.title}`}
                       disabled={!episodeIsWatched || trackingIsBusy}
                       onPress={() => router.push({
                         pathname: '/episode/[provider]/[externalSeriesId]/[seasonNumber]/[episodeId]',
@@ -342,10 +329,11 @@ export default function CatalogTitleScreen() {
                           episodeId: episode.id,
                         },
                       })}
-                    />
+                    ><RatingIcon width={dimensions.iconSize} height={dimensions.iconSize} /></IconAction>
+                    </View>
                   </View>
                 );
-              })}
+              })}</ScrollView>}
             </View>
           ) : null}
         </View>
@@ -361,7 +349,12 @@ export default function CatalogTitleScreen() {
   );
 }
 
-function MovieTrackingControls({ titleId, title }: { titleId: string; title: string }) {
+function MovieTrackingControls({ titleId }: { titleId: string }) {
+  const status = useMovieTrackingStatus(titleId);
+  return <RatingReviewSection key={`movie-reviews:${titleId}`} targetId={titleId} targetType="movie" allowRating={status.data === true} />;
+}
+
+function MovieWatchedAction({ titleId, title }: { titleId: string; title: string }) {
   const queryClient = useQueryClient();
   const status = useMovieTrackingStatus(titleId);
   const markWatched = useMarkMovieWatched();
@@ -369,26 +362,9 @@ function MovieTrackingControls({ titleId, title }: { titleId: string; title: str
   const isWatched = status.data === true;
   const isBusy = markWatched.isPending || removeWatched.isPending;
 
-  return (
-    <View style={styles.movieTracking}>
-      {status.isPending ? (
-        <>
-          <ActivityIndicator color={colors.brand} />
-          <Text style={styles.secondaryText}>Verificando seu acompanhamento...</Text>
-        </>
-      ) : status.isError ? (
-        <PrimaryButton
-          label="Tentar carregar estado do filme"
-          variant="secondary"
-          onPress={() => void status.refetch()}
-        />
-      ) : (
-        <Pressable
-          accessibilityRole="checkbox"
-          accessibilityLabel={isWatched ? `Desmarcar ${title} como assistido` : `Marcar ${title} como assistido`}
-          accessibilityState={{ checked: isWatched, disabled: isBusy }}
-          disabled={isBusy}
-          onPress={() => {
+  if (status.isError) return <IconAction label="Tentar carregar estado do filme" onPress={() => void status.refetch()}><EyeIcon width={dimensions.iconSize} height={dimensions.iconSize} /></IconAction>;
+
+  return <IconAction label={isWatched ? `Desmarcar ${title} como assistido` : `Marcar ${title} como assistido`} selected={isWatched} disabled={isBusy || status.isFetching} loading={status.isPending || isBusy} onPress={() => {
             if (isWatched) {
               removeWatched.mutate(titleId, {
                 onSuccess: () => queryClient.setQueryData(trackingQueryKeys.movieStatus(titleId), false),
@@ -398,25 +374,7 @@ function MovieTrackingControls({ titleId, title }: { titleId: string; title: str
                 onSuccess: () => queryClient.setQueryData(trackingQueryKeys.movieStatus(titleId), true),
               });
             }
-          }}
-          style={[styles.movieWatchedToggle, isWatched && styles.movieWatchedSelected]}
-        >
-          <Text style={[styles.movieWatchedIcon, isWatched && styles.movieWatchedIconSelected]}>
-            {isWatched ? '✓' : '○'}
-          </Text>
-          <Text style={styles.movieWatchedLabel}>
-            {isWatched ? 'Assistido' : 'Marcar como assistido'}
-          </Text>
-        </Pressable>
-      )}
-      <RatingReviewSection
-        key={`movie-reviews:${titleId}`}
-        targetId={titleId}
-        targetType="movie"
-        allowRating={isWatched}
-      />
-    </View>
-  );
+  }}>{isWatched ? <CheckIcon width={dimensions.iconSize} height={dimensions.iconSize} /> : <EyeIcon width={dimensions.iconSize} height={dimensions.iconSize} />}</IconAction>;
 }
 
 const styles = StyleSheet.create({
@@ -467,12 +425,9 @@ const styles = StyleSheet.create({
     gap: spacing.small,
     paddingVertical: spacing.medium,
   },
-  backdrop: {
-    width: '100%',
-    aspectRatio: 16 / 9,
-    borderRadius: radii.large,
-    backgroundColor: colors.surface,
-  },
+  hero: { aspectRatio: 16 / 10, maxHeight: dimensions.posterHeight * 3, marginHorizontal: -spacing.medium, marginTop: -spacing.large, backgroundColor: colors.background },
+  heroNavigation: { position: 'absolute', top: spacing.large, left: spacing.medium, zIndex: 2 },
+  titleActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.small, zIndex: 1 },
   title: {
     color: colors.textPrimary,
     fontSize: typography.title,
@@ -504,6 +459,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.small,
   },
   episodeCard: {
+    width: dimensions.posterWidth * 2,
     gap: spacing.small,
     padding: spacing.medium,
     borderWidth: 1,
@@ -511,6 +467,10 @@ const styles = StyleSheet.create({
     borderRadius: radii.medium,
     backgroundColor: colors.surface,
   },
+  episodeRail: { gap: spacing.medium, alignItems: 'stretch', paddingBottom: spacing.extraLarge },
+  episodeImage: { width: '100%', aspectRatio: 16 / 9, borderRadius: radii.small, backgroundColor: colors.surfaceElevated },
+  episodeImageFallback: { alignItems: 'center', justifyContent: 'center' },
+  episodeActions: { flexDirection: 'row', gap: spacing.small, marginTop: 'auto', zIndex: 1 },
   episodeCopy: {
     gap: spacing.extraSmall,
   },

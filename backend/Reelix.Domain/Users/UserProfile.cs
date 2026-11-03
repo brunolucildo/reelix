@@ -16,6 +16,16 @@ public sealed class UserProfile
     public string? DisplayName { get; private set; }
 
     public string? Biography { get; private set; }
+    public string? AvatarKey { get; private set; }
+
+    public void SetAvatar(string key)
+    {
+        if (key is not ("initials" or "noir" or "cosmic" or "phantom" or "comedy" or "animation" or "adventure" or "robot" or "vampire" or "maestro"))
+        {
+            throw new ArgumentException("Selecione um avatar disponível no Reelix.", nameof(key));
+        }
+        AvatarKey = key == "initials" ? null : key;
+    }
 
     public bool ProfileIsPublic { get; private set; }
 

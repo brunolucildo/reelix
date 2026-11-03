@@ -239,24 +239,30 @@ public sealed class SocialRepository(ReelixDbContext dbContext) : ISocialReposit
         Guid friendAccountId,
         CancellationToken cancellationToken)
     {
+        var relationship = await dbContext.FriendRelationships
+            .AsNoTracking()
+            .SingleOrDefaultAsync(candidate =>
+                (candidate.FirstAccountId == accountId && candidate.SecondAccountId == friendAccountId) ||
+                (candidate.SecondAccountId == accountId && candidate.FirstAccountId == friendAccountId),
+                cancellationToken);
         var profile = await dbContext.UserProfiles
             .AsNoTracking()
             .SingleOrDefaultAsync(
                 candidate =>
                     candidate.AccountId == friendAccountId &&
-                    dbContext.FriendRelationships.Any(relationship =>
-                        relationship.Status == FriendRelationshipStatus.Accepted &&
-                        ((relationship.FirstAccountId == accountId &&
-                          relationship.SecondAccountId == friendAccountId) ||
-                         (relationship.SecondAccountId == accountId &&
-                          relationship.FirstAccountId == friendAccountId))),
+                    (candidate.ProfileIsPublic || candidate.IsDiscoverable || candidate.AccountId == accountId ||
+                     dbContext.FriendRelationships.Any(relation =>
+                        (relation.Status == FriendRelationshipStatus.Accepted || relation.Status == FriendRelationshipStatus.Pending) &&
+                        ((relation.FirstAccountId == accountId && relation.SecondAccountId == friendAccountId) ||
+                         (relation.SecondAccountId == accountId && relation.FirstAccountId == friendAccountId)))),
                 cancellationToken);
         if (profile is null)
         {
             return null;
         }
 
-        var favorites = profile.FavoritesSharedWithFriends
+        var areFriends = relationship?.Status == FriendRelationshipStatus.Accepted;
+        var favorites = areFriends && profile.FavoritesSharedWithFriends
             ? await dbContext.UserFavoriteTitles
                 .AsNoTracking()
                 .Join(
@@ -287,14 +293,25 @@ public sealed class SocialRepository(ReelixDbContext dbContext) : ISocialReposit
             profile.AccountId,
             string.IsNullOrWhiteSpace(profile.DisplayName) ? "Usuário Reelix" : profile.DisplayName,
             profile.ProfileIsPublic ? profile.Biography : null,
-            favorites);
+            favorites)
+        {
+            RelationshipStatus = relationship?.Status,
+            RelationshipId = relationship?.Id,
+            RequestSentByMe = relationship?.RequesterAccountId == accountId,
+            IsSelf = accountId == friendAccountId,
+            FavoritesShared = areFriends && profile.FavoritesSharedWithFriends,
+            WatchHistoryShared = areFriends && profile.WatchHistorySharedWithFriends,
+            RatingsShared = areFriends && profile.RatingsSharedWithFriends,
+            AvatarKey = profile.AvatarKey,
+        };
     }
 
     public async Task<IReadOnlyList<SocialActivity>> GetActivityPageAsync(
         Guid accountId,
         SocialCursor? cursor,
         int limit,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Guid? actorAccountId = null)
     {
         var friendIds = dbContext.FriendRelationships
             .AsNoTracking()
@@ -304,7 +321,8 @@ public sealed class SocialRepository(ReelixDbContext dbContext) : ISocialReposit
             .Select(relationship =>
                 relationship.FirstAccountId == accountId
                     ? relationship.SecondAccountId
-                    : relationship.FirstAccountId);
+                    : relationship.FirstAccountId)
+            .Where(friendId => !actorAccountId.HasValue || friendId == actorAccountId.Value);
 
         var trackedActivities = dbContext.TrackingRecords
             .AsNoTracking()
@@ -326,6 +344,7 @@ public sealed class SocialRepository(ReelixDbContext dbContext) : ISocialReposit
                 Id = item.tracking.Id,
                 ActorAccountId = item.tracking.AccountId,
                 ActorDisplayName = item.profile.DisplayName,
+                ActorAvatarKey = item.profile.AvatarKey,
                 ActivityType = item.tracking.ItemType == TrackingItemType.Movie
                     ? "movieWatched"
                     : "episodeWatched",
@@ -343,6 +362,7 @@ public sealed class SocialRepository(ReelixDbContext dbContext) : ISocialReposit
                 (rating, profile) => new { rating, profile })
             .Where(item =>
                 friendIds.Contains(item.rating.AccountId) &&
+                item.rating.Audience == ReviewAudience.Public &&
                 item.profile.RatingsSharedWithFriends &&
                 item.profile.RatingsSharedWithFriendsSince.HasValue &&
                 item.rating.UpdatedAt >= item.profile.RatingsSharedWithFriendsSince.Value &&
@@ -354,6 +374,7 @@ public sealed class SocialRepository(ReelixDbContext dbContext) : ISocialReposit
                 Id = item.rating.Id,
                 ActorAccountId = item.rating.AccountId,
                 ActorDisplayName = item.profile.DisplayName,
+                ActorAvatarKey = item.profile.AvatarKey,
                 ActivityType = "ratingUpdated",
                 TargetId = item.rating.TargetId,
                 TargetType = item.rating.TargetType == ReviewTargetType.Movie
@@ -394,7 +415,10 @@ public sealed class SocialRepository(ReelixDbContext dbContext) : ISocialReposit
                     activity.TargetType,
                     catalogReference.Provider,
                     catalogReference.ExternalId,
-                    activity.OccurredAt);
+                    activity.OccurredAt)
+                {
+                    ActorAvatarKey = activity.ActorAvatarKey,
+                };
             })
             .ToArray();
     }

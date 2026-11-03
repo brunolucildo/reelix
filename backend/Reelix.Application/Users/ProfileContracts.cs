@@ -10,7 +10,8 @@ public sealed record UserProfileData(
     bool IsDiscoverable = false,
     bool WatchHistorySharedWithFriends = false,
     bool FavoritesSharedWithFriends = false,
-    bool RatingsSharedWithFriends = false);
+    bool RatingsSharedWithFriends = false,
+    string? AvatarKey = null);
 
 public sealed record UpdateUserProfile(
     string? DisplayName,
@@ -21,14 +22,16 @@ public sealed record UpdateUserProfile(
     bool? IsDiscoverable = null,
     bool? WatchHistorySharedWithFriends = null,
     bool? FavoritesSharedWithFriends = null,
-    bool? RatingsSharedWithFriends = null);
+    bool? RatingsSharedWithFriends = null,
+    string? AvatarKey = null);
 
 public sealed record PublicUserProfileData(
     string? DisplayName,
     string? Biography,
     string? AvatarUrl,
     IReadOnlyList<Guid> FavoriteMovieIds,
-    IReadOnlyList<Guid> FavoriteSeriesIds);
+    IReadOnlyList<Guid> FavoriteSeriesIds,
+    string? AvatarKey = null);
 
 public interface IUserProfileRepository
 {

@@ -150,6 +150,7 @@ npx expo lint
 - [Especificação implementada de amizades e compartilhamento](docs/specs/09-social.md)
 - [Plano de notificações e integração de eventos (histórico)](docs/plans/08-notifications-development-plan.html)
 - [Relatório dos cinco ajustes adicionais de UX](docs/implementation-report-additional-ux.md)
+- [Relatório do redesign do perfil social de amigos](docs/implementation-report-social-profile.md)
 - Próxima validação técnica: aplicação de migrations pendentes nos ambientes e validação de builds nativos para widgets.
 - [Arquitetura](docs/architecture.md)
 - [Especificações do produto](docs/specs/)

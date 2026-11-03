@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { Image } from 'expo-image';
 import { type Href, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Animated, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
@@ -7,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/auth/primary-button';
 import { AchievementGrid } from '@/components/gamification/achievement-grid';
+import { UserAvatar } from '@/components/user-avatar';
 import { useAuthSession } from '@/providers/auth-provider';
 import { ToastViewport, useErrorToast, useToast } from '@/providers/toast-provider';
 import { fetchGamificationDashboard, fetchProfile } from '@/services/api-client';
@@ -53,7 +53,6 @@ export function UserDrawer() {
   useErrorToast(gamification.error, 'Não foi possível carregar suas conquistas.');
   useErrorToast(profile.error, 'Não foi possível carregar seu perfil. Tente novamente.');
   const name = profile.data?.displayName || 'Minha conta';
-  const initials = name.trim().slice(0, 1).toLocaleUpperCase('pt-BR');
 
   const close = (after?: () => void) => {
     if (signingOut) return;
@@ -77,11 +76,7 @@ export function UserDrawer() {
       setSigningOut(false);
     }
   };
-  const avatar = (large: boolean) => profile.data?.avatarUrl ? (
-    <Image source={{ uri: profile.data.avatarUrl }} style={large ? styles.avatarLarge : styles.avatar} contentFit="cover" />
-  ) : (
-    <View style={large ? styles.avatarLarge : styles.avatar}><Text style={styles.initial}>{initials}</Text></View>
-  );
+  const avatar = (large: boolean) => <UserAvatar name={name} avatarKey={profile.data?.avatarKey} uri={profile.data?.avatarUrl} size={large ? dimensions.avatarSize : dimensions.minimumTouchTarget} />;
 
   return (
     <>
