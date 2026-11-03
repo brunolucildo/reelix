@@ -82,13 +82,16 @@ que implementação seja confundida com operação verificada.
    notificações e gamificação. Ainda não há testes mobile nem cobertura de integração de
    todos os endpoints e cenários concorrentes.
 3. **Automação de qualidade:** workflow versionado executa os gates, gera artefato de
-   migrations e inclui Gitleaks; resultados TRX serão publicados mesmo em falha. O último
-   run remoto teve Gitleaks e mobile aprovados, mas falhou no teste backend porque a fixture
-   não configurava `Supabase:Url` antes de iniciar o host. A fixture foi corrigida e Release
-   passou com 202 testes mesmo com configurações Supabase/PostgreSQL vazias. Branch
-   protection ainda não está configurada/verificada. O audit npm encontrou 8 vulnerabilidades
-   moderadas transitivas no Expo (`glob` e `minimatch`); correção forçada rebaixaria o SDK e
-   não foi aplicada. O audit NuGet via nuget.org não encontrou vulnerabilidades.
+  migrations e inclui Gitleaks; resultados TRX serão publicados mesmo em falha. O Run #3
+  no `main` passou nos jobs backend e mobile e publicou os artefatos de resultados TRX e
+  script de migrations. A fixture configura `Supabase:Url` antes de iniciar o host e
+  aponta o DbContext ao PostgreSQL efêmero. Localmente, Release passou com 202 testes sem
+  variáveis Supabase/PostgreSQL externas. O Run #3 antecede os ajustes locais atuais:
+  NU1903/NU1904 agora falham no restore NuGet, e `npm audit --audit-level=high` cobre
+  dependências de desenvolvimento e runtime. O audit completo reportou 24 advisories (3
+  low, 21 moderate), sem high/critical; a correção automática propõe alterações breaking
+  e não foi aplicada. O audit NuGet via nuget.org não encontrou vulnerabilidades.
+  Branch protection ainda não está configurada; a página de configurações exigiu login.
 4. **Entrega externa:** credenciais/projetos TMDB, OMDb, Expo e OpenAI, hosting dos
    workers e configuração de build não foram verificados em ambiente operacional.
 5. **Privacidade de ciclo de vida:** exclusão, exportação e retenção de dados da conta

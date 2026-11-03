@@ -174,30 +174,31 @@ verificações de dependências/segredos.
 **Estado atual:** `.github/workflows/ci.yml` agora executa testes backend, lint e
 type-check mobile, gera o script idempotente de migrations e audita NuGet/npm. O workflow
 agora inclui Gitleaks CLI com imagem pinada por digest e actions pinadas por SHA em runtime
-Node 24. A suíte Release passou com 202 testes mesmo com as configurações externas de
-Supabase/PostgreSQL vazias; lint e type-check mobile passaram; o audit NuGet via nuget.org
-não encontrou vulnerabilidades. A fixture de integração foi corrigida para configurar
-`Supabase:Url` antes de iniciar o host e apontar o DbContext ao PostgreSQL efêmero. O último
-run remoto falhou por essa configuração ausente; Gitleaks e mobile passaram. O workflow
-agora publica TRX mesmo em falha; falta confirmar o próximo run após enviar a correção.
-O audit npm encontrou 8 moderadas em `glob`/`minimatch`; a correção automática ainda propõe
-downgrade para Expo SDK 51 e não foi aplicada. Gitleaks percorreu os 77 commits locais sem
-encontrar segredos.
+Node 24. O Run #3 em `main` concluiu com sucesso: os jobs backend e mobile passaram e foram
+publicados os artefatos `backend-test-results` e `reelix-idempotent-migrations`. Esse run
+antecede os ajustes locais atuais: restore NuGet agora trata NU1903/NU1904 como erros, e o
+audit npm cobre dependências de desenvolvimento e runtime com limiar high. O restore passou;
+o audit completo reportou 24 advisories (3 low, 21 moderate), sem high/critical, e passou no
+limiar configurado. Localmente, a suíte Release passou com 202 testes mesmo com as
+configurações externas Supabase/PostgreSQL vazias; lint/type-check mobile também passaram.
+O audit NuGet via nuget.org não encontrou vulnerabilidades. Gitleaks percorreu os 77 commits
+locais sem encontrar segredos. Branch protection ainda não está configurada; a página de
+configurações do GitHub exigiu autenticação.
 
 **Evidências:** [Reelix.sln](Reelix.sln), [Reelix.UnitTests.csproj](backend/Reelix.UnitTests/Reelix.UnitTests.csproj),
 [package.json](mobile/package.json) e
 [architecture.md](docs/architecture.md#13-testing-and-quality).
 
 **Impacto:** A qualidade depende de execução manual e o estado de vulnerabilidades/
-segredos pode ficar desconhecido antes de integrar mudanças.
+**Impacto:** Sem checks obrigatórios na branch, mudanças podem ser integradas mesmo quando
+um job falha; os advisories low/moderate permanecem registrados até correção upstream.
 
-**Solução proposta:** Confirmar run backend verde após enviar a fixture corrigida, configurar
-checks obrigatórios de branch e reavaliar os advisories npm quando houver versão compatível
-do Expo.
+**Solução proposta:** Configurar checks obrigatórios de branch e reavaliar os advisories npm
+quando houver versão Expo compatível que resolva as vulnerabilidades sem downgrade.
 
 **Plano técnico de implementação:**
-1. Enviar a correção e confirmar o workflow no GitHub; inspecionar o TRX se falhar.
-2. Configurar checks obrigatórios de branch e manter Gitleaks ativo.
+1. Configurar `backend` e `mobile` como checks obrigatórios de branch.
+2. Manter Gitleaks no job backend e validar o artefato TRX quando houver falha.
 3. Corrigir vulnerabilidades npm quando uma versão compatível com o SDK estiver publicada.
 4. Garantir que falha de feed NuGet seja tratada como resultado inconclusivo.
 5. Manter revisão do artefato SQL manual; CI não o aplica.
@@ -205,8 +206,8 @@ do Expo.
 **Arquivos provavelmente envolvidos:** [.github/workflows/ci.yml](.github/workflows/ci.yml),
 `Reelix.sln`, `mobile/package.json`, `mobile/package-lock.json` e configurações de
 proteção do repositório (fora do Git).
-**Dependências:** Acesso autenticado para inspecionar logs e configurar branch protection;
-release upstream compatível do Expo.
+**Dependências:** Acesso autenticado às configurações do GitHub e release upstream do Expo
+que corrija os advisories sem downgrade.
 **Critérios de aceitação:** Workflow executa checks em PR; vulnerabilidades altas/críticas
 fazem CI falhar; secret scanning está ativo; o risco moderado atual é rastreado sem
 downgrade forçado de Expo.
