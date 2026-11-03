@@ -800,10 +800,23 @@ public sealed class PostgresAuthorizationFixture : IAsyncLifetime
     }
 }
 
-public sealed class PostgresAuthorizationApiFactory(string connectionString)
-    : WebApplicationFactory<Program>
+public sealed class PostgresAuthorizationApiFactory : WebApplicationFactory<Program>
 {
     private readonly RSA _signingKey = RSA.Create(2048);
+    private readonly string _connectionString;
+    private readonly string? _previousSupabaseUrl =
+        Environment.GetEnvironmentVariable("Supabase__Url");
+    private readonly string? _previousConnectionString =
+        Environment.GetEnvironmentVariable("ConnectionStrings__Reelix");
+
+    public PostgresAuthorizationApiFactory(string connectionString)
+    {
+        _connectionString = connectionString;
+        Environment.SetEnvironmentVariable(
+            "Supabase__Url",
+            "https://reelix-test.supabase.co");
+        Environment.SetEnvironmentVariable("ConnectionStrings__Reelix", connectionString);
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -813,13 +826,13 @@ public sealed class PostgresAuthorizationApiFactory(string connectionString)
             {
                 ["Supabase:Url"] = "https://reelix-test.supabase.co",
                 ["Supabase:JwtSecret"] = string.Empty,
-                ["ConnectionStrings:Reelix"] = connectionString,
+                ["ConnectionStrings:Reelix"] = _connectionString,
             }));
         builder.ConfigureTestServices(services =>
         {
             services.RemoveAll<DbContextOptions<ReelixDbContext>>();
             services.RemoveAll<ReelixDbContext>();
-            services.AddDbContext<ReelixDbContext>(options => options.UseNpgsql(connectionString));
+            services.AddDbContext<ReelixDbContext>(options => options.UseNpgsql(_connectionString));
             services.PostConfigure<JwtBearerOptions>(
                 JwtBearerDefaults.AuthenticationScheme,
                 options =>
@@ -857,6 +870,10 @@ public sealed class PostgresAuthorizationApiFactory(string connectionString)
         if (disposing)
         {
             _signingKey.Dispose();
+            Environment.SetEnvironmentVariable("Supabase__Url", _previousSupabaseUrl);
+            Environment.SetEnvironmentVariable(
+                "ConnectionStrings__Reelix",
+                _previousConnectionString);
         }
     }
 }

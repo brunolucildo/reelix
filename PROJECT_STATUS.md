@@ -82,12 +82,13 @@ que implementação seja confundida com operação verificada.
    notificações e gamificação. Ainda não há testes mobile nem cobertura de integração de
    todos os endpoints e cenários concorrentes.
 3. **Automação de qualidade:** workflow versionado executa os gates, gera artefato de
-   migrations e inclui Gitleaks. O último run remoto teve Gitleaks e mobile aprovados, mas
-   falhou no passo de testes backend; os logs completos exigem sessão GitHub. Localmente,
-   Release passou com 202 testes. Branch protection ainda não está configurada/verificada.
-   O audit npm encontrou 8 vulnerabilidades moderadas transitivas no Expo (`glob` e
-   `minimatch`); correção forçada rebaixaria o SDK e não foi aplicada. O audit NuGet via
-   nuget.org não encontrou vulnerabilidades.
+   migrations e inclui Gitleaks; resultados TRX serão publicados mesmo em falha. O último
+   run remoto teve Gitleaks e mobile aprovados, mas falhou no teste backend porque a fixture
+   não configurava `Supabase:Url` antes de iniciar o host. A fixture foi corrigida e Release
+   passou com 202 testes mesmo com configurações Supabase/PostgreSQL vazias. Branch
+   protection ainda não está configurada/verificada. O audit npm encontrou 8 vulnerabilidades
+   moderadas transitivas no Expo (`glob` e `minimatch`); correção forçada rebaixaria o SDK e
+   não foi aplicada. O audit NuGet via nuget.org não encontrou vulnerabilidades.
 4. **Entrega externa:** credenciais/projetos TMDB, OMDb, Expo e OpenAI, hosting dos
    workers e configuração de build não foram verificados em ambiente operacional.
 5. **Privacidade de ciclo de vida:** exclusão, exportação e retenção de dados da conta
@@ -129,7 +130,6 @@ Nenhuma credencial ou valor de segredo é reproduzido aqui.
   reportou 8 vulnerabilidades moderadas e não falha nesse limiar; o downgrade forçado
   sugerido pelo npm não foi aplicado. O audit NuGet via `nuget.org` não encontrou pacotes
   vulneráveis.
-- Gitleaks v8.30.1 verificou o histórico local (75 commits), sem findings. A CI agora
 - Gitleaks v8.30.1 verificou o histórico local (77 commits), sem findings. A CI executa
   o scanner com saída redigida; o job remoto de secret scanning passou.
 - O banco Supabase de desenvolvimento foi consultado para confirmar migrations, RLS e

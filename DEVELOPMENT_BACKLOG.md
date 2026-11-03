@@ -174,13 +174,15 @@ verificações de dependências/segredos.
 **Estado atual:** `.github/workflows/ci.yml` agora executa testes backend, lint e
 type-check mobile, gera o script idempotente de migrations e audita NuGet/npm. O workflow
 agora inclui Gitleaks CLI com imagem pinada por digest e actions pinadas por SHA em runtime
-Node 24. Localmente, a suíte Release passou com 202 testes e gera artefato TRX; lint e
-type-check mobile passaram; o audit NuGet via nuget.org não encontrou vulnerabilidades.
+Node 24. A suíte Release passou com 202 testes mesmo com as configurações externas de
+Supabase/PostgreSQL vazias; lint e type-check mobile passaram; o audit NuGet via nuget.org
+não encontrou vulnerabilidades. A fixture de integração foi corrigida para configurar
+`Supabase:Url` antes de iniciar o host e apontar o DbContext ao PostgreSQL efêmero. O último
+run remoto falhou por essa configuração ausente; Gitleaks e mobile passaram. O workflow
+agora publica TRX mesmo em falha; falta confirmar o próximo run após enviar a correção.
 O audit npm encontrou 8 moderadas em `glob`/`minimatch`; a correção automática ainda propõe
 downgrade para Expo SDK 51 e não foi aplicada. Gitleaks percorreu os 77 commits locais sem
-encontrar segredos. O último run remoto teve Gitleaks e mobile aprovados, mas o passo
-`dotnet test` do backend falhou; os logs detalhados exigem sessão GitHub. O workflow passou
-a publicar os resultados TRX na próxima execução.
+encontrar segredos.
 
 **Evidências:** [Reelix.sln](Reelix.sln), [Reelix.UnitTests.csproj](backend/Reelix.UnitTests/Reelix.UnitTests.csproj),
 [package.json](mobile/package.json) e
@@ -189,12 +191,12 @@ a publicar os resultados TRX na próxima execução.
 **Impacto:** A qualidade depende de execução manual e o estado de vulnerabilidades/
 segredos pode ficar desconhecido antes de integrar mudanças.
 
-**Solução proposta:** Diagnosticar a falha remota com o TRX, obter um run backend verde,
-configurar checks obrigatórios de branch e reavaliar os advisories npm quando houver versão
-compatível do Expo.
+**Solução proposta:** Confirmar run backend verde após enviar a fixture corrigida, configurar
+checks obrigatórios de branch e reavaliar os advisories npm quando houver versão compatível
+do Expo.
 
 **Plano técnico de implementação:**
-1. Reexecutar o workflow no GitHub e inspecionar o artefato TRX do backend.
+1. Enviar a correção e confirmar o workflow no GitHub; inspecionar o TRX se falhar.
 2. Configurar checks obrigatórios de branch e manter Gitleaks ativo.
 3. Corrigir vulnerabilidades npm quando uma versão compatível com o SDK estiver publicada.
 4. Garantir que falha de feed NuGet seja tratada como resultado inconclusivo.
