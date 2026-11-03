@@ -34,9 +34,17 @@ export default function HomeScreen() {
     queryFn: fetchOnboarding,
   });
 
+  const onboardingErrorMessage = onboarding.error instanceof TypeError
+    ? 'Não foi possível conectar à API. Verifique a rede e tente novamente.'
+    : onboarding.error instanceof Error &&
+        'status' in onboarding.error &&
+        typeof onboarding.error.status === 'number'
+      ? `A API recusou a solicitação (HTTP ${onboarding.error.status}).`
+      : 'Não foi possível carregar suas preferências. Tente novamente.';
+
   useErrorToast(
     onboarding.error,
-    'Não foi possível carregar suas preferências. Verifique a conexão e tente novamente.',
+    onboardingErrorMessage,
   );
 
   if (!session) {
