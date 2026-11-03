@@ -77,12 +77,15 @@ que implementação seja confundida com operação verificada.
    gerado/revisado sem conexão; sua aplicação varia por ambiente e não foi verificada.
    Social, notificações e gamificação ainda dependem de aplicação autorizada.
 2. **Cobertura de integração/autorização:** 47 testes focados exercitam rejeição anônima
-   em rotas HTTP da API; ainda faltam cenários amplos autenticados, isolamento entre
-   contas e PostgreSQL real. Não foram encontrados testes mobile.
-3. **Automação de qualidade:** workflow versionado criado, ainda sem execução no GitHub.
-   O audit npm encontrou 12 vulnerabilidades moderadas transitivas no Expo (`glob` e
-   `minimatch`); correção forçada rebaixaria o SDK e não foi aplicada. O audit NuGet no
-   ambiente local reporta `NU1900` para um feed privado indisponível.
+   em rotas HTTP; 10 testes Testcontainers aplicam as migrations num PostgreSQL efêmero
+    e cobrem isolamento/consentimento em perfil, tracking, listas, avaliações, social,
+    notificações e gamificação. Ainda não há testes mobile nem cobertura de integração de
+    todos os endpoints e cenários concorrentes.
+3. **Automação de qualidade:** workflow versionado executa os gates, gera artefato de
+  migrations e inclui Gitleaks. A primeira execução remota no GitHub e branch protection
+  ainda não foram verificadas. O audit npm encontrou 8 vulnerabilidades moderadas
+  transitivas no Expo (`glob` e `minimatch`); correção forçada rebaixaria o SDK e não foi
+  aplicada. O audit NuGet via nuget.org não encontrou vulnerabilidades.
 4. **Entrega externa:** credenciais/projetos TMDB, OMDb, Expo e OpenAI, hosting dos
    workers e configuração de build não foram verificados em ambiente operacional.
 5. **Privacidade de ciclo de vida:** exclusão, exportação e retenção de dados da conta
@@ -107,7 +110,7 @@ aprovados estão identificadas como “Aguardando decisão”, e não como falha
 | Serviço | Uso | Estado conhecido | Limite |
 |---|---|---|---|
 | Supabase Auth | Login, sessão e emissão de JWT | Integrado no código. | Chaves públicas, configuração de callback, JWT e projeto de cada ambiente são externos. |
-| PostgreSQL gerenciado | Fonte de dados da aplicação | EF Core/Npgsql e migrations no repositório. | O estado do schema varia por ambiente; esta auditoria não acessou bancos. |
+| PostgreSQL gerenciado | Fonte de dados da aplicação | EF Core/Npgsql e migrations no repositório. | O projeto de desenvolvimento conferido tem as 10 migrations esperadas e RLS nas 24 tabelas da aplicação; outros ambientes não foram verificados. |
 | TMDB | Catálogo principal, gêneros, temporadas e episódios | Adaptador implementado. | Credencial de servidor, atribuição, limites e direitos de uso devem ser confirmados para o ambiente e finalidade. |
 | OMDb | Fonte opcional de catálogo | Adaptador implementado; sem fallback automático. | Credencial opcional e campos/imagens sujeitos às condições do provedor. |
 | Expo Push | Entrega remota opcional | Código de registro e envio implementado, desativado por padrão. | Requer IDs/projeto EAS, APNs/FCM, segredo de servidor e hosting contínuo. |
@@ -117,18 +120,19 @@ Nenhuma credencial ou valor de segredo é reproduzido aqui.
 
 ## Validações e limites desta auditoria
 
-- A suíte `backend/Reelix.UnitTests/Reelix.UnitTests.csproj` foi executada após as
-  alterações: **191 testes aprovados, 0 falhos, 0 ignorados**. O ambiente reportou SDK
-  .NET `11.0.100-rc` para projeto `net10.0`; isso não substitui a validação no runtime
-  de produção.
-- `npx expo lint` e `npx tsc --noEmit` passaram. O audit npm de produção encontrou
-  12 vulnerabilidades moderadas e, com o limite CI `--audit-level=high`, não falha por
-  esses achados; o downgrade forçado sugerido pelo npm não foi aplicado.
-- O audit NuGet consultando `nuget.org` não informou pacotes vulneráveis; o restore/teste
-  local também reporta `NU1900` ao tentar acessar um feed privado indisponível. A
-  workflow ainda precisa ser executada no GitHub.
-- O código, specs, projetos e documentação versionados foram inspecionados. Não foram
-  usados tokens, contas, banco remoto ou chamadas autenticadas a provedores.
+- A suíte `backend/Reelix.UnitTests/Reelix.UnitTests.csproj` passou: **202 testes
+  aprovados, 0 falhos, 0 ignorados**, incluindo 10 cenários HTTP com PostgreSQL efêmero.
+  O ambiente reportou SDK .NET `11.0.100-rc` para projeto `net10.0`; a CI fixa .NET 10.
+- `npx expo lint` e `npx tsc --noEmit` passaram. `npm audit --omit=dev --audit-level=high`
+  reportou 8 vulnerabilidades moderadas e não falha nesse limiar; o downgrade forçado
+  sugerido pelo npm não foi aplicado. O audit NuGet via `nuget.org` não encontrou pacotes
+  vulneráveis.
+- Gitleaks v8.30.1 verificou o histórico local (75 commits), sem findings. A CI agora
+  executa o scanner com saída redigida; a primeira execução no GitHub ainda está pendente.
+- O banco Supabase de desenvolvimento foi consultado para confirmar migrations, RLS e
+  auditar marcadores de testes iniciais. Seis contas internas sem vínculo em `auth.users`
+  e seus registros identificados por marcadores foram removidos em transação. Outros
+  registros sem marcador não foram alterados. Nenhuma credencial ou token foi exibido.
 - Não foi possível confirmar builds/instalações iOS e Android, push real, migrations
   aplicadas em cada ambiente, disponibilidade de workers, performance sob carga ou
   UX visual no navegador compartilhado (`localhost:8087` recusou conexão).

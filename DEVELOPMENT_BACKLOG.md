@@ -11,7 +11,7 @@ solicitadas — testes mobile (REELIX-003), IA (REELIX-011 e REELIX-012) e Widge
 (REELIX-013) — permanecem registradas sem implementação.
 
 **Distribuição das abertas:** 5 Alta, 7 Média e 5 Baixa. Nenhuma foi classificada como
-Crítica com a evidência disponível. Estados: 1 Pendente, 3 Parcialmente implementados,
+Crítica com a evidência disponível. Estados: 0 Pendente, 4 Parcialmente implementados,
 5 Bloqueados e 8 Aguardando decisão.
 
 ---
@@ -166,19 +166,19 @@ seleção e configuração cuidadosa da ferramenta.
 **Módulo:** CI/CD / segurança
 **Categoria:** Technical Debt
 **Prioridade:** Alta
-**Status:** Pendente
+**Status:** Parcialmente implementado
 
 **Descrição:** Criar uma pipeline versionada para build, testes, lint/type-check e
 verificações de dependências/segredos.
 
 **Estado atual:** `.github/workflows/ci.yml` agora executa testes backend, lint e
-type-check mobile, gera script idempotente de migrations como artefato de revisão,
-audita pacotes NuGet e verifica dependências npm de produção. O audit NuGet na fonte
-pública não encontrou pacotes vulneráveis; no ambiente local persistiu `NU1900` ao
-consultar um feed privado indisponível. A varredura npm encontrou 12 vulnerabilidades
-moderadas transitivas no Expo (`glob`/`minimatch`); a correção automática propõe rebaixar
-o Expo para SDK 51, portanto não foi aplicada. O audit CI registra moderadas e falha
-somente em alta/crítica enquanto aguarda correção upstream.
+type-check mobile, gera o script idempotente de migrations e audita NuGet/npm. O workflow
+agora inclui Gitleaks CLI com imagem pinada por digest e actions pinadas por SHA em runtime
+Node 24. A suíte backend passou com 202 testes; lint/type-check mobile passaram; o audit
+NuGet via nuget.org não encontrou vulnerabilidades. O audit npm encontrou 8 moderadas em
+`glob`/`minimatch`; a correção automática ainda propõe downgrade para Expo SDK 51 e não foi
+aplicada. Gitleaks percorreu os 75 commits locais sem encontrar segredos. O workflow ainda
+aguarda primeira execução remota no GitHub.
 
 **Evidências:** [Reelix.sln](Reelix.sln), [Reelix.UnitTests.csproj](backend/Reelix.UnitTests/Reelix.UnitTests.csproj),
 [package.json](mobile/package.json) e
@@ -187,13 +187,12 @@ somente em alta/crítica enquanto aguarda correção upstream.
 **Impacto:** A qualidade depende de execução manual e o estado de vulnerabilidades/
 segredos pode ficar desconhecido antes de integrar mudanças.
 
-**Solução proposta:** Completar o workflow com secret scanning suportado pela plataforma,
-configurar checks obrigatórios de branch e reavaliar os advisories npm quando houver
-versão compatível do Expo.
+**Solução proposta:** Confirmar a execução remota, configurar checks obrigatórios de branch
+e reavaliar os advisories npm quando houver versão compatível do Expo.
 
 **Plano técnico de implementação:**
-1. Ativar o workflow no GitHub e definir checks obrigatórios de branch.
-2. Habilitar secret scanning/Dependabot ou ferramenta aprovada no repositório.
+1. Executar o workflow no GitHub e definir checks obrigatórios de branch.
+2. Manter Gitleaks ativo e habilitar a proteção de branch nas configurações do repositório.
 3. Corrigir vulnerabilidades npm quando uma versão compatível com o SDK estiver publicada.
 4. Garantir que falha de feed NuGet seja tratada como resultado inconclusivo.
 5. Manter revisão do artefato SQL manual; CI não o aplica.
@@ -201,8 +200,8 @@ versão compatível do Expo.
 **Arquivos provavelmente envolvidos:** [.github/workflows/ci.yml](.github/workflows/ci.yml),
 `Reelix.sln`, `mobile/package.json`, `mobile/package-lock.json` e configurações de
 proteção do repositório (fora do Git).
-**Dependências:** Configuração de branch protection/secret scanning no GitHub, correção
-upstream Expo e feed NuGet acessível.
+**Dependências:** Primeira execução remota e proteção de branch no GitHub; release upstream
+compatível do Expo.
 **Critérios de aceitação:** Workflow executa checks em PR; vulnerabilidades altas/críticas
 fazem CI falhar; secret scanning está ativo; o risco moderado atual é rastreado sem
 downgrade forçado de Expo.
@@ -784,7 +783,7 @@ externa; não é uma estimativa jurídica.
 **Descrição:** Remover vulnerabilidades moderadas transitivas reportadas no audit npm
 para as dependências Expo sem degradar o SDK principal.
 
-**Estado atual:** `npm audit --omit=dev` reportou 12 vulnerabilidades moderadas em
+**Estado atual:** `npm audit --omit=dev` reportou 8 vulnerabilidades moderadas em
 dependências transitivas `glob` e `minimatch`, alcançadas pelo Expo SDK 58 e seus
 plugins. A correção automática sugere `npm audit fix --force` e `expo@51.0.39`, um
 downgrade incompatível que não foi aplicado. Não foi identificada uma atualização
