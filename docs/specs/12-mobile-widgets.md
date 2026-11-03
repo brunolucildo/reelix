@@ -2,7 +2,7 @@
 
 ## Escopo
 
-Front-End mobile, integração com a API do Reelix e implementação nativa para as plataformas compatíveis.
+Escopo atual: widgets Android, com desenvolvimento e validação em um dispositivo Samsung. iOS está explicitamente adiado e não é requisito de aceite desta etapa; só volta ao escopo mediante decisão futura e disponibilidade de macOS/Xcode e dispositivo iOS.
 
 ## Contexto
 
@@ -14,8 +14,8 @@ A implementação depende das capacidades e restrições específicas de cada si
 
 ## Requisitos Funcionais
 
-1. Avaliar e documentar as capacidades de widgets no iOS e Android para a versão do Expo e as bibliotecas escolhidas.
-2. Definir quais widgets serão suportados em cada plataforma.
+1. Avaliar e documentar as capacidades de widgets Android para a versão do Expo e as bibliotecas escolhidas.
+2. Definir os widgets suportados no Android; registrar iOS como adiado.
 3. Criar um widget para exibir episódios pendentes, quando suportado.
 4. Criar um widget para exibir próximas estreias relevantes, quando suportado.
 5. Permitir que o usuário abra o Reelix ao tocar em um item do widget.
@@ -38,7 +38,7 @@ A implementação depende das capacidades e restrições específicas de cada si
 - Evitar dados pessoais desnecessários no armazenamento local.
 - Respeitar os limites de atualização definidos pelo sistema operacional.
 - Não depender de execução contínua em segundo plano.
-- Tratar diferenças entre versões do iOS e Android.
+- Tratar diferenças entre versões e fabricantes Android; iOS permanece fora do escopo atual.
 - Garantir que a implementação escolhida seja compatível com o fluxo de build e distribuição do aplicativo.
 
 ## Você Deve
@@ -52,6 +52,7 @@ A implementação depende das capacidades e restrições específicas de cada si
 - Implementar deep links para abrir a tela correta do Reelix.
 - Criar testes para navegação e tratamento de dados indisponíveis.
 - Validar o comportamento em dispositivos ou simuladores compatíveis.
+- Validar o comportamento em dispositivos Android compatíveis; validação iOS não é exigida nesta etapa.
 - Informar claramente quais funcionalidades não são suportadas em determinada plataforma.
 
 ## Você Não Deve
@@ -70,7 +71,7 @@ A implementação depende das capacidades e restrições específicas de cada si
 - Expo
 - TypeScript
 - Expo Router
-- APIs nativas do iOS e Android, conforme necessário
+- APIs nativas Android, conforme necessário
 - Biblioteca de widgets compatível com a arquitetura aprovada
 - ASP.NET Core
 - C#
@@ -80,28 +81,30 @@ A biblioteca e a estratégia nativa deverão ser selecionadas após a análise d
 
 ## Critérios de aceitação
 
-- A estratégia técnica está documentada para cada plataforma suportada.
+- A estratégia técnica Android está documentada; iOS está explicitamente adiado.
 - O widget exibe os dados previstos quando disponíveis.
 - O toque em um item abre o conteúdo correspondente no aplicativo.
 - Dados indisponíveis são tratados sem falhas.
 - A troca de conta não expõe informações do usuário anterior.
 - O widget respeita as restrições de atualização do sistema operacional.
 - A implementação é validada em ambiente compatível com os recursos nativos.
+- A implementação Android é validada em ambiente compatível com os recursos nativos e em dispositivo real.
 - As limitações de plataforma são documentadas.
+- As limitações Android são documentadas; iOS não bloqueia o aceite desta etapa.
 - Os testes relevantes passam.
 
-## Resultado do spike (atualizado em 02/11/2026)
+## Resultado do spike (atualizado em 03/11/2026)
 
-A documentação oficial consultada identifica `expo-widgets` como candidato para iOS e Android no SDK 58. O módulo não funciona no Expo Go e exige development builds. A documentação também exige App Group/bundle identifier no iOS e `android.package` com `enableAndroid` no Android; o widget roda em runtime isolado, não usa hooks nem chamadas de rede próprias, e recebe dados via snapshots/timelines.
+A documentação oficial consultada identifica `expo-widgets` como candidato Android no SDK 58; não funciona no Expo Go e exige development build. No Android, requer `android.package` e `enableAndroid`; o widget roda em runtime isolado e recebe dados via snapshots/timelines, sem hooks nem chamadas de rede próprias. A decisão de produto em 03/11/2026 é desenvolver e validar somente Android nesta etapa; iOS foi adiado.
 
 | Plataforma | Evidência disponível | Resultado |
 |---|---|---|
-| iOS | Documentação Expo/WidgetKit consultada; projeto sem `ios.bundleIdentifier`; ambiente Windows sem Xcode | Não validado; build, assinatura, App Group, renderização e deep link pendentes |
-| Android | Documentação Expo/Android consultada; projeto sem `android.package`; ambiente sem Java, Android SDK/ADB ou Gradle | Não validado; build, instalação, launcher, renderização e deep link pendentes |
+| iOS | Sem bundle identifier, Xcode ou dispositivo iOS neste ambiente | Adiado; fora do escopo e dos critérios de aceite atuais |
+| Android | `android.package` definido como `com.brunolucildo.reelix`; projeto EAS vinculado; development APK enviado para build cloud | Build EAS na fila; instalação e validação no Samsung pendentes. Widget ainda não implementado |
 
-Nenhuma biblioteca foi instalada nem plugin/configuração nativa foi adicionada, pois os identificadores de distribuição não estão definidos e os builds compatíveis não podem ser executados neste ambiente. Não há widgets funcionais nem plataforma declarada como suportada. Próximo passo: definir bundle/package IDs e repetir o spike em ambiente com Xcode e Android SDK; só então aprovar snapshots, consentimento/limpeza por conta, dois layouts e navegação nativa.
+`expo-widgets` ainda não foi instalado e não há widget funcional. O application ID Android foi definido e o development APK está sendo gerado pelo EAS; após instalar no Samsung, validar o build e então testar a integração Android de `expo-widgets`, snapshots, limpeza por conta, layouts e deep links. Não é necessário configurar iOS para concluir esta etapa.
 
-**Estado atual:** pesquisa/documentação concluídas; widgets iOS e Android não implementados nem validados. O wireframe marca explicitamente esta lacuna e não simula a existência de um widget funcional.
+**Estado atual:** iOS está adiado. Android está em preparação de build nativo; widgets ainda não foram implementados nem validados. O wireframe continua marcando a lacuna e não simula a existência de widget funcional.
 
 Referências oficiais verificadas:
 

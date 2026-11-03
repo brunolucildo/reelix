@@ -567,14 +567,15 @@ depende do escopo aprovado.
 **Módulo:** Widgets mobile
 **Categoria:** Feature
 **Prioridade:** Baixa
-**Status:** Bloqueado
+**Status:** Parcialmente implementado
 
-**Descrição:** Implementar widgets compatíveis com os sistemas suportados, validar
-atualização, deep links, privacidade e limpeza por troca de conta.
+**Descrição:** Implementar e validar widgets Android; iOS está adiado e fora do aceite
+atual desta entrega.
 
-**Estado atual:** Existe somente spike/documentação. Não há widget funcional, dependência
-ou plataforma declarada como suportada. Faltam bundle/package IDs e ambiente de build
-nativo validado.
+**Estado atual:** O escopo Android-only está documentado. `android.package` foi definido
+como `com.brunolucildo.reelix`, o projeto EAS está vinculado e o development APK está na
+fila de build para instalação no Samsung. `expo-widgets` ainda não foi instalado; não há
+widget funcional, e a validação de instalação permanece pendente. iOS está adiado.
 
 **Evidências:** [12-mobile-widgets.md](docs/specs/12-mobile-widgets.md),
 [app.json](mobile/app.json) e [wireframes](docs/wireframes/reelix-visual-wireframes.html).
@@ -582,26 +583,29 @@ nativo validado.
 **Impacto:** A capacidade planejada não está disponível aos usuários; implementação
 precipitada pode expor dados de conta anterior em snapshots do sistema.
 
-**Solução proposta:** Completar primeiro os pré-requisitos nativos e validar a biblioteca
-Expo escolhida em builds de desenvolvimento; não presumir suporte em Expo Go.
+**Solução proposta:** Validar o development APK no Samsung e então integrar `expo-widgets`
+com suporte Android opt-in, provando snapshots, deep links, privacidade e limpeza por
+troca de conta. Não presumir suporte em Expo Go.
 
 **Plano técnico de implementação:**
-1. Definir plataformas/versões e bundle/package IDs.
-2. Validar build nativo e integração da biblioteca em iOS e Android.
+1. Instalar o development APK no Samsung e validar o fluxo app/device e o package ID.
+2. Avaliar e integrar a versão SDK 58 de `expo-widgets` com suporte Android habilitado.
 3. Projetar dados mínimos e snapshots protegidos, limpeza no logout/troca de conta.
 4. Implementar widget vazio, episódios pendentes e deep links internos.
 5. Testar atualização limitada pelo SO, offline, usuário trocado e acessibilidade.
-6. Atualizar wireframe e documentar limitações verificadas em dispositivos.
+6. Validar em Samsung, atualizar wireframe e documentar limitações Android. Reabrir iOS
+   somente por decisão futura, com Mac/Xcode e dispositivo iOS disponíveis.
 
 **Arquivos provavelmente envolvidos:** `mobile/app.json`, configuração de build
-(ainda não definida), `mobile/src/`, `docs/specs/12-mobile-widgets.md` e
+(EAS configurado), `mobile/src/`, `docs/specs/12-mobile-widgets.md` e
 `docs/wireframes/reelix-visual-wireframes.html`.
-**Dependências:** REELIX-005, IDs de distribuição, biblioteca compatível e ambiente
-Xcode/Android SDK.
-**Critérios de aceitação:** Build testado por plataforma; widget mostra somente snapshot
-do usuário atual, respeita limitações de atualização e abre destino correto.
-**Estimativa de complexidade:** Alta — envolve extensão/runtime nativo e validação em
-duas plataformas.
+**Dependências:** REELIX-005 (Android), Samsung para validação no aparelho e biblioteca
+compatível com SDK 58.
+**Critérios de aceitação:** Development build Android instalado e validado no Samsung;
+widget mostra somente snapshot do usuário atual, respeita limites de atualização e abre
+destino correto. iOS não é critério desta entrega.
+**Estimativa de complexidade:** Alta — envolve runtime/integração nativa Android, snapshots
+seguros e validação em dispositivo real.
 
 ---
 
