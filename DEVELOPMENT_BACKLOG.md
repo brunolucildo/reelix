@@ -1,18 +1,18 @@
 # Reelix — backlog da auditoria
 
-Pendências identificadas pela leitura do código, specs e documentação em 03/11/2026 e
+Pendências identificadas pela leitura do código, specs e documentação em 04/11/2026 e
 atualizadas após as alterações de follow-up.
 “Aguardando decisão” marca uma lacuna de escopo/infraestrutura ainda não aprovada;
 “Bloqueado” indica dependência externa necessária antes de concluir. Prioridades são
 relativas à prontidão e aos riscos visíveis no repositório, não estimativas de prazo.
 
-**Escopo:** 17 pendências abertas, além de 2 itens resolvidos nesta etapa. As exceções
+**Escopo:** 16 pendências abertas, além de 3 itens resolvidos nesta etapa. As exceções
 solicitadas — testes mobile (REELIX-003), IA (REELIX-011 e REELIX-012) e Widgets
 (REELIX-013) — permanecem registradas sem implementação.
 
-**Distribuição das abertas:** 5 Alta, 7 Média e 5 Baixa. Nenhuma foi classificada como
+**Distribuição das abertas:** 4 Alta, 7 Média e 5 Baixa. Nenhuma foi classificada como
 Crítica com a evidência disponível. Estados: 0 Pendente, 4 Parcialmente implementados,
-5 Bloqueados e 8 Aguardando decisão.
+4 Bloqueados e 8 Aguardando decisão.
 
 ---
 
@@ -22,16 +22,18 @@ Crítica com a evidência disponível. Estados: 0 Pendente, 4 Parcialmente imple
 **Módulo:** Persistência / todos
 **Categoria:** Technical Debt
 **Prioridade:** Alta
-**Status:** Parcialmente implementado
+**Status:** Concluído
 
 **Descrição:** Estabelecer um processo controlado para comparar o histórico de migrations
 com cada banco de destino e validar a atualização do schema em PostgreSQL real.
 
-**Estado atual:** Migrations EF Core estão versionadas. Um script idempotente para as
-10 migrations foi gerado e revisado sem conexão ao banco; a documentação e a CI agora
-permitem revisar esse artefato antes da execução. Nenhuma migration foi aplicada a
-ambiente compartilhado ou produção. Social, notificações e gamificação ainda dependem
-de aplicação e verificação por ambiente.
+**Estado atual:** O usuário confirmou que existe apenas o ambiente `Development`. Em
+04/11, `dotnet-ef migrations list` consultou seu histórico em modo somente leitura e
+registrou as 10 migrations locais, até `20261103134321_ExpandFixedAvatars`, sem pendências.
+O fixture Testcontainers aplica a cadeia completa em PostgreSQL 17 descartável antes dos
+testes HTTP; a suíte Release passou com 202 testes. Não foi necessário aplicar migrations
+no banco durante esta etapa. Se um ambiente novo for criado, repetir o inventário e a
+validação antes de habilitá-lo.
 
 **Evidências:** [ReelixDbContext.cs](backend/Reelix.Infrastructure/Persistence/ReelixDbContext.cs),
 [README.md](README.md), [10-notifications.md](docs/specs/10-notifications.md) e
@@ -40,26 +42,26 @@ de aplicação e verificação por ambiente.
 **Impacto:** Divergência entre modelo e schema pode impedir operações, causar falhas
 em runtime ou deixar módulos indisponíveis após release.
 
-**Solução proposta:** Definir a matriz de ambientes, revisar o script idempotente gerado,
-executar migrations em PostgreSQL real autorizado e registrar resultado por ambiente.
-Não aplicar em banco compartilhado ou produção sem autorização e processo de rollback.
+**Solução proposta:** Concluída para o único ambiente atual. Manter o script idempotente
+para revisão e repetir a validação de histórico, aplicação e smoke tests sempre que um
+novo ambiente for criado. Não aplicar migrations em ambientes compartilhados sem
+autorização e processo de rollback.
 
 **Plano técnico de implementação:**
-1. Inventariar ambientes autorizados, conexão, versão do schema e responsável.
-2. Revisar o artefato gerado localmente ou pela CI.
-3. Aplicar primeiro em um PostgreSQL descartável/staging e verificar constraints,
-   índices e dados existentes.
-4. Aplicar ao ambiente aprovado pelo processo de release, registrando migration final.
-5. Executar smoke tests de persistência e endpoints dos módulos alterados.
-6. Atualizar status operacional sem armazenar connection strings ou segredos.
+1. Inventariar os ambientes existentes e a migration final registrada.
+2. Revisar o artefato idempotente gerado localmente ou pela CI.
+3. Aplicar a cadeia completa em PostgreSQL descartável; coberto pelo fixture Testcontainers.
+4. Executar testes HTTP de persistência e autorização; coberto pela suíte de 202 testes.
+5. Registrar resultado por ambiente sem armazenar connection strings ou segredos.
 
 **Arquivos provavelmente envolvidos:** `backend/Reelix.Infrastructure/Persistence/Migrations/`,
 `backend/Reelix.Infrastructure/Persistence/ReelixDbContext.cs`,
 `docs/authentication-setup.md`, `docs/specs/`.
 **Dependências:** Acesso autorizado aos bancos, credenciais seguras e processo de release.
-**Critérios de aceitação:** Cada ambiente tem migration final registrada; aplicação
-inicial e atualização passam em PostgreSQL real; endpoints dos módulos persistem e leem
-dados sem erro; nenhum segredo é versionado.
+**Critérios de aceitação:** Atendidos para o único ambiente atual (`Development`): migration
+final registrada, cadeia completa aplicada em PostgreSQL real descartável, endpoints
+críticos persistem/leem dados nos testes e nenhum segredo é versionado. Novos ambientes
+exigem nova verificação.
 **Estimativa de complexidade:** Média — envolve vários ambientes e validação de schema,
 mas usa migrations EF Core já existentes.
 
@@ -171,15 +173,16 @@ seleção e configuração cuidadosa da ferramenta.
 **Descrição:** Criar uma pipeline versionada para build, testes, lint/type-check e
 verificações de dependências/segredos.
 
-**Estado atual:** `.github/workflows/ci.yml` agora executa testes backend, lint e
+**Estado atual:** `.github/workflows/ci.yml` executa testes backend, lint e
 type-check mobile, gera o script idempotente de migrations e audita NuGet/npm. O workflow
 agora inclui Gitleaks CLI com imagem pinada por digest e actions pinadas por SHA em runtime
 Node 24. O Run #3 em `main` concluiu com sucesso: os jobs backend e mobile passaram e foram
-publicados os artefatos `backend-test-results` e `reelix-idempotent-migrations`. Esse run
-antecede os ajustes locais atuais: restore NuGet agora trata NU1903/NU1904 como erros, e o
-audit npm cobre dependências de desenvolvimento e runtime com limiar high. O restore passou;
-o audit completo reportou 24 advisories (3 low, 21 moderate), sem high/critical, e passou no
-limiar configurado. Localmente, a suíte Release passou com 202 testes mesmo com as
+publicados os artefatos `backend-test-results` e `reelix-idempotent-migrations`. Não foi
+confirmado run remoto dos dois commits atuais de `build-mobile`. Esse run antecede os
+ajustes locais: restore NuGet trata NU1903/NU1904 como erros, e o audit npm cobre
+dependências de desenvolvimento e runtime com limiar high. O audit completo em 04/11
+reportou 21 advisories (3 low, 18 moderate), sem high/critical, e passou no limiar
+configurado. Localmente, a suíte Release passou com 202 testes mesmo com as
 configurações externas Supabase/PostgreSQL vazias; lint/type-check mobile também passaram.
 O audit NuGet via nuget.org não encontrou vulnerabilidades. Gitleaks percorreu os 77 commits
 locais sem encontrar segredos. A regra de proteção de `main` está ativa e exige pull request,
@@ -221,14 +224,18 @@ validação remota dos ajustes locais e correção de dependências ainda depend
 **Módulo:** Mobile / release
 **Categoria:** Testing
 **Prioridade:** Média
-**Status:** Bloqueado
+**Status:** Parcialmente implementado
 
 **Descrição:** Confirmar builds de distribuição e os fluxos de autenticação/deep link
 em iOS e Android, além do comportamento em dispositivos reais.
 
 **Estado atual:** Há configuração Expo e módulos nativos usados pelo app, mas esta
-auditoria não executou build/instalação em iOS ou Android. As docs de widgets registram
-limitações de ambiente (Xcode/Android SDK) para validação nativa.
+auditoria não executou build/instalação em iOS ou Android. A branch `build-mobile` agora
+tem application ID Android, projeto EAS vinculado e perfis de development/preview para
+APK. O build EAS `b0c790c9-bc1c-4c76-82fa-33bf317c92b6` foi enviado para o commit atual
+e concluiu. O usuário confirmou conexão do Samsung ao Metro, login e navegação no app.
+Esse smoke test não cobre release, deep links, push ou widgets (`adb` não está disponível
+nesta máquina). iOS permanece sem validação local e fora do escopo atual de widgets.
 
 **Evidências:** [app.json](mobile/app.json), [authentication-setup.md](docs/authentication-setup.md)
 e [12-mobile-widgets.md](docs/specs/12-mobile-widgets.md).
@@ -567,14 +574,16 @@ depende do escopo aprovado.
 **Módulo:** Widgets mobile
 **Categoria:** Feature
 **Prioridade:** Baixa
-**Status:** Bloqueado
+**Status:** Parcialmente implementado
 
-**Descrição:** Implementar widgets compatíveis com os sistemas suportados, validar
-atualização, deep links, privacidade e limpeza por troca de conta.
+**Descrição:** Implementar e validar widgets Android; iOS está adiado e fora do aceite
+atual desta entrega.
 
-**Estado atual:** Existe somente spike/documentação. Não há widget funcional, dependência
-ou plataforma declarada como suportada. Faltam bundle/package IDs e ambiente de build
-nativo validado.
+**Estado atual:** O escopo Android-only está documentado. `android.package` está definido
+como `com.brunolucildo.reelix`, o projeto EAS está vinculado e os perfis development e
+preview geram APK interno. O build EAS `b0c790c9-bc1c-4c76-82fa-33bf317c92b6` concluiu
+para o commit atual; o usuário conectou o Samsung ao Metro, fez login e navegou no app.
+Nenhum widget foi implementado ou validado. iOS está adiado.
 
 **Evidências:** [12-mobile-widgets.md](docs/specs/12-mobile-widgets.md),
 [app.json](mobile/app.json) e [wireframes](docs/wireframes/reelix-visual-wireframes.html).
@@ -582,26 +591,29 @@ nativo validado.
 **Impacto:** A capacidade planejada não está disponível aos usuários; implementação
 precipitada pode expor dados de conta anterior em snapshots do sistema.
 
-**Solução proposta:** Completar primeiro os pré-requisitos nativos e validar a biblioteca
-Expo escolhida em builds de desenvolvimento; não presumir suporte em Expo Go.
+**Solução proposta:** Validar o development APK no Samsung e então integrar `expo-widgets`
+com suporte Android opt-in, provando snapshots, deep links, privacidade e limpeza por
+troca de conta. Não presumir suporte em Expo Go.
 
 **Plano técnico de implementação:**
-1. Definir plataformas/versões e bundle/package IDs.
-2. Validar build nativo e integração da biblioteca em iOS e Android.
+1. Instalar o development APK no Samsung e validar o fluxo app/device e o package ID.
+2. Avaliar e integrar a versão SDK 58 de `expo-widgets` com suporte Android habilitado.
 3. Projetar dados mínimos e snapshots protegidos, limpeza no logout/troca de conta.
 4. Implementar widget vazio, episódios pendentes e deep links internos.
 5. Testar atualização limitada pelo SO, offline, usuário trocado e acessibilidade.
-6. Atualizar wireframe e documentar limitações verificadas em dispositivos.
+6. Validar em Samsung, atualizar wireframe e documentar limitações Android. Reabrir iOS
+   somente por decisão futura, com Mac/Xcode e dispositivo iOS disponíveis.
 
 **Arquivos provavelmente envolvidos:** `mobile/app.json`, configuração de build
-(ainda não definida), `mobile/src/`, `docs/specs/12-mobile-widgets.md` e
+(EAS configurado), `mobile/src/`, `docs/specs/12-mobile-widgets.md` e
 `docs/wireframes/reelix-visual-wireframes.html`.
-**Dependências:** REELIX-005, IDs de distribuição, biblioteca compatível e ambiente
-Xcode/Android SDK.
-**Critérios de aceitação:** Build testado por plataforma; widget mostra somente snapshot
-do usuário atual, respeita limitações de atualização e abre destino correto.
-**Estimativa de complexidade:** Alta — envolve extensão/runtime nativo e validação em
-duas plataformas.
+**Dependências:** REELIX-005 (Android), Samsung para validação no aparelho e biblioteca
+compatível com SDK 58.
+**Critérios de aceitação:** Development build Android instalado e validado no Samsung;
+widget mostra somente snapshot do usuário atual, respeita limites de atualização e abre
+destino correto. iOS não é critério desta entrega.
+**Estimativa de complexidade:** Alta — envolve runtime/integração nativa Android, snapshots
+seguros e validação em dispositivo real.
 
 ---
 
@@ -788,15 +800,17 @@ externa; não é uma estimativa jurídica.
 **Descrição:** Remover vulnerabilidades moderadas transitivas reportadas no audit npm
 para as dependências Expo sem degradar o SDK principal.
 
-**Estado atual:** `npm audit --omit=dev` reportou 8 vulnerabilidades moderadas em
-dependências transitivas `glob` e `minimatch`, alcançadas pelo Expo SDK 58 e seus
-plugins. A correção automática sugere `npm audit fix --force` e `expo@51.0.39`, um
-downgrade incompatível que não foi aplicado. Não foi identificada uma atualização
-compatível que remova os advisories durante esta etapa.
+**Estado atual:** `npm audit --audit-level=high` em 04/11 reportou 21 advisories na
+árvore completa (3 low, 18 moderate), sem high/critical; o comando passou no limiar
+configurado. Os achados incluem `deepmerge`, `glob` e `minimatch` em dependências
+transitivas da toolchain Expo/ESLint e do transformer SVG. A correção automática propõe
+downgrades breaking, incluindo versões incompatíveis de Expo, ESLint ou transformer;
+nada foi aplicado. Não foi identificada nesta atualização uma correção compatível que
+remova todos os advisories.
 
 **Evidências:** [package.json](mobile/package.json),
 [package-lock.json](mobile/package-lock.json) e o resultado de
-`npm audit --omit=dev --audit-level=high` em 03/11/2026.
+`npm audit --audit-level=high` em 04/11/2026.
 
 **Impacto:** Os advisories reportam bypass de cancelamento por AbortSignal com possível
 travessia de filesystem após timeout em `glob` e potencial DoS por amplificação de

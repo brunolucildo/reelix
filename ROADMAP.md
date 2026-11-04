@@ -1,23 +1,33 @@
 # Reelix — roadmap recomendado
 
-Roadmap baseado no estado do código em 03/11/2026. A ordem prioriza validar o que já
+Roadmap baseado no estado do código em 04/11/2026. A ordem prioriza validar o que já
 existe antes de ampliar funcionalidades. Não representa compromisso de prazo.
+
+## Situação do checkout
+
+O checkout avaliado está na branch `build-mobile`, commit `98be2da`, dois commits à
+frente de `main` (`2917e95`). O build EAS `b0c790c9-bc1c-4c76-82fa-33bf317c92b6` para
+esse commit concluiu e o usuário confirmou conexão do Samsung ao Metro, login e navegação.
+O smoke test básico Android passou; release, deep links, push e widgets não foram
+validados. O usuário confirmou que existe apenas `Development`; seu histórico registra as
+10 migrations locais e a cadeia também passa no PostgreSQL 17 dos testes. A execução
+remota da CI nesta branch ainda não foi confirmada.
 
 ## Fase 1 — Confiabilidade do schema e autorização
 
 **Objetivo:** reduzir o risco de release por divergência de banco ou isolamento
 insuficientemente validado.
 
-**Pendências:** [REELIX-001](DEVELOPMENT_BACKLOG.md#reelix-001),
-[REELIX-002](DEVELOPMENT_BACKLOG.md#reelix-002).
+**Itens:** [REELIX-001](DEVELOPMENT_BACKLOG.md#reelix-001) e
+[REELIX-002](DEVELOPMENT_BACKLOG.md#reelix-002), concluídos para o escopo atual.
 
 **Ordem recomendada:**
-1. Inventariar bancos e aprovar processo seguro de migrations (REELIX-001).
-2. Adicionar testes HTTP/PostgreSQL e autorização por recurso (REELIX-002).
-3. Executar migrations e smoke tests em staging antes de cada release.
+1. Inventário do único ambiente e histórico de migrations concluídos (REELIX-001).
+2. Testes HTTP/PostgreSQL e autorização por recurso concluídos (REELIX-002).
+3. Ao criar outro ambiente, validar migrations e smoke tests antes de habilitá-lo.
 
-**Dependências:** Credenciais e autorização para ambiente de teste; banco PostgreSQL
-descartável ou staging.
+**Dependências:** Um PostgreSQL descartável para validar migrations; o fixture
+Testcontainers cobre esse requisito atualmente.
 
 **Critérios de conclusão:** Schema por ambiente registrado; migrations e fluxos dos
 módulos críticos passam em PostgreSQL real; testes verificam acessos negados/isolamento.
@@ -54,7 +64,7 @@ seguras antes de habilitá-las.
 [REELIX-015](DEVELOPMENT_BACKLOG.md#reelix-015).
 
 **Ordem recomendada:**
-1. Definir IDs e validar builds nativos (REELIX-005).
+1. Validar o APK EAS Android, os fluxos prioritários e a conexão com a API; IDs e perfis já estão configurados (REELIX-005). iOS segue fora do aceite atual dos widgets.
 2. Executar a avaliação manual de UX/acessibilidade nas plataformas declaradas
    (REELIX-015).
 3. Habilitar push em staging e validar permissões, retries e receipts (REELIX-006).
@@ -103,7 +113,7 @@ de dados/moderação testados antes de ativação.
 2. Aprovar fonte e scheduler de catálogo antes de alertas (REELIX-007).
 3. Revisar valor, privacidade e custo antes de reativar IA ou aprovar recomendações
    (REELIX-011/012).
-4. Só então decidir sobre widgets e conteúdo social autoral (REELIX-013/017).
+4. Após validar o build Android, implementar e validar widgets Android (REELIX-013); decidir separadamente sobre conteúdo social autoral (REELIX-017). iOS permanece adiado.
 
 **Dependências:** Decisões de produto, serviços externos e capacidades de hosting.
 
@@ -111,11 +121,14 @@ de dados/moderação testados antes de ativação.
 privacidade/custo, validação específica e documentação atualizada; itens não aprovados
 permanecem fora da UI e não são simulados.
 
-## Primeiro próximo passo
+## Próximo passo
 
-Começar por REELIX-001: confirmar quais bancos/ambientes existem e quem autoriza
-migrations. Em seguida, priorizar REELIX-002 para demonstrar persistência e autorização
-dos módulos antes de expandir o escopo.
+REELIX-001 foi concluído para o único ambiente informado (`Development`): o histórico
+registra as 10 migrations e o fixture PostgreSQL testa a cadeia completa. A próxima etapa
+é a Fase 2: confirmar os quality gates remotos da branch atual (REELIX-004) e então
+priorizar testes automatizados mobile (REELIX-003). Se um novo ambiente for criado, a
+validação de migrations volta a ser gate antes do uso. Widgets Android (REELIX-013)
+continuam sem código funcional e devem ser planejados separadamente.
 
 REELIX-014 foi fechado após confirmar que os destinos internos implementados cobrem os
 eventos atuais; novas categorias de notificação precisarão definir o próprio destino.

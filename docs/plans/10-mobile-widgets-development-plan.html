@@ -21,47 +21,39 @@
     <div class="page">
       <header><div class="brand">reelix</div><div class="hero">
         <p class="eyebrow">Etapa 10 · especificação 12</p>
-        <h1>Widgets <span>depois da validação nativa.</span></h1>
-        <p>Exibir episódios pendentes e próximas estreias com dados mínimos sincronizados. A implementação funcional só começa após comprovar build, armazenamento, navegação e limitações em cada plataforma.</p>
-        <span class="status">Spike pesquisado · builds nativos bloqueados pelo ambiente</span>
-        <p>Estado atual em 02/11/2026: widgets não implementados e nenhuma plataforma aprovada. O spike não substitui builds, instalação, validação de privacidade, atualização e deep links em iOS/Android. Consulte <a href="../specs/12-mobile-widgets.md">a especificação atual</a>.</p>
+        <h1>Widgets Android <span>em desenvolvimento.</span></h1>
+        <p>O escopo atual é validar e implementar widgets Android com dados mínimos sincronizados. iOS está adiado e não bloqueia esta entrega.</p>
+        <span class="status">Android · development APK na fila EAS · iOS adiado</span>
+        <p>Estado atual em 03/11/2026: nenhum widget funcional ainda. O development APK está em build cloud; faltam instalar no Samsung e validar integração, privacidade, atualização e deep links. Consulte <a href="../specs/12-mobile-widgets.md">a especificação atual</a>.</p>
       </div></header>
       <main>
         <section aria-labelledby="baseline"><h2 id="baseline">Ponto de partida e dependências</h2><article class="card"><ul>
-          <li>Expo SDK 58, @expo/ui, SecureStore e Expo Router já são usados. expo-widgets não está instalado; o app config não define ainda identificadores nativos de distribuição ou plugin de widgets.</li>
+          <li>Expo SDK 58, @expo/ui, SecureStore e Expo Router já são usados. <code>android.package</code> está definido e EAS está vinculado; expo-widgets ainda não está instalado. iOS e seu bundle identifier estão adiados.</li>
           <li>O esquema <code>reelix</code> e rota de título por provedor/tipo/ID externo existem. Abertura direta de episódio precisa de resolução de série/temporada e autorização de sessão.</li>
           <li>Tracking oferece episódios pendentes por temporada; descoberta oferece lançamentos gerais, não um resumo pessoal agregado. Reusar contratos de catálogo/tracking/listas e agregar somente quando necessário.</li>
           <li>Não depende funcionalmente de gamificação ou social. A etapa 8 pode fornecer atualização de catálogo/deep links, mas o widget não dependerá de entrega push para mostrar o último snapshot.</li>
-          <li>O ambiente atual é Windows: validação local iOS exige macOS/Xcode ou build remoto e dispositivo compatível; isso é um requisito de aceite, não uma garantia já cumprida.</li>
+          <li>O ambiente atual é Windows sem Android SDK/ADB local; o build Android usa EAS remoto e a validação-alvo será feita em um Samsung. macOS/Xcode só serão necessários quando iOS voltar ao escopo.</li>
         </ul></article></section>
-        <section aria-labelledby="gate"><h2 id="gate">Gate obrigatório: prova de compatibilidade</h2><div class="columns">
-          <article class="card"><h3>iOS</h3><ul>
-            <li>Avaliar expo-widgets do SDK 58 como candidato, não decisão final. Documentação consultada indica widget com componentes Expo UI/SwiftUI e runtime isolado.</li>
-            <li>Comprovar extensão WidgetKit, bundle IDs, assinatura, entitlements/App Group quando requerido, armazenamento compartilhado protegido e preservação das configurações pelo build.</li>
-            <li>Validar famílias/tamanhos aprovados, versões mínimas suportadas, timeline/reload e deep link em app fechado/aberto. O sistema controla atualização, não a API.</li>
-            <li>Demonstrar placeholder sem dados pessoais e limpeza de snapshots/timelines após logout. Se o frame já renderizado não puder sumir imediatamente, registrar esse limite antes de aprovar exibição de dados privados.</li>
-          </ul></article>
+        <section aria-labelledby="gate"><h2 id="gate">Gate obrigatório: prova de compatibilidade Android</h2><div class="columns">
+          <article class="card"><h3>iOS · adiado</h3><p>iOS, WidgetKit, bundle identifier, App Group e validação em iPhone estão fora do escopo atual. Nenhuma aprovação ou suporte iOS é presumido.</p></article>
           <article class="card"><h3>Android</h3><ul>
-            <li>Avaliar o suporte Android opt-in de expo-widgets e seu subconjunto de componentes Compose; não presumir paridade com iOS.</li>
-            <li>Validar plugin, manifest/receiver, identificadores, tamanhos/launcher, persistência privada do app e comportamento de cliques/reload.</li>
+            <li>Avaliar o suporte Android opt-in de expo-widgets e seu subconjunto de componentes Compose; o package ID já está definido.</li>
+            <li>Depois de instalar o development APK no Samsung, validar plugin, manifest/receiver, tamanhos/launcher, persistência privada e cliques/reload.</li>
             <li>Testar recriação do widget, reinício do dispositivo e restrições de atualização/bateria. Não propor execução permanente nem intervalo inferior ao permitido pelo SO.</li>
             <li>Se o candidato não atender aos critérios, comparar alternativa mantida/módulo nativo mínimo; registrar impacto de CNG/EAS e manutenção antes de instalar outra biblioteca.</li>
           </ul></article>
-        </div><p class="callout"><strong>Saída obrigatória do spike:</strong> matriz por plataforma com versões, dois layouts demonstráveis, build reproduzível, armazenamento/limpeza, deep links, atualização observada e limitações. Documentação atual indica suporte nas duas plataformas, mas isso não comprova compatibilidade do projeto. Não funciona no Expo Go.</p></section>
-        <section aria-labelledby="spike-result"><h2 id="spike-result">Resultado do spike · 01/11/2026</h2><div class="columns">
-          <article class="card"><h3>iOS · não validado</h3><ul>
-            <li>A documentação Expo SDK 58 lista <code>expo-widgets</code> para iOS, mas exige development build, bundle identifier e App Group.</li>
-            <li>O app não define <code>ios.bundleIdentifier</code>; este ambiente Windows não tem Xcode. Build, assinatura, storage compartilhado, reload e deep link permanecem sem evidência.</li>
-          </ul></article>
-          <article class="card"><h3>Android · não validado</h3><ul>
+        </div><p class="callout"><strong>Saída obrigatória do spike Android:</strong> build reproduzível no Samsung, layouts demonstráveis, armazenamento/limpeza, deep links, atualização observada e limitações. iOS será reavaliado separadamente no futuro. Não funciona no Expo Go.</p></section>
+        <section aria-labelledby="spike-result"><h2 id="spike-result">Resultado do spike · 03/11/2026</h2><div class="columns">
+          <article class="card"><h3>iOS · adiado</h3><p>Sem build nem validação nesta etapa por decisão de escopo. Reabrir exige decisão futura, macOS/Xcode e dispositivo iOS.</p></article>
+          <article class="card"><h3>Android · build em andamento</h3><ul>
             <li>O candidato exige opt-in via <code>enableAndroid</code>, <code>android.package</code> e um subconjunto de componentes Expo UI.</li>
-            <li>O app não define <code>android.package</code>; Java, Android SDK/ADB e Gradle não estão disponíveis. Instalação, launcher, cliques e atualização permanecem sem evidência.</li>
+            <li><code>android.package</code> está definido; o development APK está na fila do EAS. Instalação no Samsung, launcher, cliques e atualização ainda não foram validados.</li>
           </ul></article>
-        </div><p class="callout">Decisão: não instalar a biblioteca nem configurar plugin/bundle IDs sem identificadores de distribuição e builds reproduzíveis. Expo documenta que widgets não funcionam no Expo Go e executam isolados; dados devem chegar por snapshots/timelines, sem tokens nem rede dentro do widget. Nenhuma plataforma está aprovada para suporte.</p></section>
+        </div><p class="callout">Decisão: priorizar Android; o widget só será implementado após validar o development APK no Samsung. `expo-widgets` ainda não está instalado. Widgets não funcionam no Expo Go e executam isolados; dados devem chegar por snapshots/timelines, sem tokens nem rede dentro do widget.</p></section>
         <section aria-labelledby="scope"><h2 id="scope">Widgets e UX propostos</h2><article class="card"><ul>
           <li><strong>Episódios pendentes:</strong> até 3 itens de séries acompanhadas, com título, série/número quando conhecidos e navegação ao episódio. Nunca inferir temporada ou data ausentes.</li>
           <li><strong>Próximas estreias:</strong> até 3 filmes relevantes por watchlist/favoritos com data conhecida, ordenados por data/ID. Não garantir disponibilidade regional ou em uma plataforma.</li>
-          <li><strong>Proposta:</strong> tamanhos pequeno/médio conforme suporte verificado; tamanho pequeno pode mostrar só o próximo item. Documentar diferenças em vez de prometer todos os formatos em ambos os sistemas.</li>
+          <li><strong>Proposta:</strong> tamanhos pequeno/médio conforme suporte verificado em Android; tamanho pequeno pode mostrar só o próximo item. Documentar diferenças entre versões Android e launchers.</li>
           <li>Estados: carregamento inicial/placeholder, vazio real, sem sessão, dados indisponíveis e snapshot offline com “atualizado em”. Falha de sincronização não vira lista vazia com aparência de sucesso.</li>
           <li>Consentimento explícito para exibir dados fora do app; modo discreto sem títulos privados até validação da política de armazenamento/limpeza. Não incluir avatar, biografia, amigos ou comentários.</li>
           <li>Fora do escopo: Live Activities, widgets interativos para marcar visto, web, background contínuo e atualização em tempo real.</li>
@@ -82,21 +74,21 @@
           </ul></article>
         </div></section>
         <section aria-labelledby="phases"><h2 id="phases">Sequência de execução após aprovação</h2><div class="phase-grid">
-          <article class="card"><h3>01 · Spike nativo e decisão</h3><p>Rever documentação versionada, criar prova mínima e testar iOS/Android separadamente. Definir biblioteca, build, armazenamento, atualização e plataformas aceitas. Saída: gate técnico aprovado; se falhar, replanejar antes dos widgets funcionais.</p></article>
+          <article class="card"><h3>01 · Spike Android</h3><p>Rever documentação versionada e provar build no Samsung. Definir biblioteca, armazenamento, atualização e deep links Android. iOS permanece adiado.</p></article>
           <article class="card"><h3>02 · Resumo e links</h3><p>Fechar relevância, limites e formatos; reutilizar/agregar API existente e criar resolver de destino para episódio/título. Validar autenticação, origem indisponível e cache. Saída: fixtures e contratos tipados suficientes para os dois widgets.</p></article>
           <article class="card"><h3>03 · Layout e sincronização</h3><p>Implementar layouts nativos aprovados, snapshots mínimos, timeline/reload e consentimento. Integrar ciclo de sessão, mutações e sincronização limitada. Saída: dados reais, offline e limpeza demonstrados.</p></article>
-          <article class="card"><h3>04 · Build e aceite por plataforma</h3><p>Gerar builds reproduzíveis, validar dispositivos/simuladores compatíveis e documentar versões, inclusão/remoção e restrições. Atualizar wireframes e executar testes de dados/navegação. Saída: suporte declarado somente onde comprovado.</p></article>
+          <article class="card"><h3>04 · Build e aceite Android</h3><p>Gerar APK reproduzível, validar no Samsung e documentar instalação, inclusão/remoção, atualização e deep links. iOS não faz parte deste aceite.</p></article>
         </div></section>
         <section aria-labelledby="acceptance"><h2 id="acceptance">Testes e critérios de conclusão</h2><article class="card"><ul>
           <li>Testar payload válido/malformado, data ausente, cobertura parcial, snapshot expirado, offline e nenhum conteúdo; estado indisponível é distinguível de vazio.</li>
           <li>Conta A → logout → B, logout offline, resposta tardia de A e múltiplas instâncias: nenhum snapshot de A é aceito pela nova geração. Validar também o que o SO mantém visualmente.</li>
           <li>Clique em título/episódio abre destino correto com app fechado/aberto; login pendente, conta diferente, alvo excluído e link inválido têm tratamento autorizado.</li>
-          <li>Comprovar que armazenamento/payload/logs do widget não contêm tokens. Testar instalação, redimensionamento, remoção, reinício e renovação do app nas plataformas aprovadas.</li>
+          <li>Comprovar que armazenamento/payload/logs do widget não contêm tokens. Testar instalação, redimensionamento, remoção, reinício e renovação do app no Android/Samsung.</li>
           <li>Executar testes .NET do resumo, se criado, lint/typecheck mobile e testes de snapshot/resolver pelo runner definido na implementação. Ausência atual de runner mobile exige decisão explícita para essas novas unidades, não testes presumidos.</li>
           <li>Registrar chamadas de rede e atualizações observadas sob restrições do SO; aprovar orçamento de bateria/rede no spike e demonstrar ausência de serviço permanente.</li>
-          <li>Build nativo e validação compatível passam em cada plataforma declarada. Se iOS não for testado, o resultado continua pendente para iOS, mesmo que Android funcione.</li>
+          <li>Build nativo e validação passam em Android/Samsung. iOS permanece explicitamente adiado e não bloqueia este resultado.</li>
         </ul></article></section>
-        <section aria-labelledby="approval"><h2 id="approval">Bloqueio e próximo passo</h2><article class="card decision"><p>A pesquisa documental foi concluída, mas o gate de compatibilidade não passou. Definir bundle/package IDs e executar builds em um Mac com Xcode e em ambiente Android com SDK/ADB/Gradle; comprovar storage/limpeza, layouts, deep links e atualização observada. Implementação funcional permanece bloqueada até essa evidência.</p></article></section>
+        <section aria-labelledby="approval"><h2 id="approval">Bloqueio e próximo passo</h2><article class="card decision"><p>O package ID Android está definido e o development APK está na fila do EAS. Próximo passo: instalar no Samsung, confirmar conexão à API/Metro e então executar o spike de <code>expo-widgets</code> no Android. iOS está adiado; não instalar nem validar widgets iOS nesta etapa.</p></article></section>
       </main>
       <footer>Referências: <a href="../specs/12-mobile-widgets.md">especificação 12</a>, <a href="../architecture.md">arquitetura</a>, <a href="https://docs.expo.dev/versions/latest/sdk/widgets/">Expo Widgets SDK 58</a>, <a href="https://developer.apple.com/documentation/widgetkit/keeping-a-widget-up-to-date">WidgetKit: atualização</a> e <a href="https://developer.android.com/develop/ui/views/appwidgets/overview">Android App Widgets</a> (consultados em 01/11/2026). <a href="./08-notifications-development-plan.html">Plano de notificações</a>.</footer>
     </div>

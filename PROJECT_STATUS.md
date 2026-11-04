@@ -1,9 +1,17 @@
 # Reelix — status do projeto
 
-**Fotografia do repositório em 03/11/2026.** Este documento descreve o código e a
+**Fotografia do repositório em 04/11/2026.** Este documento descreve o código e a
 documentação encontrados; não atesta disponibilidade em produção. A presença de uma
 tela, endpoint, teste de modelo ou migration não comprova integração ponta a ponta nem
 implantação em um ambiente.
+
+**Checkout avaliado:** branch `build-mobile`, commit `98be2da`, dois commits à frente
+de `main` (`2917e95`). O checkout estava limpo antes desta atualização documental. As
+alterações recentes preparam builds EAS Android e resolvem a URL da API por ambiente;
+os commits ainda não estão em `main`. A execução remota da CI nesta branch não foi
+verificada. O APK EAS de development do commit atual concluiu; o usuário confirmou
+conexão do Samsung ao Metro, login e navegação. O smoke test básico Android passou;
+release, deep links, push e widgets ainda não foram validados.
 
 ## Visão geral
 
@@ -49,9 +57,9 @@ que implementação seja confundida com operação verificada.
 | Notificações | Parcialmente concluído | Inbox, preferências, registro privado de dispositivos e processamento de eventos sociais/tickets/receipts no backend. | Push remoto está desligado por padrão e depende de projeto/credenciais/build/hosting. Alertas de catálogo não têm fonte e agendamento implementados. |
 | Gamificação | Parcialmente concluído | Conquistas determinísticas, estatísticas e ranking entre amigos no backend e mobile. | A migration deve ser aplicada por ambiente. Reconciliação ocorre ao consultar o dashboard; metadados de duração/gêneros têm cobertura incompleta. |
 | IA | Parcialmente concluído | Adaptador de classificação de spoiler existe no servidor. | Está desativado por padrão; não há recomendações por IA. Reativação, custo, política de dados e necessidade de revisão dependem de decisão/configuração. |
-| Widgets mobile | Pendente | Há pesquisa/spike documentado, sem widget funcional. | Sem IDs finais de distribuição e sem build/validação em Xcode ou Android SDK. |
+| Widgets mobile | Pendente | Escopo Android aprovado; application ID e perfis EAS para APK configurados, sem widget funcional. | Build de development conectou ao Metro; login e navegação passaram. Widget ainda não existe; iOS está adiado. |
 | Testes mobile | Pendente | Scripts de lint e type-check existem. | Não foi encontrado runner/suíte de testes mobile. |
-| CI/CD e release | Parcialmente implementado | `.github/workflows/ci.yml` executa testes backend, lint/type-check mobile, audits NuGet/npm e publica script idempotente de migrations para revisão. | Workflow ainda não foi executado no GitHub; branch protection e secret scanning precisam ser habilitados. Hosting, ambientes e release nativo não foram inspecionados. |
+| CI/CD e release | Parcialmente implementado | `.github/workflows/ci.yml` executa testes backend, lint/type-check mobile, audits NuGet/npm e publica script idempotente de migrations para revisão. | Run #3 em `main` passou e branch protection/secret scanning estão configurados; execução da branch atual, hosting, ambientes e release nativo não foram confirmados. |
 
 ## O que já existe no código
 
@@ -73,9 +81,12 @@ que implementação seja confundida com operação verificada.
 
 ## Lacunas, riscos e débitos confirmados
 
-1. **Validação operacional do banco:** o script idempotente das 10 migrations foi
-   gerado/revisado sem conexão; sua aplicação varia por ambiente e não foi verificada.
-   Social, notificações e gamificação ainda dependem de aplicação autorizada.
+1. **Escopo de ambientes e schema:** o usuário confirmou que existe somente o ambiente
+  `Development`. Em 04/11, a consulta somente leitura ao histórico EF registrou as 10
+  migrations locais, até `20261103134321_ExpandFixedAvatars`, sem pendências. Testes
+  Testcontainers aplicam a cadeia completa em PostgreSQL 17 descartável e a suíte passou
+  com 202 testes. Não há migrations pendentes no ambiente atual; qualquer novo ambiente
+  exige repetir esta validação antes de uso.
 2. **Cobertura de integração/autorização:** 47 testes focados exercitam rejeição anônima
    em rotas HTTP; 10 testes Testcontainers aplicam as migrations num PostgreSQL efêmero
    e cobrem isolamento/consentimento em perfil, tracking, listas, avaliações, social,
@@ -86,11 +97,12 @@ que implementação seja confundida com operação verificada.
     no `main` passou nos jobs backend e mobile e publicou os artefatos de resultados TRX e
     script de migrations. A fixture configura `Supabase:Url` antes de iniciar o host e
     aponta o DbContext ao PostgreSQL efêmero. Localmente, Release passou com 202 testes sem
-    variáveis Supabase/PostgreSQL externas. O Run #3 antecede os ajustes locais atuais:
-    NU1903/NU1904 agora falham no restore NuGet, e `npm audit --audit-level=high` cobre
-    dependências de desenvolvimento e runtime. O audit completo reportou 24 advisories (3
-    low, 21 moderate), sem high/critical; a correção automática propõe alterações breaking
-    e não foi aplicada. O audit NuGet via nuget.org não encontrou vulnerabilidades.
+    variáveis Supabase/PostgreSQL externas. Não foi confirmado run remoto dos dois commits
+    atuais de `build-mobile`. NU1903/NU1904 falham no restore NuGet, e
+    `npm audit --audit-level=high` cobre dependências de desenvolvimento e runtime. O audit
+    completo atual reportou 21 advisories (3 low, 18 moderate), sem high/critical; a
+    correção automática propõe downgrades breaking e não foi aplicada. O audit NuGet via
+    nuget.org não encontrou vulnerabilidades.
     A regra de proteção de `main` exige PR e checks `backend`/`mobile`, com branch
     atualizada e sem bypass administrativo; não exige aprovação de reviewer.
 4. **Entrega externa:** credenciais/projetos TMDB, OMDb, Expo e OpenAI, hosting dos
@@ -117,7 +129,7 @@ aprovados estão identificadas como “Aguardando decisão”, e não como falha
 | Serviço | Uso | Estado conhecido | Limite |
 |---|---|---|---|
 | Supabase Auth | Login, sessão e emissão de JWT | Integrado no código. | Chaves públicas, configuração de callback, JWT e projeto de cada ambiente são externos. |
-| PostgreSQL gerenciado | Fonte de dados da aplicação | EF Core/Npgsql e migrations no repositório. | O projeto de desenvolvimento conferido tem as 10 migrations esperadas e RLS nas 24 tabelas da aplicação; outros ambientes não foram verificados. |
+| PostgreSQL gerenciado | Fonte de dados da aplicação | EF Core/Npgsql e migrations no repositório. | O único ambiente informado é `Development`; seu histórico registra as 10 migrations, até `ExpandFixedAvatars`. A verificação anterior identificou RLS nas 24 tabelas desse projeto. |
 | TMDB | Catálogo principal, gêneros, temporadas e episódios | Adaptador implementado. | Credencial de servidor, atribuição, limites e direitos de uso devem ser confirmados para o ambiente e finalidade. |
 | OMDb | Fonte opcional de catálogo | Adaptador implementado; sem fallback automático. | Credencial opcional e campos/imagens sujeitos às condições do provedor. |
 | Expo Push | Entrega remota opcional | Código de registro e envio implementado, desativado por padrão. | Requer IDs/projeto EAS, APNs/FCM, segredo de servidor e hosting contínuo. |
@@ -127,22 +139,29 @@ Nenhuma credencial ou valor de segredo é reproduzido aqui.
 
 ## Validações e limites desta auditoria
 
-- A suíte `backend/Reelix.UnitTests/Reelix.UnitTests.csproj` passou: **202 testes
+- Nesta atualização, `dotnet test Reelix.sln --configuration Release` passou: **202 testes
   aprovados, 0 falhos, 0 ignorados**, incluindo 10 cenários HTTP com PostgreSQL efêmero.
-  O ambiente reportou SDK .NET `11.0.100-rc` para projeto `net10.0`; a CI fixa .NET 10.
-- `npx expo lint` e `npx tsc --noEmit` passaram. `npm audit --omit=dev --audit-level=high`
-  reportou 8 vulnerabilidades moderadas e não falha nesse limiar; o downgrade forçado
-  sugerido pelo npm não foi aplicado. O audit NuGet via `nuget.org` não encontrou pacotes
-  vulneráveis.
+  O build reportou 6 avisos; o resumo dos testes não reportou falhas. A execução usou
+  SDK .NET 11 preview para projetos `net10.0`; a CI fixa .NET 10.
+- Nesta atualização, `npm run lint` e `npx tsc --noEmit` passaram em `mobile/`.
+  `npm audit --audit-level=high` reportou 21 advisories (3 low, 18 moderate), sem high
+  ou critical, e passou no limiar configurado. Há achados em dependências transitivas
+  como `deepmerge`, `glob` e `minimatch`; o `npm audit fix --force` sugerido envolve
+  downgrades incompatíveis e não foi aplicado.
 - Gitleaks v8.30.1 verificou o histórico local (77 commits), sem findings. A CI executa
   o scanner com saída redigida; o job remoto de secret scanning passou.
 - O banco Supabase de desenvolvimento foi consultado para confirmar migrations, RLS e
   auditar marcadores de testes iniciais. Seis contas internas sem vínculo em `auth.users`
   e seus registros identificados por marcadores foram removidos em transação. Outros
   registros sem marcador não foram alterados. Nenhuma credencial ou token foi exibido.
-- Não foi possível confirmar builds/instalações iOS e Android, push real, migrations
-  aplicadas em cada ambiente, disponibilidade de workers, performance sob carga ou
-  UX visual no navegador compartilhado (`localhost:8087` recusou conexão).
+- O perfil EAS de development para APK Android e o application ID estão configurados;
+  o build `b0c790c9-bc1c-4c76-82fa-33bf317c92b6` do commit atual concluiu. O usuário
+  confirmou conexão do Samsung ao Metro, login e navegação. Esse smoke test básico não
+  valida release, deep links, push ou widgets; `adb` não está instalado nesta máquina.
+  Também não foram confirmados push real, migrations aplicadas em cada ambiente,
+  disponibilidade de workers,
+  performance sob carga ou UX visual no navegador compartilhado (`localhost:8087`
+  recusou conexão). Widgets ainda não foram implementados.
 - A auditoria não faz avaliação jurídica de licenças/obrigações e não declara
   conformidade regulatória.
 

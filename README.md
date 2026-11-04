@@ -6,7 +6,7 @@ O repositório reúne o aplicativo mobile em React Native/Expo e uma API ASP.NET
 
 ## Estado atual do projeto
 
-**Fotografia do código em 03/11/2026.** O status completo, as limitações de validação
+**Fotografia do código em 04/11/2026.** O status completo, as limitações de validação
 e os próximos passos estão em [PROJECT_STATUS.md](PROJECT_STATUS.md). A tabela descreve
 implementação no repositório, não confirma implantação em produção. Migrations e
 credenciais precisam ser verificadas separadamente em cada ambiente.
@@ -20,7 +20,7 @@ credenciais precisam ser verificadas separadamente em cada ambiente.
 | Social | API e mobile implementados para amizades e compartilhamento autorizado. | A migration deve ser aplicada ao banco de cada ambiente antes do uso. |
 | Notificações | Preferências, inbox, dispositivos e processamento de eventos sociais implementados. | Migration ainda precisa ser aplicada; push remoto está desativado e alertas de catálogo dependem de sincronização confiável. |
 | Gamificação | API e mobile implementados para conquistas, estatísticas e ranking. | A migration precisa ser aplicada antes do uso em cada banco; reconciliação ocorre ao consultar o dashboard. |
-| Widgets mobile | Spike de compatibilidade documentado; não implementados. | Build, integração e validação em iOS e Android pendentes. |
+| Widgets mobile | Preparação de build Android/EAS em andamento; widget ainda não implementado. | Instalar e validar o APK de development no Samsung; iOS está adiado. |
 
 As especificações por módulo, incluindo decisões e limitações, estão em
 [docs/specs](docs/specs/). As páginas de desenvolvimento são planos históricos;
@@ -33,8 +33,8 @@ validação funcional em produção ou em dispositivos nativos.
 O workflow [.github/workflows/ci.yml](.github/workflows/ci.yml) roda testes backend,
 lint/type-check mobile e auditoria de dependências em pull requests e pushes. Ele também
 gera um script idempotente de migrations como artefato para revisão; não aplica schema.
-O audit atual reporta advisories npm moderados transitivos do Expo, rastreados no
-backlog para evitar um downgrade incompatível do SDK.
+O audit atual reporta 21 advisories npm (3 low, 18 moderate), sem high ou critical; a
+correção forçada sugere downgrades incompatíveis e está rastreada no backlog.
 
 ## Funcionalidades implementadas
 
@@ -59,7 +59,7 @@ acompanhamento e favoritos/listas:
 - Swagger para testar a API localmente e uma página exclusiva de desenvolvimento para obter um token de usuário diretamente pelo Supabase Auth.
 - Migrations e testes automatizados para autenticação, catálogo, onboarding, perfil, notificações, gamificação e configuração CORS de desenvolvimento web.
 
-Notificações sociais e gamificação estão implementadas no código, mas dependem de migrations aplicadas no banco de cada ambiente. Push remoto permanece desativado até configurar projeto EAS, credenciais APNs/FCM, segredo Expo e hosting continuamente ativo. Alertas de episódios/estreias ainda dependem de uma fonte confiável de atualização do catálogo. A análise automática de spoilers está temporariamente desativada; sinalização manual continua disponível. Widgets não estão implementados nem aprovados para iOS/Android. Consulte as especificações de [avaliações](docs/specs/07-ratings-comments.md), [Social](docs/specs/09-social.md), [Notificações](docs/specs/10-notifications.md), [Gamificação](docs/specs/11-gamification.md) e [Widgets](docs/specs/12-mobile-widgets.md).
+Notificações sociais e gamificação estão implementadas no código, mas dependem de migrations aplicadas no banco de cada ambiente. Push remoto permanece desativado até configurar projeto EAS, credenciais APNs/FCM, segredo Expo e hosting continuamente ativo. Alertas de episódios/estreias ainda dependem de uma fonte confiável de atualização do catálogo. A análise automática de spoilers está temporariamente desativada; sinalização manual continua disponível. Widgets Android estão aprovados, mas ainda não implementados; iOS está adiado. Consulte as especificações de [avaliações](docs/specs/07-ratings-comments.md), [Social](docs/specs/09-social.md), [Notificações](docs/specs/10-notifications.md), [Gamificação](docs/specs/11-gamification.md) e [Widgets](docs/specs/12-mobile-widgets.md).
 
 ## Tecnologias
 
