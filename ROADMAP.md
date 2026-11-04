@@ -1,7 +1,17 @@
 # Reelix — roadmap recomendado
 
-Roadmap baseado no estado do código em 03/11/2026. A ordem prioriza validar o que já
+Roadmap baseado no estado do código em 04/11/2026. A ordem prioriza validar o que já
 existe antes de ampliar funcionalidades. Não representa compromisso de prazo.
+
+## Situação do checkout
+
+O checkout avaliado está na branch `build-mobile`, commit `98be2da`, dois commits à
+frente de `main` (`2917e95`). O build EAS `b0c790c9-bc1c-4c76-82fa-33bf317c92b6` para
+esse commit concluiu e o usuário confirmou conexão do Samsung ao Metro, login e navegação.
+O smoke test básico Android passou; release, deep links, push e widgets não foram
+validados. O endpoint OpenAPI respondeu HTTP 200 no PC; `adb` não está disponível
+localmente. A execução remota da CI nesta branch também não foi confirmada. O risco de
+schema por ambiente continua aberto e é o principal gate de prontidão.
 
 ## Fase 1 — Confiabilidade do schema e autorização
 
@@ -54,7 +64,7 @@ seguras antes de habilitá-las.
 [REELIX-015](DEVELOPMENT_BACKLOG.md#reelix-015).
 
 **Ordem recomendada:**
-1. Definir IDs e validar builds nativos (REELIX-005).
+1. Validar o APK EAS Android, os fluxos prioritários e a conexão com a API; IDs e perfis já estão configurados (REELIX-005). iOS segue fora do aceite atual dos widgets.
 2. Executar a avaliação manual de UX/acessibilidade nas plataformas declaradas
    (REELIX-015).
 3. Habilitar push em staging e validar permissões, retries e receipts (REELIX-006).
@@ -103,7 +113,7 @@ de dados/moderação testados antes de ativação.
 2. Aprovar fonte e scheduler de catálogo antes de alertas (REELIX-007).
 3. Revisar valor, privacidade e custo antes de reativar IA ou aprovar recomendações
    (REELIX-011/012).
-4. Só então decidir sobre widgets e conteúdo social autoral (REELIX-013/017).
+4. Após validar o build Android, implementar e validar widgets Android (REELIX-013); decidir separadamente sobre conteúdo social autoral (REELIX-017). iOS permanece adiado.
 
 **Dependências:** Decisões de produto, serviços externos e capacidades de hosting.
 
@@ -111,11 +121,14 @@ de dados/moderação testados antes de ativação.
 privacidade/custo, validação específica e documentação atualizada; itens não aprovados
 permanecem fora da UI e não são simulados.
 
-## Primeiro próximo passo
+## Próximo passo
 
-Começar por REELIX-001: confirmar quais bancos/ambientes existem e quem autoriza
-migrations. Em seguida, priorizar REELIX-002 para demonstrar persistência e autorização
-dos módulos antes de expandir o escopo.
+O smoke test Android básico de REELIX-005 passou: o usuário conectou ao Metro, entrou no
+app e navegou. O próximo passo é REELIX-001: inventariar bancos/ambientes e responsáveis,
+comparar o estado de migrations e validar a atualização em staging ou PostgreSQL
+descartável. Registrar o resultado por ambiente; não aplicar migrations em produção sem
+autorização explícita. Depois, decidir e planejar a implementação Android de
+`expo-widgets` (REELIX-013), que continua sem código funcional.
 
 REELIX-014 foi fechado após confirmar que os destinos internos implementados cobrem os
 eventos atuais; novas categorias de notificação precisarão definir o próprio destino.

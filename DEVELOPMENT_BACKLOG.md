@@ -1,6 +1,6 @@
 # Reelix — backlog da auditoria
 
-Pendências identificadas pela leitura do código, specs e documentação em 03/11/2026 e
+Pendências identificadas pela leitura do código, specs e documentação em 04/11/2026 e
 atualizadas após as alterações de follow-up.
 “Aguardando decisão” marca uma lacuna de escopo/infraestrutura ainda não aprovada;
 “Bloqueado” indica dependência externa necessária antes de concluir. Prioridades são
@@ -171,15 +171,16 @@ seleção e configuração cuidadosa da ferramenta.
 **Descrição:** Criar uma pipeline versionada para build, testes, lint/type-check e
 verificações de dependências/segredos.
 
-**Estado atual:** `.github/workflows/ci.yml` agora executa testes backend, lint e
+**Estado atual:** `.github/workflows/ci.yml` executa testes backend, lint e
 type-check mobile, gera o script idempotente de migrations e audita NuGet/npm. O workflow
 agora inclui Gitleaks CLI com imagem pinada por digest e actions pinadas por SHA em runtime
 Node 24. O Run #3 em `main` concluiu com sucesso: os jobs backend e mobile passaram e foram
-publicados os artefatos `backend-test-results` e `reelix-idempotent-migrations`. Esse run
-antecede os ajustes locais atuais: restore NuGet agora trata NU1903/NU1904 como erros, e o
-audit npm cobre dependências de desenvolvimento e runtime com limiar high. O restore passou;
-o audit completo reportou 24 advisories (3 low, 21 moderate), sem high/critical, e passou no
-limiar configurado. Localmente, a suíte Release passou com 202 testes mesmo com as
+publicados os artefatos `backend-test-results` e `reelix-idempotent-migrations`. Não foi
+confirmado run remoto dos dois commits atuais de `build-mobile`. Esse run antecede os
+ajustes locais: restore NuGet trata NU1903/NU1904 como erros, e o audit npm cobre
+dependências de desenvolvimento e runtime com limiar high. O audit completo em 04/11
+reportou 21 advisories (3 low, 18 moderate), sem high/critical, e passou no limiar
+configurado. Localmente, a suíte Release passou com 202 testes mesmo com as
 configurações externas Supabase/PostgreSQL vazias; lint/type-check mobile também passaram.
 O audit NuGet via nuget.org não encontrou vulnerabilidades. Gitleaks percorreu os 77 commits
 locais sem encontrar segredos. A regra de proteção de `main` está ativa e exige pull request,
@@ -221,14 +222,18 @@ validação remota dos ajustes locais e correção de dependências ainda depend
 **Módulo:** Mobile / release
 **Categoria:** Testing
 **Prioridade:** Média
-**Status:** Bloqueado
+**Status:** Parcialmente implementado
 
 **Descrição:** Confirmar builds de distribuição e os fluxos de autenticação/deep link
 em iOS e Android, além do comportamento em dispositivos reais.
 
 **Estado atual:** Há configuração Expo e módulos nativos usados pelo app, mas esta
-auditoria não executou build/instalação em iOS ou Android. As docs de widgets registram
-limitações de ambiente (Xcode/Android SDK) para validação nativa.
+auditoria não executou build/instalação em iOS ou Android. A branch `build-mobile` agora
+tem application ID Android, projeto EAS vinculado e perfis de development/preview para
+APK. O build EAS `b0c790c9-bc1c-4c76-82fa-33bf317c92b6` foi enviado para o commit atual
+e concluiu. O usuário confirmou conexão do Samsung ao Metro, login e navegação no app.
+Esse smoke test não cobre release, deep links, push ou widgets (`adb` não está disponível
+nesta máquina). iOS permanece sem validação local e fora do escopo atual de widgets.
 
 **Evidências:** [app.json](mobile/app.json), [authentication-setup.md](docs/authentication-setup.md)
 e [12-mobile-widgets.md](docs/specs/12-mobile-widgets.md).
@@ -572,10 +577,11 @@ depende do escopo aprovado.
 **Descrição:** Implementar e validar widgets Android; iOS está adiado e fora do aceite
 atual desta entrega.
 
-**Estado atual:** O escopo Android-only está documentado. `android.package` foi definido
-como `com.brunolucildo.reelix`, o projeto EAS está vinculado e o development APK está na
-fila de build para instalação no Samsung. `expo-widgets` ainda não foi instalado; não há
-widget funcional, e a validação de instalação permanece pendente. iOS está adiado.
+**Estado atual:** O escopo Android-only está documentado. `android.package` está definido
+como `com.brunolucildo.reelix`, o projeto EAS está vinculado e os perfis development e
+preview geram APK interno. O build EAS `b0c790c9-bc1c-4c76-82fa-33bf317c92b6` concluiu
+para o commit atual; o usuário conectou o Samsung ao Metro, fez login e navegou no app.
+Nenhum widget foi implementado ou validado. iOS está adiado.
 
 **Evidências:** [12-mobile-widgets.md](docs/specs/12-mobile-widgets.md),
 [app.json](mobile/app.json) e [wireframes](docs/wireframes/reelix-visual-wireframes.html).
@@ -792,15 +798,17 @@ externa; não é uma estimativa jurídica.
 **Descrição:** Remover vulnerabilidades moderadas transitivas reportadas no audit npm
 para as dependências Expo sem degradar o SDK principal.
 
-**Estado atual:** `npm audit --omit=dev` reportou 8 vulnerabilidades moderadas em
-dependências transitivas `glob` e `minimatch`, alcançadas pelo Expo SDK 58 e seus
-plugins. A correção automática sugere `npm audit fix --force` e `expo@51.0.39`, um
-downgrade incompatível que não foi aplicado. Não foi identificada uma atualização
-compatível que remova os advisories durante esta etapa.
+**Estado atual:** `npm audit --audit-level=high` em 04/11 reportou 21 advisories na
+árvore completa (3 low, 18 moderate), sem high/critical; o comando passou no limiar
+configurado. Os achados incluem `deepmerge`, `glob` e `minimatch` em dependências
+transitivas da toolchain Expo/ESLint e do transformer SVG. A correção automática propõe
+downgrades breaking, incluindo versões incompatíveis de Expo, ESLint ou transformer;
+nada foi aplicado. Não foi identificada nesta atualização uma correção compatível que
+remova todos os advisories.
 
 **Evidências:** [package.json](mobile/package.json),
 [package-lock.json](mobile/package-lock.json) e o resultado de
-`npm audit --omit=dev --audit-level=high` em 03/11/2026.
+`npm audit --audit-level=high` em 04/11/2026.
 
 **Impacto:** Os advisories reportam bypass de cancelamento por AbortSignal com possível
 travessia de filesystem após timeout em `glob` e potencial DoS por amplificação de

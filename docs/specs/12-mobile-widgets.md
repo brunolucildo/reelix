@@ -93,18 +93,18 @@ A biblioteca e a estratégia nativa deverão ser selecionadas após a análise d
 - As limitações Android são documentadas; iOS não bloqueia o aceite desta etapa.
 - Os testes relevantes passam.
 
-## Resultado do spike (atualizado em 03/11/2026)
+## Resultado do spike (atualizado em 04/11/2026)
 
 A documentação oficial consultada identifica `expo-widgets` como candidato Android no SDK 58; não funciona no Expo Go e exige development build. No Android, requer `android.package` e `enableAndroid`; o widget roda em runtime isolado e recebe dados via snapshots/timelines, sem hooks nem chamadas de rede próprias. A decisão de produto em 03/11/2026 é desenvolver e validar somente Android nesta etapa; iOS foi adiado.
 
 | Plataforma | Evidência disponível | Resultado |
 |---|---|---|
 | iOS | Sem bundle identifier, Xcode ou dispositivo iOS neste ambiente | Adiado; fora do escopo e dos critérios de aceite atuais |
-| Android | `android.package` definido como `com.brunolucildo.reelix`; projeto EAS vinculado; development APK enviado para build cloud | Build EAS na fila; instalação e validação no Samsung pendentes. Widget ainda não implementado |
+| Android | `android.package` definido como `com.brunolucildo.reelix`; projeto EAS vinculado; perfis development/preview configurados para APK interno | Build EAS `b0c790c9-bc1c-4c76-82fa-33bf317c92b6` concluído; usuário confirmou conexão ao Metro, login e navegação. Widget ainda não implementado |
 
-`expo-widgets` ainda não foi instalado e não há widget funcional. O application ID Android foi definido e o development APK está sendo gerado pelo EAS; após instalar no Samsung, validar o build e então testar a integração Android de `expo-widgets`, snapshots, limpeza por conta, layouts e deep links. Não é necessário configurar iOS para concluir esta etapa.
+`expo-widgets` ainda não foi instalado e não há widget funcional. O application ID e os perfis de build Android estão configurados, e o development APK do commit atual concluiu. O usuário confirmou conexão ao Metro, login e navegação no Samsung. Esse smoke test não valida widgets, deep links nem push; testar essas capacidades ao implementar a integração Android. Não é necessário configurar iOS para concluir esta etapa.
 
-**Estado atual:** iOS está adiado. Android está em preparação de build nativo; widgets ainda não foram implementados nem validados. O wireframe continua marcando a lacuna e não simula a existência de widget funcional.
+**Estado atual em 04/11/2026:** iOS está adiado. O APK de development do commit atual concluiu; o usuário confirmou conexão ao Metro, login e navegação no Samsung. Widgets ainda não foram implementados nem validados. `adb` não está disponível nesta máquina. O wireframe continua marcando a lacuna e não simula a existência de widget funcional.
 
 Referências oficiais verificadas:
 
