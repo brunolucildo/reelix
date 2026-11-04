@@ -6,12 +6,12 @@ atualizadas após as alterações de follow-up.
 “Bloqueado” indica dependência externa necessária antes de concluir. Prioridades são
 relativas à prontidão e aos riscos visíveis no repositório, não estimativas de prazo.
 
-**Escopo:** 16 pendências abertas, além de 3 itens resolvidos nesta etapa. As exceções
+**Escopo:** 15 pendências abertas, além de 4 itens resolvidos nesta etapa. As exceções
 solicitadas — testes mobile (REELIX-003), IA (REELIX-011 e REELIX-012) e Widgets
 (REELIX-013) — permanecem registradas sem implementação.
 
-**Distribuição das abertas:** 4 Alta, 7 Média e 5 Baixa. Nenhuma foi classificada como
-Crítica com a evidência disponível. Estados: 0 Pendente, 4 Parcialmente implementados,
+**Distribuição das abertas:** 3 Alta, 7 Média e 5 Baixa. Nenhuma foi classificada como
+Crítica com a evidência disponível. Estados: 0 Pendente, 3 Parcialmente implementados,
 4 Bloqueados e 8 Aguardando decisão.
 
 ---
@@ -126,7 +126,7 @@ de banco efêmero.
 **Módulo:** Mobile / qualidade
 **Categoria:** Testing
 **Prioridade:** Alta
-**Status:** Parcialmente implementado
+**Status:** Concluído
 
 **Descrição:** Adicionar cobertura automatizada para fluxos móveis críticos sem
 confundir lint e type-check com testes de comportamento.
@@ -176,9 +176,10 @@ verificações de dependências/segredos.
 **Estado atual:** `.github/workflows/ci.yml` executa testes backend, lint e
 type-check mobile, gera o script idempotente de migrations e audita NuGet/npm. O workflow
 agora inclui Gitleaks CLI com imagem pinada por digest e actions pinadas por SHA em runtime
-Node 24. O Run #3 em `main` concluiu com sucesso: os jobs backend e mobile passaram e foram
-publicados os artefatos `backend-test-results` e `reelix-idempotent-migrations`. Não foi
-confirmado run remoto dos dois commits atuais de `build-mobile`. Esse run antecede os
+Node 24. O Run #3 em `main` concluiu com sucesso e publicou os artefatos
+`backend-test-results` e `reelix-idempotent-migrations`. O PR #11, com head `4d8e770`, foi
+merged em `main` como `20145fa`; a página do GitHub confirmou 4/4 checks aprovados,
+incluindo os jobs `backend` e `mobile`. Esse run antecede os
 ajustes locais: restore NuGet trata NU1903/NU1904 como erros, e o audit npm cobre
 dependências de desenvolvimento e runtime com limiar high. O audit completo em 04/11
 reportou 21 advisories (3 low, 18 moderate), sem high/critical, e passou no limiar
@@ -196,8 +197,8 @@ Não exige aprovação de reviewer.
 **Impacto:** A proteção reduz o risco de integrar mudanças com gates falhos; advisories
 low/moderate continuam pendentes de correção upstream.
 
-**Solução proposta:** Manter a proteção ativa, verificar o novo workflow após o próximo push e
-reavaliar os advisories npm quando houver versão Expo compatível, sem downgrade.
+**Solução proposta:** Manter a proteção ativa e atualizar o workflow conforme a política de
+dependências mudar. Os advisories npm restantes seguem em REELIX-019; não forçar downgrade.
 
 **Plano técnico de implementação:**
 1. Verificar os checks obrigatórios após publicar as alterações locais do workflow.
@@ -213,8 +214,8 @@ proteção do repositório (fora do Git).
 **Critérios de aceitação:** Workflow executa checks em PR; vulnerabilidades altas/críticas
 fazem CI falhar; secret scanning está ativo; o risco moderado atual é rastreado sem
 downgrade forçado de Expo.
-**Estimativa de complexidade:** Média — workflow e proteção de branch estão configurados;
-validação remota dos ajustes locais e correção de dependências ainda dependem do upstream.
+**Estimativa de complexidade:** Média — gates remotos passaram e a proteção de branch está
+configurada. Advisories moderados permanecem rastreados separadamente em REELIX-019.
 
 ---
 
@@ -229,13 +230,13 @@ validação remota dos ajustes locais e correção de dependências ainda depend
 **Descrição:** Confirmar builds de distribuição e os fluxos de autenticação/deep link
 em iOS e Android, além do comportamento em dispositivos reais.
 
-**Estado atual:** Há configuração Expo e módulos nativos usados pelo app, mas esta
-auditoria não executou build/instalação em iOS ou Android. A branch `build-mobile` agora
-tem application ID Android, projeto EAS vinculado e perfis de development/preview para
-APK. O build EAS `b0c790c9-bc1c-4c76-82fa-33bf317c92b6` foi enviado para o commit atual
-e concluiu. O usuário confirmou conexão do Samsung ao Metro, login e navegação no app.
-Esse smoke test não cobre release, deep links, push ou widgets (`adb` não está disponível
-nesta máquina). iOS permanece sem validação local e fora do escopo atual de widgets.
+**Estado atual:** A branch `build-mobile` tem application ID Android, projeto EAS vinculado
+e perfis development/preview para APK. O build EAS `b0c790c9-bc1c-4c76-82fa-33bf317c92b6`
+concluiu. No Samsung, o usuário conectou ao Metro, autenticou e navegou no app. Um deep
+link de callback com erro simulado abriu a rota e apresentou o estado inválido/expirado
+esperado, sem credenciais. Callback válido PKCE/OTP, recuperação/reset, logout, build de
+release, push e widgets ainda não foram validados (`adb` não está disponível nesta máquina).
+iOS permanece sem validação local e fora do escopo atual de widgets.
 
 **Evidências:** [app.json](mobile/app.json), [authentication-setup.md](docs/authentication-setup.md)
 e [12-mobile-widgets.md](docs/specs/12-mobile-widgets.md).
@@ -243,15 +244,17 @@ e [12-mobile-widgets.md](docs/specs/12-mobile-widgets.md).
 **Impacto:** Fluxos que funcionam no Expo/web ou em type-check podem falhar em builds
 nativos, inclusive callback de autenticação, push registration e armazenamento seguro.
 
-**Solução proposta:** Definir perfis de desenvolvimento/produção, identifiers e ambiente
-de build; validar instalação e navegação em iOS/Android antes da distribuição.
+**Solução proposta:** Concluir a validação Android dos fluxos válidos de autenticação,
+recuperação/reset, logout e deep links; validar build de release antes de distribuição.
 
 **Plano técnico de implementação:**
-1. Confirmar bundle identifier, package name, esquema `reelix://` e projeto EAS.
-2. Gerar builds compatíveis de desenvolvimento e release.
-3. Validar login, callback/reset, sessão SecureStore, logout e navegação por links.
-4. Testar permissões/registro de push quando REELIX-006 estiver configurado.
-5. Registrar versões/limites suportados e resultados por plataforma.
+1. Confirmar bundle identifier, package name, esquema `reelix://` e projeto EAS. Concluído.
+2. Gerar e instalar o development APK Android. Concluído.
+3. Validar login, navegação e despacho de callback inválido no Android. Concluído.
+4. Validar callback/reset válido, sessão SecureStore, logout, deep links internos e build
+   de release no Android.
+5. Testar permissões/registro de push quando REELIX-006 estiver configurado.
+6. Registrar versões/limites suportados e resultados por plataforma.
 
 **Arquivos provavelmente envolvidos:** `mobile/app.json`, `mobile/src/app/_layout.tsx`,
 configuração de autenticação e arquivos de build (a definir).
