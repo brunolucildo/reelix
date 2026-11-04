@@ -10,9 +10,9 @@ de `main` (`2917e95`). O checkout estava limpo antes desta atualização documen
 alterações recentes preparam builds EAS Android e resolvem a URL da API por ambiente;
 os commits ainda não estão em `main`. O APK EAS de development concluiu e o PR #11 foi
 merged em `main` como `20145fa`, com 4/4 checks aprovados. O usuário confirmou conexão do
-Samsung ao Metro, login e navegação. O deep link Android para callback inválido abriu a
-rota e mostrou o estado esperado; callback válido/reset, release nativo, push e widgets
-ainda não foram validados.
+Samsung ao Metro, login, navegação e logout. O deep link Android para callback inválido
+abriu a rota e mostrou o estado esperado; callback válido/reset, release nativo, push e
+widgets ainda não foram validados.
 
 ## Visão geral
 
@@ -58,7 +58,7 @@ que implementação seja confundida com operação verificada.
 | Notificações | Parcialmente concluído | Inbox, preferências, registro privado de dispositivos e processamento de eventos sociais/tickets/receipts no backend. | Push remoto está desligado por padrão e depende de projeto/credenciais/build/hosting. Alertas de catálogo não têm fonte e agendamento implementados. |
 | Gamificação | Parcialmente concluído | Conquistas determinísticas, estatísticas e ranking entre amigos no backend e mobile. | A migration deve ser aplicada por ambiente. Reconciliação ocorre ao consultar o dashboard; metadados de duração/gêneros têm cobertura incompleta. |
 | IA | Parcialmente concluído | Adaptador de classificação de spoiler existe no servidor. | Está desativado por padrão; não há recomendações por IA. Reativação, custo, política de dados e necessidade de revisão dependem de decisão/configuração. |
-| Widgets mobile | Pendente | Escopo Android aprovado; application ID e perfis EAS para APK configurados, sem widget funcional. | Build de development conectou ao Metro; login, navegação e despacho de callback inválido passaram. Widget ainda não existe; iOS está adiado. |
+| Widgets mobile | Pendente | Escopo Android aprovado; application ID e perfis EAS para APK configurados, sem widget funcional. | Build de development conectou ao Metro; login, navegação, logout e despacho de callback inválido passaram. Widget ainda não existe; iOS está adiado. |
 | Testes mobile | Pendente | Scripts de lint e type-check existem. | Não foi encontrado runner/suíte de testes mobile. |
 | CI/CD e release | Parcialmente implementado | `.github/workflows/ci.yml` executa testes backend, lint/type-check mobile, audits NuGet/npm e publica script idempotente de migrations para revisão. | PR #11 foi merged em `main` como `20145fa`; os 4 checks backend/mobile passaram. Branch protection e secret scanning estão configurados; hosting e release nativo não foram confirmados. |
 
@@ -158,9 +158,9 @@ Nenhuma credencial ou valor de segredo é reproduzido aqui.
   registros sem marcador não foram alterados. Nenhuma credencial ou token foi exibido.
 - O perfil EAS de development para APK Android e o application ID estão configurados;
   o build `b0c790c9-bc1c-4c76-82fa-33bf317c92b6` concluiu. O usuário confirmou conexão
-  do Samsung ao Metro, login e navegação. O deep link `reelix://auth/callback` com erro
-  simulado abriu a rota e apresentou o estado inválido/expirado esperado; callback válido,
-  recuperação, logout, release, push e widgets continuam sem validação. `adb` não está
+  do Samsung ao Metro, login, navegação e logout. O deep link `reelix://auth/callback` com
+  erro simulado abriu a rota e apresentou o estado inválido/expirado esperado; callback
+  válido, recuperação, release, push e widgets continuam sem validação. `adb` não está
   instalado nesta máquina.
   Também não foram confirmados push real, migrations aplicadas em cada ambiente,
   disponibilidade de workers,

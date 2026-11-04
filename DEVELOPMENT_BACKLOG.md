@@ -234,8 +234,9 @@ em iOS e Android, além do comportamento em dispositivos reais.
 e perfis development/preview para APK. O build EAS `b0c790c9-bc1c-4c76-82fa-33bf317c92b6`
 concluiu. No Samsung, o usuário conectou ao Metro, autenticou e navegou no app. Um deep
 link de callback com erro simulado abriu a rota e apresentou o estado inválido/expirado
-esperado, sem credenciais. Callback válido PKCE/OTP, recuperação/reset, logout, build de
-release, push e widgets ainda não foram validados (`adb` não está disponível nesta máquina).
+esperado, sem credenciais; o logout também concluiu normalmente. Callback válido PKCE/OTP,
+recuperação/reset, build de release, push e widgets ainda não foram validados (`adb` não
+está disponível nesta máquina).
 iOS permanece sem validação local e fora do escopo atual de widgets.
 
 **Evidências:** [app.json](mobile/app.json), [authentication-setup.md](docs/authentication-setup.md)
@@ -245,16 +246,17 @@ e [12-mobile-widgets.md](docs/specs/12-mobile-widgets.md).
 nativos, inclusive callback de autenticação, push registration e armazenamento seguro.
 
 **Solução proposta:** Concluir a validação Android dos fluxos válidos de autenticação,
-recuperação/reset, logout e deep links; validar build de release antes de distribuição.
+recuperação/reset e deep links; validar build de release antes de distribuição.
 
 **Plano técnico de implementação:**
 1. Confirmar bundle identifier, package name, esquema `reelix://` e projeto EAS. Concluído.
 2. Gerar e instalar o development APK Android. Concluído.
-3. Validar login, navegação e despacho de callback inválido no Android. Concluído.
-4. Validar callback/reset válido, sessão SecureStore, logout, deep links internos e build
-   de release no Android.
-5. Testar permissões/registro de push quando REELIX-006 estiver configurado.
-6. Registrar versões/limites suportados e resultados por plataforma.
+3. Validar login, navegação, logout e despacho de callback inválido no Android. Concluído.
+4. Validar callback PKCE/OTP válido, recuperação/reset, sessão SecureStore e deep links
+   internos no Android.
+5. Gerar e validar build de release Android antes da distribuição.
+6. Testar permissões/registro de push quando REELIX-006 estiver configurado.
+7. Registrar versões/limites suportados e resultados por plataforma.
 
 **Arquivos provavelmente envolvidos:** `mobile/app.json`, `mobile/src/app/_layout.tsx`,
 configuração de autenticação e arquivos de build (a definir).
