@@ -9,25 +9,25 @@ O checkout avaliado está na branch `build-mobile`, commit `98be2da`, dois commi
 frente de `main` (`2917e95`). O build EAS `b0c790c9-bc1c-4c76-82fa-33bf317c92b6` para
 esse commit concluiu e o usuário confirmou conexão do Samsung ao Metro, login e navegação.
 O smoke test básico Android passou; release, deep links, push e widgets não foram
-validados. O endpoint OpenAPI respondeu HTTP 200 no PC; `adb` não está disponível
-localmente. A execução remota da CI nesta branch também não foi confirmada. O risco de
-schema por ambiente continua aberto e é o principal gate de prontidão.
+validados. O usuário confirmou que existe apenas `Development`; seu histórico registra as
+10 migrations locais e a cadeia também passa no PostgreSQL 17 dos testes. A execução
+remota da CI nesta branch ainda não foi confirmada.
 
 ## Fase 1 — Confiabilidade do schema e autorização
 
 **Objetivo:** reduzir o risco de release por divergência de banco ou isolamento
 insuficientemente validado.
 
-**Pendências:** [REELIX-001](DEVELOPMENT_BACKLOG.md#reelix-001),
-[REELIX-002](DEVELOPMENT_BACKLOG.md#reelix-002).
+**Itens:** [REELIX-001](DEVELOPMENT_BACKLOG.md#reelix-001) e
+[REELIX-002](DEVELOPMENT_BACKLOG.md#reelix-002), concluídos para o escopo atual.
 
 **Ordem recomendada:**
-1. Inventariar bancos e aprovar processo seguro de migrations (REELIX-001).
-2. Adicionar testes HTTP/PostgreSQL e autorização por recurso (REELIX-002).
-3. Executar migrations e smoke tests em staging antes de cada release.
+1. Inventário do único ambiente e histórico de migrations concluídos (REELIX-001).
+2. Testes HTTP/PostgreSQL e autorização por recurso concluídos (REELIX-002).
+3. Ao criar outro ambiente, validar migrations e smoke tests antes de habilitá-lo.
 
-**Dependências:** Credenciais e autorização para ambiente de teste; banco PostgreSQL
-descartável ou staging.
+**Dependências:** Um PostgreSQL descartável para validar migrations; o fixture
+Testcontainers cobre esse requisito atualmente.
 
 **Critérios de conclusão:** Schema por ambiente registrado; migrations e fluxos dos
 módulos críticos passam em PostgreSQL real; testes verificam acessos negados/isolamento.
@@ -123,12 +123,12 @@ permanecem fora da UI e não são simulados.
 
 ## Próximo passo
 
-O smoke test Android básico de REELIX-005 passou: o usuário conectou ao Metro, entrou no
-app e navegou. O próximo passo é REELIX-001: inventariar bancos/ambientes e responsáveis,
-comparar o estado de migrations e validar a atualização em staging ou PostgreSQL
-descartável. Registrar o resultado por ambiente; não aplicar migrations em produção sem
-autorização explícita. Depois, decidir e planejar a implementação Android de
-`expo-widgets` (REELIX-013), que continua sem código funcional.
+REELIX-001 foi concluído para o único ambiente informado (`Development`): o histórico
+registra as 10 migrations e o fixture PostgreSQL testa a cadeia completa. A próxima etapa
+é a Fase 2: confirmar os quality gates remotos da branch atual (REELIX-004) e então
+priorizar testes automatizados mobile (REELIX-003). Se um novo ambiente for criado, a
+validação de migrations volta a ser gate antes do uso. Widgets Android (REELIX-013)
+continuam sem código funcional e devem ser planejados separadamente.
 
 REELIX-014 foi fechado após confirmar que os destinos internos implementados cobrem os
 eventos atuais; novas categorias de notificação precisarão definir o próprio destino.

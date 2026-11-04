@@ -81,9 +81,12 @@ que implementação seja confundida com operação verificada.
 
 ## Lacunas, riscos e débitos confirmados
 
-1. **Validação operacional do banco:** o script idempotente das 10 migrations foi
-   gerado/revisado sem conexão; sua aplicação varia por ambiente e não foi verificada.
-   Social, notificações e gamificação ainda dependem de aplicação autorizada.
+1. **Escopo de ambientes e schema:** o usuário confirmou que existe somente o ambiente
+  `Development`. Em 04/11, a consulta somente leitura ao histórico EF registrou as 10
+  migrations locais, até `20261103134321_ExpandFixedAvatars`, sem pendências. Testes
+  Testcontainers aplicam a cadeia completa em PostgreSQL 17 descartável e a suíte passou
+  com 202 testes. Não há migrations pendentes no ambiente atual; qualquer novo ambiente
+  exige repetir esta validação antes de uso.
 2. **Cobertura de integração/autorização:** 47 testes focados exercitam rejeição anônima
    em rotas HTTP; 10 testes Testcontainers aplicam as migrations num PostgreSQL efêmero
    e cobrem isolamento/consentimento em perfil, tracking, listas, avaliações, social,
@@ -126,7 +129,7 @@ aprovados estão identificadas como “Aguardando decisão”, e não como falha
 | Serviço | Uso | Estado conhecido | Limite |
 |---|---|---|---|
 | Supabase Auth | Login, sessão e emissão de JWT | Integrado no código. | Chaves públicas, configuração de callback, JWT e projeto de cada ambiente são externos. |
-| PostgreSQL gerenciado | Fonte de dados da aplicação | EF Core/Npgsql e migrations no repositório. | O projeto de desenvolvimento conferido tem as 10 migrations esperadas e RLS nas 24 tabelas da aplicação; outros ambientes não foram verificados. |
+| PostgreSQL gerenciado | Fonte de dados da aplicação | EF Core/Npgsql e migrations no repositório. | O único ambiente informado é `Development`; seu histórico registra as 10 migrations, até `ExpandFixedAvatars`. A verificação anterior identificou RLS nas 24 tabelas desse projeto. |
 | TMDB | Catálogo principal, gêneros, temporadas e episódios | Adaptador implementado. | Credencial de servidor, atribuição, limites e direitos de uso devem ser confirmados para o ambiente e finalidade. |
 | OMDb | Fonte opcional de catálogo | Adaptador implementado; sem fallback automático. | Credencial opcional e campos/imagens sujeitos às condições do provedor. |
 | Expo Push | Entrega remota opcional | Código de registro e envio implementado, desativado por padrão. | Requer IDs/projeto EAS, APNs/FCM, segredo de servidor e hosting contínuo. |

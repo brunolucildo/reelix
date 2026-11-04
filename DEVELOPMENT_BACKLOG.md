@@ -6,13 +6,13 @@ atualizadas após as alterações de follow-up.
 “Bloqueado” indica dependência externa necessária antes de concluir. Prioridades são
 relativas à prontidão e aos riscos visíveis no repositório, não estimativas de prazo.
 
-**Escopo:** 17 pendências abertas, além de 2 itens resolvidos nesta etapa. As exceções
+**Escopo:** 16 pendências abertas, além de 3 itens resolvidos nesta etapa. As exceções
 solicitadas — testes mobile (REELIX-003), IA (REELIX-011 e REELIX-012) e Widgets
 (REELIX-013) — permanecem registradas sem implementação.
 
-**Distribuição das abertas:** 5 Alta, 7 Média e 5 Baixa. Nenhuma foi classificada como
+**Distribuição das abertas:** 4 Alta, 7 Média e 5 Baixa. Nenhuma foi classificada como
 Crítica com a evidência disponível. Estados: 0 Pendente, 4 Parcialmente implementados,
-5 Bloqueados e 8 Aguardando decisão.
+4 Bloqueados e 8 Aguardando decisão.
 
 ---
 
@@ -22,16 +22,18 @@ Crítica com a evidência disponível. Estados: 0 Pendente, 4 Parcialmente imple
 **Módulo:** Persistência / todos
 **Categoria:** Technical Debt
 **Prioridade:** Alta
-**Status:** Parcialmente implementado
+**Status:** Concluído
 
 **Descrição:** Estabelecer um processo controlado para comparar o histórico de migrations
 com cada banco de destino e validar a atualização do schema em PostgreSQL real.
 
-**Estado atual:** Migrations EF Core estão versionadas. Um script idempotente para as
-10 migrations foi gerado e revisado sem conexão ao banco; a documentação e a CI agora
-permitem revisar esse artefato antes da execução. Nenhuma migration foi aplicada a
-ambiente compartilhado ou produção. Social, notificações e gamificação ainda dependem
-de aplicação e verificação por ambiente.
+**Estado atual:** O usuário confirmou que existe apenas o ambiente `Development`. Em
+04/11, `dotnet-ef migrations list` consultou seu histórico em modo somente leitura e
+registrou as 10 migrations locais, até `20261103134321_ExpandFixedAvatars`, sem pendências.
+O fixture Testcontainers aplica a cadeia completa em PostgreSQL 17 descartável antes dos
+testes HTTP; a suíte Release passou com 202 testes. Não foi necessário aplicar migrations
+no banco durante esta etapa. Se um ambiente novo for criado, repetir o inventário e a
+validação antes de habilitá-lo.
 
 **Evidências:** [ReelixDbContext.cs](backend/Reelix.Infrastructure/Persistence/ReelixDbContext.cs),
 [README.md](README.md), [10-notifications.md](docs/specs/10-notifications.md) e
@@ -40,26 +42,26 @@ de aplicação e verificação por ambiente.
 **Impacto:** Divergência entre modelo e schema pode impedir operações, causar falhas
 em runtime ou deixar módulos indisponíveis após release.
 
-**Solução proposta:** Definir a matriz de ambientes, revisar o script idempotente gerado,
-executar migrations em PostgreSQL real autorizado e registrar resultado por ambiente.
-Não aplicar em banco compartilhado ou produção sem autorização e processo de rollback.
+**Solução proposta:** Concluída para o único ambiente atual. Manter o script idempotente
+para revisão e repetir a validação de histórico, aplicação e smoke tests sempre que um
+novo ambiente for criado. Não aplicar migrations em ambientes compartilhados sem
+autorização e processo de rollback.
 
 **Plano técnico de implementação:**
-1. Inventariar ambientes autorizados, conexão, versão do schema e responsável.
-2. Revisar o artefato gerado localmente ou pela CI.
-3. Aplicar primeiro em um PostgreSQL descartável/staging e verificar constraints,
-   índices e dados existentes.
-4. Aplicar ao ambiente aprovado pelo processo de release, registrando migration final.
-5. Executar smoke tests de persistência e endpoints dos módulos alterados.
-6. Atualizar status operacional sem armazenar connection strings ou segredos.
+1. Inventariar os ambientes existentes e a migration final registrada.
+2. Revisar o artefato idempotente gerado localmente ou pela CI.
+3. Aplicar a cadeia completa em PostgreSQL descartável; coberto pelo fixture Testcontainers.
+4. Executar testes HTTP de persistência e autorização; coberto pela suíte de 202 testes.
+5. Registrar resultado por ambiente sem armazenar connection strings ou segredos.
 
 **Arquivos provavelmente envolvidos:** `backend/Reelix.Infrastructure/Persistence/Migrations/`,
 `backend/Reelix.Infrastructure/Persistence/ReelixDbContext.cs`,
 `docs/authentication-setup.md`, `docs/specs/`.
 **Dependências:** Acesso autorizado aos bancos, credenciais seguras e processo de release.
-**Critérios de aceitação:** Cada ambiente tem migration final registrada; aplicação
-inicial e atualização passam em PostgreSQL real; endpoints dos módulos persistem e leem
-dados sem erro; nenhum segredo é versionado.
+**Critérios de aceitação:** Atendidos para o único ambiente atual (`Development`): migration
+final registrada, cadeia completa aplicada em PostgreSQL real descartável, endpoints
+críticos persistem/leem dados nos testes e nenhum segredo é versionado. Novos ambientes
+exigem nova verificação.
 **Estimativa de complexidade:** Média — envolve vários ambientes e validação de schema,
 mas usa migrations EF Core já existentes.
 
