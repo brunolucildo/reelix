@@ -37,16 +37,14 @@ módulos críticos passam em PostgreSQL real; testes verificam acessos negados/i
 **Objetivo:** garantir que regressões de backend/mobile e riscos de dependências sejam
 detectados antes de integrar mudanças.
 
-**Pendências:** [REELIX-003](DEVELOPMENT_BACKLOG.md#reelix-003),
-[REELIX-004](DEVELOPMENT_BACKLOG.md#reelix-004),
-[REELIX-019](DEVELOPMENT_BACKLOG.md#reelix-019).
+**Estado:** Concluída para o escopo atual. [REELIX-004](DEVELOPMENT_BACKLOG.md#reelix-004)
+foi merged com 4/4 checks aprovados. [REELIX-003](DEVELOPMENT_BACKLOG.md#reelix-003)
+continua fora do escopo combinado; os advisories moderados permanecem em
+[REELIX-019](DEVELOPMENT_BACKLOG.md#reelix-019), bloqueado por atualização compatível.
 
-**Ordem recomendada:**
-1. Escolher testes mobile, priorizando fluxos críticos (REELIX-003; fora desta etapa).
-2. Executar e ajustar a workflow, configurar proteções de branch e secret scanning
-   (REELIX-004).
-3. Atualizar Expo/plugins quando houver versão compatível sem os advisories moderados
-   (REELIX-019).
+**Resultado:** PR #11 foi merged em `main` como `20145fa`, com 4/4 checks aprovados;
+os jobs `backend` e `mobile` passaram. REELIX-003 não foi iniciado, conforme o escopo
+combinado. REELIX-019 permanece bloqueado, sem downgrade forçado.
 
 **Dependências:** Ativação/configuração do GitHub e acesso aos feeds de pacotes;
 REELIX-002 alimenta a execução automatizada de integração.
@@ -123,12 +121,17 @@ permanecem fora da UI e não são simulados.
 
 ## Próximo passo
 
-REELIX-001 foi concluído para o único ambiente informado (`Development`): o histórico
-registra as 10 migrations e o fixture PostgreSQL testa a cadeia completa. A próxima etapa
-é a Fase 2: confirmar os quality gates remotos da branch atual (REELIX-004) e então
-priorizar testes automatizados mobile (REELIX-003). Se um novo ambiente for criado, a
-validação de migrations volta a ser gate antes do uso. Widgets Android (REELIX-013)
-continuam sem código funcional e devem ser planejados separadamente.
+REELIX-001 foi concluído para o único ambiente informado (`Development`), e a Fase 2 foi
+concluída: o PR #11 foi merged com 4/4 checks aprovados. Na Fase 3, REELIX-005 avançou:
+login/navegação, logout e despacho de callback inválido passaram no Samsung. O usuário
+recebeu um novo link, abriu a redefinição, alterou a senha e entrou no app; recovery/reset
+está validado. O Site URL está corrigido para `reelix://auth/callback`, e o callback observa
+`PASSWORD_RECOVERY` e aguarda a sessão. Próximo: validar callback de cadastro/confirm-email
+e deep links internos adicionais. Build de release Android ainda depende da configuração
+de variáveis EAS e endpoint HTTPS de produção. O APK de development está disponível.
+Push remoto (REELIX-006) segue condicionado a credenciais e hosting; widgets Android
+(REELIX-013) continuam sem código funcional. Se um novo ambiente de banco for criado,
+repetir a validação de migrations antes do uso.
 
 REELIX-014 foi fechado após confirmar que os destinos internos implementados cobrem os
 eventos atuais; novas categorias de notificação precisarão definir o próprio destino.

@@ -8,10 +8,11 @@ implantação em um ambiente.
 **Checkout avaliado:** branch `build-mobile`, commit `98be2da`, dois commits à frente
 de `main` (`2917e95`). O checkout estava limpo antes desta atualização documental. As
 alterações recentes preparam builds EAS Android e resolvem a URL da API por ambiente;
-os commits ainda não estão em `main`. A execução remota da CI nesta branch não foi
-verificada. O APK EAS de development do commit atual concluiu; o usuário confirmou
-conexão do Samsung ao Metro, login e navegação. O smoke test básico Android passou;
-release, deep links, push e widgets ainda não foram validados.
+os commits ainda não estão em `main`. O APK EAS de development concluiu e o PR #11 foi
+merged em `main` como `20145fa`, com 4/4 checks aprovados. O usuário confirmou conexão do
+Samsung ao Metro, login, navegação e logout. Deep links de callback inválido e recovery
+válido foram exercitados; o usuário redefiniu a senha e voltou a entrar no app. Release
+nativo, callback de cadastro, push e widgets ainda não foram validados.
 
 ## Visão geral
 
@@ -45,7 +46,7 @@ que implementação seja confundida com operação verificada.
 
 | Módulo | Estado | Implementação encontrada | Validação e limites conhecidos |
 |---|---|---|---|
-| Autenticação e conta | Parcialmente concluído | Cadastro, login, confirmação e recuperação de senha, callbacks/deep links, sessão e logout no mobile; validação JWT Supabase e conta interna na API. | Testes de autenticação existem, mas não há validação E2E contra um projeto Supabase neste levantamento. Exclusão/exportação da conta não está definida. |
+| Autenticação e conta | Parcialmente concluído | Cadastro, login, confirmação e recuperação de senha, callbacks/deep links, sessão e logout no mobile; validação JWT Supabase e conta interna na API. | Login/logout e recovery válido passaram no Samsung; callback inválido também foi tratado. Site URL corrigido e callback aguarda a sessão/observa `PASSWORD_RECOVERY`. Callback de cadastro e exclusão/exportação não foram validados/definidos. |
 | Onboarding | Parcialmente concluído | Fluxo retomável, gêneros TMDB, seleção de títulos, gravação de rascunho/conclusão e edição de preferências. | Requer credenciais e migrations do ambiente; testes de integração contra PostgreSQL real não foram confirmados. |
 | Perfil e privacidade | Parcialmente concluído | Perfil próprio, biografia, nome, preferências de privacidade, avatares locais fixos/iniciais e perfis sociais contextuais. | Upload de avatar não existe. Retenção, exportação e exclusão da conta não têm fluxo implementado. |
 | Catálogo | Parcialmente concluído | Pesquisa, detalhes, gêneros, temporadas e episódios via adaptadores TMDB/OMDb; IDs externos persistidos e cache temporário em memória para algumas consultas. | Requer credenciais, disponibilidade e atribuição compatíveis com o uso. Não há fallback automático, snapshot integral ou verificação live dos provedores nesta auditoria. |
@@ -57,9 +58,9 @@ que implementação seja confundida com operação verificada.
 | Notificações | Parcialmente concluído | Inbox, preferências, registro privado de dispositivos e processamento de eventos sociais/tickets/receipts no backend. | Push remoto está desligado por padrão e depende de projeto/credenciais/build/hosting. Alertas de catálogo não têm fonte e agendamento implementados. |
 | Gamificação | Parcialmente concluído | Conquistas determinísticas, estatísticas e ranking entre amigos no backend e mobile. | A migration deve ser aplicada por ambiente. Reconciliação ocorre ao consultar o dashboard; metadados de duração/gêneros têm cobertura incompleta. |
 | IA | Parcialmente concluído | Adaptador de classificação de spoiler existe no servidor. | Está desativado por padrão; não há recomendações por IA. Reativação, custo, política de dados e necessidade de revisão dependem de decisão/configuração. |
-| Widgets mobile | Pendente | Escopo Android aprovado; application ID e perfis EAS para APK configurados, sem widget funcional. | Build de development conectou ao Metro; login e navegação passaram. Widget ainda não existe; iOS está adiado. |
+| Widgets mobile | Pendente | Escopo Android aprovado; application ID e perfis EAS para APK configurados, sem widget funcional. | Build de development conectou ao Metro; login, navegação, logout e despacho de callback inválido passaram. Widget ainda não existe; iOS está adiado. |
 | Testes mobile | Pendente | Scripts de lint e type-check existem. | Não foi encontrado runner/suíte de testes mobile. |
-| CI/CD e release | Parcialmente implementado | `.github/workflows/ci.yml` executa testes backend, lint/type-check mobile, audits NuGet/npm e publica script idempotente de migrations para revisão. | Run #3 em `main` passou e branch protection/secret scanning estão configurados; execução da branch atual, hosting, ambientes e release nativo não foram confirmados. |
+| CI/CD e release | Parcialmente implementado | `.github/workflows/ci.yml` executa testes backend, lint/type-check mobile, audits NuGet/npm e publica script idempotente de migrations para revisão. | PR #11 foi merged em `main` como `20145fa`; os 4 checks backend/mobile passaram. Branch protection e secret scanning estão configurados; hosting e release nativo não foram confirmados. |
 
 ## O que já existe no código
 
@@ -97,8 +98,9 @@ que implementação seja confundida com operação verificada.
     no `main` passou nos jobs backend e mobile e publicou os artefatos de resultados TRX e
     script de migrations. A fixture configura `Supabase:Url` antes de iniciar o host e
     aponta o DbContext ao PostgreSQL efêmero. Localmente, Release passou com 202 testes sem
-    variáveis Supabase/PostgreSQL externas. Não foi confirmado run remoto dos dois commits
-    atuais de `build-mobile`. NU1903/NU1904 falham no restore NuGet, e
+    variáveis Supabase/PostgreSQL externas. O PR #11 do commit `4d8e770` foi merged em
+    `main` como `20145fa`; a página do GitHub confirmou 4/4 checks concluídos, incluindo
+    `backend` e `mobile`. NU1903/NU1904 falham no restore NuGet, e
     `npm audit --audit-level=high` cobre dependências de desenvolvimento e runtime. O audit
     completo atual reportou 21 advisories (3 low, 18 moderate), sem high/critical; a
     correção automática propõe downgrades breaking e não foi aplicada. O audit NuGet via
@@ -155,9 +157,13 @@ Nenhuma credencial ou valor de segredo é reproduzido aqui.
   e seus registros identificados por marcadores foram removidos em transação. Outros
   registros sem marcador não foram alterados. Nenhuma credencial ou token foi exibido.
 - O perfil EAS de development para APK Android e o application ID estão configurados;
-  o build `b0c790c9-bc1c-4c76-82fa-33bf317c92b6` do commit atual concluiu. O usuário
-  confirmou conexão do Samsung ao Metro, login e navegação. Esse smoke test básico não
-  valida release, deep links, push ou widgets; `adb` não está instalado nesta máquina.
+  o build `b0c790c9-bc1c-4c76-82fa-33bf317c92b6` concluiu. O usuário confirmou conexão
+  do Samsung ao Metro, login, navegação e logout. O deep link `reelix://auth/callback` com
+  erro simulado abriu a rota e apresentou o estado inválido/expirado esperado; callback
+  válido, recuperação, release, push e widgets continuam sem validação. O callback foi
+  ajustado para observar `PASSWORD_RECOVERY` e esperar a sessão antes de abrir o reset;
+  o bundle Android foi exportado com sucesso. `adb` não está
+  instalado nesta máquina.
   Também não foram confirmados push real, migrations aplicadas em cada ambiente,
   disponibilidade de workers,
   performance sob carga ou UX visual no navegador compartilhado (`localhost:8087`

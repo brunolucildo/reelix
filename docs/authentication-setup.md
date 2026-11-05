@@ -24,8 +24,10 @@ A chave `publishable` (ou a antiga chave `anon`) é pública e pode compor o bun
 - Habilite o provedor de e-mail e senha.
 - Defina se a confirmação de e-mail será obrigatória; o app trata ambos os casos.
 - Configure e monitore os limites de requisição do Supabase Auth para cadastro, recuperação de senha e envio de e-mails.
-- Em **Authentication → URL Configuration**, permita o callback `reelix://auth/callback` para builds do app. Para desenvolvimento com Expo Go, permita também a URL de callback gerada pelo Expo para a máquina/sessão atual.
-- Mantenha o template de confirmação/reset do Supabase redirecionando para a URL recebida em `redirect_to`. O callback do app aceita os fluxos PKCE (`code`), OTP (`token_hash` + `type`) e sessão recebida diretamente (`access_token` + `refresh_token`).
+- Em **Authentication → URL Configuration**, permita o callback exato `reelix://auth/callback` em **Additional Redirect URLs** para builds do app. Para desenvolvimento com Expo Go, permita também a URL de callback gerada pelo Expo para a máquina/sessão atual.
+- Configure **Site URL** para um destino válido do produto. Enquanto o projeto for nativo e não houver site HTTPS publicado, use `reelix://auth/callback` como fallback; não deixe `http://localhost:3000`, pois links inválidos/expirados podem voltar para esse endereço em vez de abrir o app. Se houver cliente web publicado, use sua origem HTTPS real como Site URL e mantenha o callback nativo na allowlist.
+- O formulário mobile envia `redirectTo` para `reelix://auth/callback?flow=recovery` ao solicitar reset. Confira o template **Reset Password**: use `{{ .ConfirmationURL }}` ou, em um template de link próprio, `{{ .RedirectTo }}`; não fixe `localhost:3000` no template. O callback do app aceita PKCE (`code`), OTP (`token_hash` + `type`) e sessão direta (`access_token` + `refresh_token`).
+- Links de recuperação são de uso único e expiram. Após ajustar Site URL, allowlist e template, solicite um link novo. Se ele já chegar como `otp_expired`, o provedor de e-mail pode estar pré-validando/consumindo o link; consulte as opções de OTP por código ou página de confirmação intermediária antes de reenviar repetidamente.
 - Para a validação por JWKS da API, prefira chaves de assinatura assimétricas ES256/RS256. Se o projeto ainda emitir JWTs HS256 com o segredo legado, configure `Supabase__JwtSecret` somente no ambiente seguro do backend. Nunca é a `service_role`.
 
 ## API e PostgreSQL

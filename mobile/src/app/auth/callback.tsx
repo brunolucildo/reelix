@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import * as Linking from 'expo-linking';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { AuthScreen } from '@/components/auth/auth-screen';
 import { AuthLink } from '@/components/auth/auth-link';
+import { useAuthSession } from '@/providers/auth-provider';
 import { useToast } from '@/providers/toast-provider';
 import { supabase } from '@/services/supabase';
 import { colors } from '@/theme/tokens';
@@ -49,10 +50,32 @@ export default function AuthCallbackScreen() {
     error?: string | string[];
   }>();
   const incomingUrl = Linking.useLinkingURL();
+  const { session } = useAuthSession();
   const [error, setError] = useState<string | null>(null);
+  const [recoveryReady, setRecoveryReady] = useState(false);
+  const recoveryEventSeen = useRef(false);
   const { showError } = useToast();
   const first = (value: string | string[] | undefined) =>
     Array.isArray(value) ? value[0] : value;
+
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        recoveryEventSeen.current = true;
+        setRecoveryReady(true);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (recoveryReady && session) {
+      router.replace('/auth/reset-password');
+    }
+  }, [recoveryReady, session]);
 
   useEffect(() => {
     let active = true;
@@ -98,7 +121,11 @@ export default function AuthCallbackScreen() {
         }
 
         if (active) {
-          router.replace(flow === 'recovery' || otpType === 'recovery' ? '/auth/reset-password' : '/');
+          if (flow === 'recovery' || otpType === 'recovery' || recoveryEventSeen.current) {
+            setRecoveryReady(true);
+          } else {
+            router.replace('/');
+          }
         }
       } catch {
         if (active) {

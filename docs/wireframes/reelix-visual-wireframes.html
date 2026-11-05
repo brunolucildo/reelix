@@ -823,7 +823,7 @@
       {
         id: "callback", module: "auth", name: "Callback / confirmação de e-mail", objective: "Validar com segurança o link recebido e encaminhar confirmação ou recuperação.", route: "auth/callback.tsx",
         current: "done", tobe: "kept", currentCaption: "Rota implementada para deep links",
-        currentNotes: ["Aceita código, token hash/OTP ou par de tokens de sessão", "Confirmação/callback de e-mail conforme configuração do Supabase", "Link inválido/expirado: título “Link indisponível.”, toast de erro e retorno ao login", "Recovery encaminha à tela de nova senha"],
+        currentNotes: ["Aceita código, token hash/OTP ou par de tokens de sessão", "Confirmação/callback de e-mail conforme configuração do Supabase", "Link inválido/expirado: título “Link indisponível.”, toast de erro e retorno ao login", "Recovery aguarda sessão e evento PASSWORD_RECOVERY antes de encaminhar à tela de nova senha"],
         currentStates: ["Validando link", "Erro / expirado"],
         states: ["Validando link", "Confirmação", "Recovery", "Erro / expirado"],
         stateCopy: { "Validando link": ["", "Estamos validando o link com segurança…"], "Confirmação": ["success", "Link confirmado. O destino depende do tipo de fluxo e do estado da sessão."], "Recovery": ["success", "Link validado. Continue para definir uma nova senha."], "Erro / expirado": ["error", "Este link é inválido ou expirou. Solicite um novo link e tente novamente."] },
