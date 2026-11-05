@@ -123,8 +123,12 @@ permanecem fora da UI e não são simulados.
 
 REELIX-001 foi concluído para o único ambiente informado (`Development`), e a Fase 2 foi
 concluída: o PR #11 foi merged com 4/4 checks aprovados. Na Fase 3, REELIX-005 avançou:
-login/navegação, logout e despacho de callback inválido passaram no Samsung. Falta validar
-callback válido/reset e demais deep links internos; o APK de development já está disponível.
+login/navegação, logout e despacho de callback inválido passaram no Samsung. O usuário
+recebeu um novo link, abriu a redefinição, alterou a senha e entrou no app; recovery/reset
+está validado. O Site URL está corrigido para `reelix://auth/callback`, e o callback observa
+`PASSWORD_RECOVERY` e aguarda a sessão. Próximo: validar callback de cadastro/confirm-email
+e deep links internos adicionais. Build de release Android ainda depende da configuração
+de variáveis EAS e endpoint HTTPS de produção. O APK de development está disponível.
 Push remoto (REELIX-006) segue condicionado a credenciais e hosting; widgets Android
 (REELIX-013) continuam sem código funcional. Se um novo ambiente de banco for criado,
 repetir a validação de migrations antes do uso.

@@ -10,9 +10,9 @@ de `main` (`2917e95`). O checkout estava limpo antes desta atualização documen
 alterações recentes preparam builds EAS Android e resolvem a URL da API por ambiente;
 os commits ainda não estão em `main`. O APK EAS de development concluiu e o PR #11 foi
 merged em `main` como `20145fa`, com 4/4 checks aprovados. O usuário confirmou conexão do
-Samsung ao Metro, login, navegação e logout. O deep link Android para callback inválido
-abriu a rota e mostrou o estado esperado; callback válido/reset, release nativo, push e
-widgets ainda não foram validados.
+Samsung ao Metro, login, navegação e logout. Deep links de callback inválido e recovery
+válido foram exercitados; o usuário redefiniu a senha e voltou a entrar no app. Release
+nativo, callback de cadastro, push e widgets ainda não foram validados.
 
 ## Visão geral
 
@@ -46,7 +46,7 @@ que implementação seja confundida com operação verificada.
 
 | Módulo | Estado | Implementação encontrada | Validação e limites conhecidos |
 |---|---|---|---|
-| Autenticação e conta | Parcialmente concluído | Cadastro, login, confirmação e recuperação de senha, callbacks/deep links, sessão e logout no mobile; validação JWT Supabase e conta interna na API. | Testes de autenticação existem, mas não há validação E2E contra um projeto Supabase neste levantamento. Exclusão/exportação da conta não está definida. |
+| Autenticação e conta | Parcialmente concluído | Cadastro, login, confirmação e recuperação de senha, callbacks/deep links, sessão e logout no mobile; validação JWT Supabase e conta interna na API. | Login/logout e recovery válido passaram no Samsung; callback inválido também foi tratado. Site URL corrigido e callback aguarda a sessão/observa `PASSWORD_RECOVERY`. Callback de cadastro e exclusão/exportação não foram validados/definidos. |
 | Onboarding | Parcialmente concluído | Fluxo retomável, gêneros TMDB, seleção de títulos, gravação de rascunho/conclusão e edição de preferências. | Requer credenciais e migrations do ambiente; testes de integração contra PostgreSQL real não foram confirmados. |
 | Perfil e privacidade | Parcialmente concluído | Perfil próprio, biografia, nome, preferências de privacidade, avatares locais fixos/iniciais e perfis sociais contextuais. | Upload de avatar não existe. Retenção, exportação e exclusão da conta não têm fluxo implementado. |
 | Catálogo | Parcialmente concluído | Pesquisa, detalhes, gêneros, temporadas e episódios via adaptadores TMDB/OMDb; IDs externos persistidos e cache temporário em memória para algumas consultas. | Requer credenciais, disponibilidade e atribuição compatíveis com o uso. Não há fallback automático, snapshot integral ou verificação live dos provedores nesta auditoria. |
@@ -160,7 +160,9 @@ Nenhuma credencial ou valor de segredo é reproduzido aqui.
   o build `b0c790c9-bc1c-4c76-82fa-33bf317c92b6` concluiu. O usuário confirmou conexão
   do Samsung ao Metro, login, navegação e logout. O deep link `reelix://auth/callback` com
   erro simulado abriu a rota e apresentou o estado inválido/expirado esperado; callback
-  válido, recuperação, release, push e widgets continuam sem validação. `adb` não está
+  válido, recuperação, release, push e widgets continuam sem validação. O callback foi
+  ajustado para observar `PASSWORD_RECOVERY` e esperar a sessão antes de abrir o reset;
+  o bundle Android foi exportado com sucesso. `adb` não está
   instalado nesta máquina.
   Também não foram confirmados push real, migrations aplicadas em cada ambiente,
   disponibilidade de workers,

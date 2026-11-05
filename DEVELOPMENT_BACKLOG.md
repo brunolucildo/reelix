@@ -234,9 +234,13 @@ em iOS e Android, além do comportamento em dispositivos reais.
 e perfis development/preview para APK. O build EAS `b0c790c9-bc1c-4c76-82fa-33bf317c92b6`
 concluiu. No Samsung, o usuário conectou ao Metro, autenticou e navegou no app. Um deep
 link de callback com erro simulado abriu a rota e apresentou o estado inválido/expirado
-esperado, sem credenciais; o logout também concluiu normalmente. Callback válido PKCE/OTP,
-recuperação/reset, build de release, push e widgets ainda não foram validados (`adb` não
-está disponível nesta máquina).
+esperado, sem credenciais; o logout também concluiu normalmente. Em 05/11, o usuário
+recebeu um novo link de recovery, abriu a redefinição no Samsung, alterou a senha e entrou
+no app. Site URL está corrigido para `reelix://auth/callback`; a allowlist já continha o
+callback. O handler observa `PASSWORD_RECOVERY`, aceita `type=recovery` e aguarda a sessão
+antes de navegar ao formulário. Lint, type-check e export Android passaram. Cadastro,
+build de release, push e widgets ainda não foram validados. `adb` não está disponível nesta
+máquina. Se um link futuro expirar, investigar prefetch do provedor de e-mail.
 iOS permanece sem validação local e fora do escopo atual de widgets.
 
 **Evidências:** [app.json](mobile/app.json), [authentication-setup.md](docs/authentication-setup.md)
@@ -245,15 +249,15 @@ e [12-mobile-widgets.md](docs/specs/12-mobile-widgets.md).
 **Impacto:** Fluxos que funcionam no Expo/web ou em type-check podem falhar em builds
 nativos, inclusive callback de autenticação, push registration e armazenamento seguro.
 
-**Solução proposta:** Concluir a validação Android dos fluxos válidos de autenticação,
-recuperação/reset e deep links; validar build de release antes de distribuição.
+**Solução proposta:** Concluir a validação Android do callback de cadastro/confirm-email,
+deep links internos adicionais e build de release antes da distribuição.
 
 **Plano técnico de implementação:**
 1. Confirmar bundle identifier, package name, esquema `reelix://` e projeto EAS. Concluído.
 2. Gerar e instalar o development APK Android. Concluído.
 3. Validar login, navegação, logout e despacho de callback inválido no Android. Concluído.
-4. Validar callback PKCE/OTP válido, recuperação/reset, sessão SecureStore e deep links
-   internos no Android.
+4. Validar callback de cadastro/confirm-email, sessão SecureStore e deep links internos
+   adicionais no Android. Recovery/reset está concluído.
 5. Gerar e validar build de release Android antes da distribuição.
 6. Testar permissões/registro de push quando REELIX-006 estiver configurado.
 7. Registrar versões/limites suportados e resultados por plataforma.
