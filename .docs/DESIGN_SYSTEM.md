@@ -34,7 +34,7 @@ Ao instalar ou mudar algo aqui, atualize esta tabela e `DESIGN.md` na mesma muda
 | Componente por domínio | `mobile/src/components/<dominio>/` | `auth/`, `discovery/`, `gamification/`, `navigation/`, `reviews/`, `social/` |
 | Provider com UI | `mobile/src/providers/` | `toast-provider.tsx` |
 | Tela (rota) | `mobile/src/app/` | `home.tsx`, `tracking.tsx` |
-| Dados e API | `mobile/src/services/`, `mobile/src/hooks/` | `api-client.ts`, `use-tracking.ts` |
+| Dados e API | `mobile/src/features/<modulo>/api/`, `mobile/src/lib/`, `mobile/src/hooks/` | `http-client.ts`, `*-api.ts`, `use-tracking.ts` |
 | Arte do kit de marca | `mobile/assets/brand/` | `navigation-icons/`, `badges/` |
 
 Regras:

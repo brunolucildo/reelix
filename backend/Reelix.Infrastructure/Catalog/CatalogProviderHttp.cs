@@ -64,13 +64,14 @@ internal static class CatalogProviderHttp
     public static CatalogProviderException GetHttpError(
         HttpResponseMessage response,
         CatalogProvider provider,
-        ILogger logger)
+        ILogger logger,
+        TimeProvider clock)
     {
         var status = response.StatusCode;
         var retryAfter = response.Headers.RetryAfter?.Delta;
         if (response.Headers.RetryAfter?.Date is { } retryDate)
         {
-            retryAfter = retryDate - DateTimeOffset.UtcNow;
+            retryAfter = retryDate - clock.GetUtcNow();
         }
 
         if (status == HttpStatusCode.TooManyRequests)

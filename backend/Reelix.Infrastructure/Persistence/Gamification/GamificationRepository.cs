@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Reelix.Application.Common;
 using Reelix.Application.Gamification;
 using Reelix.Domain.Gamification;
 using Reelix.Domain.Social;
@@ -7,7 +8,8 @@ using Reelix.Domain.Users;
 
 namespace Reelix.Infrastructure.Persistence.Gamification;
 
-public sealed class GamificationRepository(ReelixDbContext dbContext) : IGamificationRepository
+public sealed class GamificationRepository(ReelixDbContext dbContext, TimeProvider clock)
+    : IGamificationRepository
 {
     public async Task<GamificationDashboard> GetDashboardAsync(
         Guid accountId,
@@ -45,18 +47,18 @@ public sealed class GamificationRepository(ReelixDbContext dbContext) : IGamific
             {
                 if (existing.TryGetValue(definition.Id, out var achievement))
                 {
-                    achievement.Earn();
+                    achievement.Earn(clock.GetUtcNow());
                 }
                 else
                 {
-                    achievement = UserAchievement.Create(accountId, definition.Id);
+                    achievement = UserAchievement.Create(accountId, definition.Id, clock.GetUtcNow());
                     dbContext.UserAchievements.Add(achievement);
                     existing.Add(definition.Id, achievement);
                 }
             }
             else if (existing.TryGetValue(definition.Id, out var achievement))
             {
-                achievement.Revoke();
+                achievement.Revoke(clock.GetUtcNow());
             }
         }
 
@@ -110,11 +112,11 @@ public sealed class GamificationRepository(ReelixDbContext dbContext) : IGamific
             .SingleOrDefaultAsync(item => item.AccountId == accountId, cancellationToken);
         if (preferences is null)
         {
-            preferences = GamificationPreferences.Create(accountId);
+            preferences = GamificationPreferences.Create(accountId, clock.GetUtcNow());
             dbContext.GamificationPreferences.Add(preferences);
         }
 
-        preferences.Update(badgesPublic, rankingEnabled);
+        preferences.Update(badgesPublic, rankingEnabled, clock.GetUtcNow());
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
@@ -376,7 +378,7 @@ public sealed class GamificationRepository(ReelixDbContext dbContext) : IGamific
             metadataVersion,
             metadataUpdatedAt,
             null,
-            DateTimeOffset.UtcNow);
+            clock.GetUtcNow());
     }
 
     private async Task<GamificationPreferences> GetOrCreatePreferencesAsync(
@@ -387,7 +389,7 @@ public sealed class GamificationRepository(ReelixDbContext dbContext) : IGamific
             $"""
             INSERT INTO public.gamification_preferences
                 (account_id, badges_public, ranking_enabled, updated_at)
-            VALUES ({accountId}, TRUE, FALSE, {DateTimeOffset.UtcNow})
+            VALUES ({accountId}, TRUE, FALSE, {clock.GetUtcNow()})
             ON CONFLICT (account_id) DO NOTHING
             """,
             cancellationToken);
@@ -412,11 +414,7 @@ public sealed class GamificationRepository(ReelixDbContext dbContext) : IGamific
         new(preferences.BadgesPublic, preferences.RankingEnabled, preferences.UpdatedAt);
 
     private static string EncodeCursor(GamificationRankingEntry entry) =>
-        Convert.ToBase64String(
-                System.Text.Encoding.UTF8.GetBytes($"{entry.MoviesWatched}:{entry.AccountId}"))
-            .TrimEnd('=')
-            .Replace('+', '-')
-            .Replace('/', '_');
+        CursorCodec.EncodeText($"{entry.MoviesWatched}:{entry.AccountId}");
 
     private sealed record RankingCandidate(Guid AccountId, string DisplayName, int MoviesWatched);
 }

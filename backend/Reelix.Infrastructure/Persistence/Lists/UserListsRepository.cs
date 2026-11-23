@@ -6,7 +6,8 @@ using Reelix.Domain.Users;
 
 namespace Reelix.Infrastructure.Persistence.Lists;
 
-public sealed class UserListsRepository(ReelixDbContext dbContext) : IUserListsRepository
+public sealed class UserListsRepository(ReelixDbContext dbContext, TimeProvider clock)
+    : IUserListsRepository
 {
     public async Task<IReadOnlyList<TitleRelationStatus>> GetTitleStatusesAsync(
         Guid accountId,
@@ -146,7 +147,7 @@ public sealed class UserListsRepository(ReelixDbContext dbContext) : IUserListsR
         string contentType,
         CancellationToken cancellationToken)
     {
-        var item = UserWatchlistTitle.Create(accountId, titleId, contentType);
+        var item = UserWatchlistTitle.Create(accountId, titleId, contentType, clock.GetUtcNow());
         dbContext.Set<UserWatchlistTitle>().Add(item);
         try
         {
@@ -253,7 +254,11 @@ public sealed class UserListsRepository(ReelixDbContext dbContext) : IUserListsR
         CreateCustomList request,
         CancellationToken cancellationToken)
     {
-        var list = UserCustomList.Create(accountId, request.Name, request.Description);
+        var list = UserCustomList.Create(
+            accountId,
+            request.Name,
+            request.Description,
+            clock.GetUtcNow());
         dbContext.Set<UserCustomList>().Add(list);
         await dbContext.SaveChangesAsync(cancellationToken);
         return ToSummary(list, 0);
@@ -274,7 +279,7 @@ public sealed class UserListsRepository(ReelixDbContext dbContext) : IUserListsR
             return null;
         }
 
-        list.Update(request.Name, request.Description);
+        list.Update(request.Name, request.Description, clock.GetUtcNow());
         await dbContext.SaveChangesAsync(cancellationToken);
         if (!await dbContext.Set<UserCustomList>()
                 .AnyAsync(candidate => candidate.AccountId == accountId && candidate.Id == listId, cancellationToken))
@@ -323,7 +328,12 @@ public sealed class UserListsRepository(ReelixDbContext dbContext) : IUserListsR
             .Where(item => item.ListId == listId)
             .Select(item => (int?)item.Position)
             .MaxAsync(cancellationToken) ?? -1;
-        var item = UserCustomListTitle.Create(listId, titleId, contentType, position + 1);
+        var item = UserCustomListTitle.Create(
+            listId,
+            titleId,
+            contentType,
+            position + 1,
+            clock.GetUtcNow());
         dbContext.Set<UserCustomListTitle>().Add(item);
         try
         {

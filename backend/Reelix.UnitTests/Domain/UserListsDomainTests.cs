@@ -1,14 +1,18 @@
 using Reelix.Domain.Users;
+using Reelix.UnitTests.Common;
 
 namespace Reelix.UnitTests.Domain;
 
 public sealed class UserListsDomainTests
 {
+    private static readonly DateTimeOffset Now = FixedTimeProvider.DefaultNow;
+
     [Fact]
     public void CreateCustomList_TrimsTextAndDefaultsDescriptionToNull()
     {
-        var list = UserCustomList.Create(Guid.NewGuid(), "  Para assistir  ", "  ");
+        var list = UserCustomList.Create(Guid.NewGuid(), "  Para assistir  ", "  ", Now);
 
+        Assert.Equal(Now, list.CreatedAt);
         Assert.Equal("Para assistir", list.Name);
         Assert.Null(list.Description);
         Assert.Equal(list.CreatedAt, list.UpdatedAt);
@@ -19,7 +23,7 @@ public sealed class UserListsDomainTests
     [InlineData("                                                                                 ")]
     public void CreateCustomList_RejectsInvalidName(string name)
     {
-        Assert.Throws<ArgumentException>(() => UserCustomList.Create(Guid.NewGuid(), name, null));
+        Assert.Throws<ArgumentException>(() => UserCustomList.Create(Guid.NewGuid(), name, null, Now));
     }
 
     [Fact]
@@ -28,7 +32,8 @@ public sealed class UserListsDomainTests
         Assert.Throws<ArgumentException>(() => UserCustomList.Create(
             Guid.NewGuid(),
             "Favoritos",
-            new string('d', 501)));
+            new string('d', 501),
+            Now));
     }
 
     [Fact]
@@ -53,13 +58,13 @@ public sealed class UserListsDomainTests
     public void CreateWatchlistTitle_RejectsUnsupportedContentType(string contentType)
     {
         Assert.Throws<ArgumentException>(() =>
-            UserWatchlistTitle.Create(Guid.NewGuid(), Guid.NewGuid(), contentType));
+            UserWatchlistTitle.Create(Guid.NewGuid(), Guid.NewGuid(), contentType, Now));
     }
 
     [Fact]
     public void CreateListTitle_RejectsNegativePosition()
     {
         Assert.Throws<ArgumentException>(() =>
-            UserCustomListTitle.Create(Guid.NewGuid(), Guid.NewGuid(), "movie", -1));
+            UserCustomListTitle.Create(Guid.NewGuid(), Guid.NewGuid(), "movie", -1, Now));
     }
 }

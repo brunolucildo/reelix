@@ -15,13 +15,13 @@ public sealed class UserAccount
 
     public DateTimeOffset CreatedAt { get; private set; }
 
-    public static UserAccount Create(Guid supabaseUserId)
+    public static UserAccount Create(Guid supabaseUserId, DateTimeOffset now)
     {
         if (supabaseUserId == Guid.Empty)
         {
             throw new ArgumentException("Informe um identificador de usuário Supabase válido.", nameof(supabaseUserId));
         }
 
-        return new UserAccount(Guid.NewGuid(), supabaseUserId, DateTimeOffset.UtcNow);
+        return new UserAccount(Guid.NewGuid(), supabaseUserId, now);
     }
 }

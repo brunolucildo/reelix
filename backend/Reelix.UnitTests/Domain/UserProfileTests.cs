@@ -1,9 +1,12 @@
 using Reelix.Domain.Users;
+using Reelix.UnitTests.Common;
 
 namespace Reelix.UnitTests.Domain;
 
 public sealed class UserProfileTests
 {
+    private static readonly DateTimeOffset Now = FixedTimeProvider.DefaultNow;
+
     [Fact]
     public void Create_DefaultsAllProfileVisibilityToPrivate()
     {
@@ -19,7 +22,7 @@ public sealed class UserProfileTests
     {
         var profile = UserProfile.Create(Guid.NewGuid());
 
-        profile.Update("  Cinefila  ", "  Amo cinema. ", true, false, false);
+        profile.Update("  Cinefila  ", "  Amo cinema. ", true, false, false, Now);
 
         Assert.Equal("Cinefila", profile.DisplayName);
         Assert.Equal("Amo cinema.", profile.Biography);
@@ -39,13 +42,14 @@ public sealed class UserProfileTests
             false,
             false,
             false,
+            Now,
             watchHistorySharedWithFriends: true,
             ratingsSharedWithFriends: true);
 
-        Assert.NotNull(profile.WatchHistorySharedWithFriendsSince);
-        Assert.NotNull(profile.RatingsSharedWithFriendsSince);
+        Assert.Equal(Now, profile.WatchHistorySharedWithFriendsSince);
+        Assert.Equal(Now, profile.RatingsSharedWithFriendsSince);
 
-        profile.Update(null, null, false, false, false);
+        profile.Update(null, null, false, false, false, Now.AddMinutes(1));
 
         Assert.False(profile.WatchHistorySharedWithFriends);
         Assert.False(profile.RatingsSharedWithFriends);
@@ -67,7 +71,7 @@ public sealed class UserProfileTests
     {
         var profile = UserProfile.Create(Guid.NewGuid());
         profile.SetAvatar(key);
-        profile.Update("Nome", null, false, false, false);
+        profile.Update("Nome", null, false, false, false, Now);
         Assert.Equal(key, profile.AvatarKey);
         profile.SetAvatar("initials");
         Assert.Null(profile.AvatarKey);
@@ -92,6 +96,7 @@ public sealed class UserProfileTests
             biographyLength == 0 ? null : new string('b', biographyLength),
             false,
             false,
-            false));
+            false,
+            Now));
     }
 }

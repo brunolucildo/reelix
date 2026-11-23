@@ -18,7 +18,7 @@ Fotografia em 2026-11-19. Implementação no código **não** comprova implanta�
 | Avaliações e comentários | Implementados, com proteção contra spoilers | Análise automática desativada; sem denúncias/moderação |
 | Social, notificações, gamificação | Implementados (inbox; ranking opt-in) | Push remoto desativado; sem alertas de catálogo |
 | Widgets Android | Escopo aprovado; **não implementado** | iOS adiado |
-| Testes | Backend: 202 testes xUnit | **Sem testes do mobile e sem E2E** |
+| Testes | Backend: 339 testes xUnit | **Sem testes do mobile e sem E2E** |
 
 ## Tecnologias
 

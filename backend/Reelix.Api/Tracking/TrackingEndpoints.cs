@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Reelix.Api.Authentication;
 using Reelix.Application.Catalog;
 using Reelix.Application.Tracking;
 using Reelix.Domain.Tracking;
@@ -347,7 +348,7 @@ public static class TrackingEndpoints
     }
 
     private static bool TryGetUserId(HttpContext context, out Guid userId) =>
-        Guid.TryParse(context.User.FindFirst("sub")?.Value, out userId) && userId != Guid.Empty;
+        context.User.ReadSubjectId(out userId);
 
     private static bool TryParseItemType(
         string? value,

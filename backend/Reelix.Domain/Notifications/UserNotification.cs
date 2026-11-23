@@ -50,7 +50,8 @@ public sealed class UserNotification
         string sourceKey,
         string title,
         string body,
-        string deepLink)
+        string deepLink,
+        DateTimeOffset now)
     {
         if (accountId == Guid.Empty ||
             !Enum.IsDefined(category) ||
@@ -70,12 +71,12 @@ public sealed class UserNotification
             title.Trim(),
             body.Trim(),
             deepLink,
-            DateTimeOffset.UtcNow);
+            now);
     }
 
-    public void MarkRead()
+    public void MarkRead(DateTimeOffset now)
     {
-        ReadAt ??= DateTimeOffset.UtcNow;
+        ReadAt ??= now;
     }
 
     private static bool IsSafeDeepLink(string? deepLink) =>

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Reelix.Api.Authentication;
 using Reelix.Application.Users;
 
 namespace Reelix.Api.Users;
@@ -82,5 +83,5 @@ public static class ProfileEndpoints
     }
 
     private static bool TryGetUserId(HttpContext context, out Guid userId) =>
-        Guid.TryParse(context.User.FindFirst("sub")?.Value, out userId) && userId != Guid.Empty;
+        context.User.ReadSubjectId(out userId);
 }

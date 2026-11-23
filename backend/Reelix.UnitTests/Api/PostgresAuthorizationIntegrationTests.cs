@@ -18,6 +18,7 @@ using Reelix.Domain.Catalog;
 using Reelix.Domain.Notifications;
 using Reelix.Infrastructure.Persistence;
 using Testcontainers.PostgreSql;
+using Reelix.UnitTests.Common;
 
 namespace Reelix.UnitTests.Api;
 
@@ -775,7 +776,7 @@ public sealed class PostgresAuthorizationFixture : IAsyncLifetime
         var reference = ExternalCatalogReference.Create(
             "tmdb",
             Guid.NewGuid().ToString("N"),
-            "movie");
+            "movie", FixedTimeProvider.DefaultNow);
         dbContext.ExternalCatalogReferences.Add(reference);
         await dbContext.SaveChangesAsync();
         return reference.Id;
@@ -793,7 +794,7 @@ public sealed class PostgresAuthorizationFixture : IAsyncLifetime
             Guid.NewGuid().ToString("N"),
             "Solicitação social",
             "Uma solicitação foi recebida.",
-            "/social");
+            "/social", FixedTimeProvider.DefaultNow);
         dbContext.UserNotifications.Add(notification);
         await dbContext.SaveChangesAsync();
         return notification.Id;
@@ -804,17 +805,14 @@ public sealed class PostgresAuthorizationApiFactory : WebApplicationFactory<Prog
 {
     private readonly RSA _signingKey = RSA.Create(2048);
     private readonly string _connectionString;
-    private readonly string? _previousSupabaseUrl =
-        Environment.GetEnvironmentVariable("Supabase__Url");
-    private readonly string? _previousConnectionString =
-        Environment.GetEnvironmentVariable("ConnectionStrings__Reelix");
+    private bool _environmentReleased;
 
     public PostgresAuthorizationApiFactory(string connectionString)
     {
         _connectionString = connectionString;
-        Environment.SetEnvironmentVariable(
-            "Supabase__Url",
-            "https://reelix-test.supabase.co");
+        // Shares the reference-counted environment of the other factories, so that disposing this
+        // one cannot clear the variables while another test class is still building its host.
+        ApiTestEnvironment.Acquire();
         Environment.SetEnvironmentVariable("ConnectionStrings__Reelix", connectionString);
     }
 
@@ -870,10 +868,11 @@ public sealed class PostgresAuthorizationApiFactory : WebApplicationFactory<Prog
         if (disposing)
         {
             _signingKey.Dispose();
-            Environment.SetEnvironmentVariable("Supabase__Url", _previousSupabaseUrl);
-            Environment.SetEnvironmentVariable(
-                "ConnectionStrings__Reelix",
-                _previousConnectionString);
+            if (!_environmentReleased)
+            {
+                _environmentReleased = true;
+                ApiTestEnvironment.Release();
+            }
         }
     }
 }

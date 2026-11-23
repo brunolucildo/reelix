@@ -6,8 +6,11 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { useSeriesProgress, useTrackedSeries } from '@/hooks/use-tracking';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogSeason, fetchCatalogTitleDetails } from '@/services/api-client';
-import type { TrackedSeriesPage } from '@/services/tracking-api';
+import type { TrackedSeriesPage } from '@/features/tracking/api/tracking-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { trackingQueryKeys } from '@/features/tracking/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
 
 type Props = {
   onOpenTracking: () => void;
@@ -70,13 +73,13 @@ export function TrackedSeriesSection({ onOpenTracking }: Props) {
 function TrackedSeriesCard({ item }: { item: TrackedSeriesPage['items'][number] }) {
   const router = useRouter();
   const title = useQuery({
-    queryKey: ['catalog', 'title', item.provider, 'series', item.externalId],
+    queryKey: catalogQueryKeys.title(item.provider, 'series', item.externalId),
     queryFn: ({ signal }) => fetchCatalogTitleDetails(item.provider!, 'series', item.externalId!, signal),
     enabled: Boolean(item.provider && item.externalId),
-    staleTime: 300_000,
+    staleTime: staleTime.catalog,
   });
   const season = useQuery({
-    queryKey: ['tracking', 'home-season', item.seriesId, item.latestEpisodeId, item.knownSeasonNumbers],
+    queryKey: trackingQueryKeys.homeSeason(item.seriesId, item.latestEpisodeId, item.knownSeasonNumbers),
     queryFn: async ({ signal }) => {
       for (const number of item.knownSeasonNumbers ?? []) {
         const details = await fetchCatalogSeason(item.provider!, item.externalId!, number, signal);

@@ -5,7 +5,8 @@ namespace Reelix.Application.Ratings;
 public sealed class CommentModerationProcessor(
     IRatingsCommentsRepository repository,
     ICommentSpoilerClassifier classifier,
-    ILogger<CommentModerationProcessor> logger)
+    ILogger<CommentModerationProcessor> logger,
+    TimeProvider clock)
 {
     private const int BatchSize = 5;
     private const int MaxAttempts = 3;
@@ -14,7 +15,7 @@ public sealed class CommentModerationProcessor(
     {
         var workItems = await repository.ClaimModerationWorkAsync(
             BatchSize,
-            DateTimeOffset.UtcNow,
+            clock.GetUtcNow(),
             TimeSpan.FromMinutes(2),
             cancellationToken);
         foreach (var workItem in workItems)
@@ -66,6 +67,6 @@ public sealed class CommentModerationProcessor(
         repository.FailModerationAsync(
             workItem,
             MaxAttempts,
-            DateTimeOffset.UtcNow.AddMinutes(1),
+            clock.GetUtcNow().AddMinutes(1),
             cancellationToken);
 }

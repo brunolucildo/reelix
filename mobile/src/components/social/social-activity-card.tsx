@@ -10,15 +10,18 @@ import { UserAvatar } from '@/components/user-avatar';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogTitleDetails, type SocialActivityData } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
+import { formatActivityTime } from '@/lib/format';
 
 export function SocialActivityCard({ activity, compact = false }: { activity: SocialActivityData; compact?: boolean }) {
   const router = useRouter();
   const contentType = activity.targetType === 'series' ? 'series' : 'movie';
   const title = useQuery({
-    queryKey: ['catalog', 'title', activity.provider, contentType, activity.externalId],
+    queryKey: catalogQueryKeys.title(activity.provider, contentType, activity.externalId),
     queryFn: ({ signal }) => fetchCatalogTitleDetails(activity.provider, contentType, activity.externalId, signal),
     enabled: !compact && activity.targetType !== 'episode',
-    staleTime: 300_000,
+    staleTime: staleTime.catalog,
   });
   useErrorToast(title.error, 'Não foi possível carregar os detalhes do título.');
   const typeLabel = activity.targetType === 'movie' ? 'Filme' : activity.targetType === 'series' ? 'Série' : 'Episódio';
@@ -57,15 +60,6 @@ export function SocialActivityCard({ activity, compact = false }: { activity: So
     </Pressable>
     {title.isError ? <PrimaryButton label="Tentar novamente" onPress={() => void title.refetch()} variant="quiet" /> : null}
   </View>;
-}
-
-function formatActivityTime(value: string) {
-  const date = new Date(value);
-  const minutes = Math.max(0, Math.floor((Date.now() - date.getTime()) / 60_000));
-  if (minutes < 1) return 'Agora';
-  if (minutes < 60) return `Há ${minutes} min`;
-  if (minutes < 1440) return `Há ${Math.floor(minutes / 60)} h`;
-  return date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 const styles = StyleSheet.create({

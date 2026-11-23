@@ -1,3 +1,4 @@
+using Reelix.Application.Errors;
 using Reelix.Domain.Notifications;
 
 namespace Reelix.Application.Notifications;
@@ -70,7 +71,8 @@ public sealed record ExpoReceiptResponse(
     string? ErrorCode,
     bool DeviceNotRegistered);
 
-public sealed class NotificationDeviceConflictException(string message) : Exception(message);
+public sealed class NotificationDeviceConflictException(string message)
+    : ConflictError(message, "Dispositivo já associado.");
 
 public interface IPushRegistrationConfiguration
 {

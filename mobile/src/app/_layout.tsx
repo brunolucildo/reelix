@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import {
   Sora_400Regular,
   Sora_500Medium,
@@ -12,19 +12,35 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { useEffect } from 'react';
 import * as Notifications from 'expo-notifications';
 
+import { SESSION_EXPIRED_MESSAGE } from '@/lib/api-error';
+import { createQueryClient } from '@/lib/query/create-query-client';
+import {
+  notifyUnauthorized,
+  setUnauthorizedListener,
+} from '@/lib/query/unauthorized-listener';
 import { AuthProvider, useAuthSession } from '@/providers/auth-provider';
-import { ToastProvider } from '@/providers/toast-provider';
+import { ToastProvider, useToast } from '@/providers/toast-provider';
 import { colors, fontFamily, spacing, typography } from '@/theme/tokens';
 import { markNotificationRead } from '@/services/api-client';
+import { notificationsQueryKeys } from '@/features/notifications/query-keys';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 30_000,
-    },
-  },
-});
+const queryClient = createQueryClient(notifyUnauthorized);
+
+function SessionExpiryListener() {
+  const { expireSession } = useAuthSession();
+  const { showError } = useToast();
+
+  useEffect(() => {
+    setUnauthorizedListener(() => {
+      if (expireSession()) {
+        showError(SESSION_EXPIRED_MESSAGE);
+      }
+    });
+    return () => setUnauthorizedListener(null);
+  }, [expireSession, showError]);
+
+  return null;
+}
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -55,8 +71,8 @@ function RootNavigator() {
         void markNotificationRead(notificationId)
           .then(async () => {
             await Promise.all([
-              queryClient.invalidateQueries({ queryKey: ['notification-inbox'] }),
-              queryClient.invalidateQueries({ queryKey: ['notification-unread-count'] }),
+              queryClient.invalidateQueries({ queryKey: notificationsQueryKeys.inbox }),
+              queryClient.invalidateQueries({ queryKey: notificationsQueryKeys.unreadCount }),
             ]);
           })
           .catch((error: unknown) => {
@@ -173,6 +189,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <AuthProvider>
+          <SessionExpiryListener />
           <RootNavigator />
         </AuthProvider>
       </ToastProvider>

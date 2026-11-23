@@ -26,7 +26,7 @@ public sealed class UserWatchlistTitle
         Guid accountId,
         Guid titleId,
         string contentType,
-        DateTimeOffset? addedAt = null)
+        DateTimeOffset addedAt)
     {
         if (accountId == Guid.Empty || titleId == Guid.Empty ||
             contentType is not ("movie" or "series"))
@@ -34,6 +34,6 @@ public sealed class UserWatchlistTitle
             throw new ArgumentException("Informe conta, título e tipo de conteúdo válidos.");
         }
 
-        return new UserWatchlistTitle(accountId, titleId, contentType, addedAt ?? DateTimeOffset.UtcNow);
+        return new UserWatchlistTitle(accountId, titleId, contentType, addedAt);
     }
 }

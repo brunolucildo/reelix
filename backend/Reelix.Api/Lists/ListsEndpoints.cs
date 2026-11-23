@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Reelix.Api.Authentication;
 using Reelix.Application.Catalog;
 using Reelix.Application.Lists;
 
@@ -430,7 +431,7 @@ public static class ListsEndpoints
             detail: "A lista não existe ou não está disponível para esta conta.");
 
     private static bool TryGetUserId(HttpContext context, out Guid userId) =>
-        Guid.TryParse(context.User.FindFirst("sub")?.Value, out userId) && userId != Guid.Empty;
+        context.User.ReadSubjectId(out userId);
 }
 
 public sealed record TitleMutationRequest(CatalogContentType ContentType);

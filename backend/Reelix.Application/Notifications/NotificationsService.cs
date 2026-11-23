@@ -1,5 +1,5 @@
-using System.Text.Json;
 using Reelix.Application.Authentication;
+using Reelix.Application.Common;
 using Reelix.Domain.Notifications;
 
 namespace Reelix.Application.Notifications;
@@ -121,11 +121,8 @@ public sealed class NotificationsService(
     private static NotificationDeviceData ToData(NotificationDevice device) =>
         new(device.Id, device.Platform, device.CreatedAt, device.LastRegisteredAt);
 
-    private static string EncodeCursor(DateTimeOffset createdAt, Guid id)
-    {
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(new NotificationCursor(createdAt, id));
-        return Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
-    }
+    private static string EncodeCursor(DateTimeOffset createdAt, Guid id) =>
+        CursorCodec.EncodeJson(new NotificationCursor(createdAt, id));
 
     private static NotificationCursor? DecodeCursor(string? encodedCursor)
     {
@@ -134,30 +131,12 @@ public sealed class NotificationsService(
             return null;
         }
 
-        if (encodedCursor.Length > 200)
-        {
-            throw new ArgumentException("O cursor da caixa de entrada é inválido.", nameof(encodedCursor));
-        }
-
-        try
-        {
-            var value = encodedCursor.Replace('-', '+').Replace('_', '/');
-            value = value.PadRight(value.Length + ((4 - value.Length % 4) % 4), '=');
-            var cursor = JsonSerializer.Deserialize<NotificationCursor>(Convert.FromBase64String(value));
-            if (cursor is null || cursor.Id == Guid.Empty)
-            {
-                throw new ArgumentException("O cursor da caixa de entrada é inválido.", nameof(encodedCursor));
-            }
-
-            return cursor;
-        }
-        catch (FormatException exception)
-        {
-            throw new ArgumentException("O cursor da caixa de entrada é inválido.", nameof(encodedCursor), exception);
-        }
-        catch (JsonException exception)
-        {
-            throw new ArgumentException("O cursor da caixa de entrada é inválido.", nameof(encodedCursor), exception);
-        }
+        var cursor = CursorCodec.DecodeJson<NotificationCursor>(encodedCursor, InvalidCursor);
+        return cursor is null || cursor.Id == Guid.Empty
+            ? throw InvalidCursor(null)
+            : cursor;
     }
+
+    private static ArgumentException InvalidCursor(Exception? innerException) =>
+        new("O cursor da caixa de entrada é inválido.", "encodedCursor", innerException);
 }

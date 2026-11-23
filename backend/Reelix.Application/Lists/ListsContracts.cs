@@ -1,3 +1,5 @@
+using Reelix.Application.Errors;
+
 namespace Reelix.Application.Lists;
 
 public sealed record TitleListItem(
@@ -146,4 +148,4 @@ public interface IUserListsRepository
 }
 
 public sealed class CatalogTitleNotFoundException()
-    : Exception("O título não está disponível no catálogo.");
+    : NotFoundError("O título não está disponível no catálogo.");

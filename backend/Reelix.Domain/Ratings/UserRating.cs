@@ -52,12 +52,12 @@ public sealed class UserRating
         ReviewTargetType targetType,
         Guid? seriesId,
         decimal value,
-        ReviewAudience audience)
+        ReviewAudience audience,
+        DateTimeOffset now)
     {
         ValidateTarget(accountId, targetId, targetType, seriesId);
         ValidateValue(value);
         ValidateAudience(audience);
-        var now = DateTimeOffset.UtcNow;
         return new UserRating(
             Guid.NewGuid(),
             accountId,
@@ -70,13 +70,13 @@ public sealed class UserRating
             now);
     }
 
-    public void Update(decimal value, ReviewAudience audience)
+    public void Update(decimal value, ReviewAudience audience, DateTimeOffset now)
     {
         ValidateValue(value);
         ValidateAudience(audience);
         Value = value;
         Audience = audience;
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = now;
     }
 
     public static void ValidateValue(decimal value)

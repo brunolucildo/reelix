@@ -1,9 +1,12 @@
 using Reelix.Domain.Ratings;
+using Reelix.UnitTests.Common;
 
 namespace Reelix.UnitTests.Domain;
 
 public sealed class UserCommentTests
 {
+    private static readonly DateTimeOffset Now = FixedTimeProvider.DefaultNow;
+
     [Fact]
     public void Create_NormalizesContentAndPublishesWhenAnalysisIsDisabled()
     {
@@ -16,9 +19,12 @@ public sealed class UserCommentTests
             containsSpoiler: false,
             ReviewAudience.Private,
             requestAutomatedAnalysis: true,
-            automatedAnalysisEnabled: false);
+            automatedAnalysisEnabled: false,
+            Now);
 
         Assert.Equal("comentário", comment.Content);
+        Assert.Equal(Now, comment.CreatedAt);
+        Assert.Equal(Now, comment.UpdatedAt);
         Assert.Equal(CommentModerationStatus.Published, comment.ModerationStatus);
         Assert.False(comment.AutomatedAnalysisRequested);
     }
@@ -49,7 +55,8 @@ public sealed class UserCommentTests
                 false,
                 ReviewAudience.Private,
                 false,
-                false));
+                false,
+                Now));
     }
 
     [Fact]
@@ -60,17 +67,19 @@ public sealed class UserCommentTests
         var initialVersion = comment.ModerationVersion;
         Assert.True(comment.TryClaimModeration(
             leaseId,
-            DateTimeOffset.UtcNow.AddMinutes(2),
-            DateTimeOffset.UtcNow));
+            Now.AddMinutes(2),
+            Now));
 
         comment.Update(
             "Updated content",
             containsSpoiler: true,
             ReviewAudience.Public,
             requestAutomatedAnalysis: true,
-            automatedAnalysisEnabled: true);
-        comment.CompleteModeration(initialVersion, leaseId, possibleSpoiler: false);
+            automatedAnalysisEnabled: true,
+            Now.AddMinutes(1));
+        comment.CompleteModeration(initialVersion, leaseId, possibleSpoiler: false, Now.AddMinutes(1));
 
+        Assert.Equal(Now.AddMinutes(1), comment.UpdatedAt);
         Assert.Equal(initialVersion + 1, comment.ModerationVersion);
         Assert.Equal(CommentModerationStatus.Pending, comment.ModerationStatus);
         Assert.True(comment.ContainsSpoiler);
@@ -81,7 +90,7 @@ public sealed class UserCommentTests
     public void RepeatedAnalysisFailuresPublishWithConservativeSpoilerFlag()
     {
         var comment = CreateComment(requestAutomatedAnalysis: true);
-        var now = DateTimeOffset.UtcNow;
+        var now = Now;
 
         for (var attempt = 0; attempt < 3; attempt++)
         {
@@ -114,5 +123,6 @@ public sealed class UserCommentTests
             containsSpoiler,
             ReviewAudience.Private,
             requestAutomatedAnalysis,
-            automatedAnalysisEnabled: true);
+            automatedAnalysisEnabled: true,
+            Now);
 }

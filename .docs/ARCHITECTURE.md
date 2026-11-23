@@ -31,7 +31,7 @@ Limites que valem para todos os módulos (detalhes por spec e em `QA.md`):
 - Push remoto (Expo) vem **desativado** por padrão; a análise de spoilers via OpenAI está **temporariamente desativada**; alertas de catálogo (novos episódios e estreias) não têm fonte nem agendamento.
 - Recomendação por IA, posts e reações sociais, denúncias/moderação administrativa, upload de avatar e exclusão/exportação de conta **não** existem.
 - Não há observabilidade implantada (métricas, traces, alertas, crash reporting); logs estruturados padrão do ASP.NET Core apenas.
-- Não existem testes automatizados do mobile nem E2E; o backend tem 202 testes (xUnit) que passam (`QA.md` §1).
+- Não existem testes automatizados do mobile nem E2E; o backend tem 339 testes (xUnit) que passam (`QA.md` §1).
 
 ### 2.1 Portas e endereços
 
@@ -123,7 +123,9 @@ A verificação **mecânica** dessas regras (testes de arquitetura) ainda não e
 | Domínio          | `Reelix.Domain`         | Entidades com invariantes e `private set` (160 setters privados, nenhum público), factories e máquinas de estado (`NotificationDelivery`, `FriendRelationship`) |
 | Aplicação        | `Reelix.Application`    | Um `*Service` por módulo (8 a 15 métodos), `*Contracts.cs` que misturam DTOs, ports e exceções, processors dos workers; só `GetAuthenticatedAccount` é um caso de uso por fluxo |
 | Infraestrutura   | `Reelix.Infrastructure` | `ReelixDbContext` único (362 linhas), repositórios, configurations EF, adaptadores TMDB/OMDb/OpenAI/Expo, migrations                                          |
-| Interface (HTTP) | `Reelix.Api`            | `*Endpoints.cs` por módulo (minimal API com métodos estáticos que injetam o service direto), `Program.cs` (244 linhas), workers finos, `wwwroot/dev-auth.html`   |
+| Interface (HTTP) | `Reelix.Api`            | `*Endpoints.cs` por módulo (minimal API com métodos estáticos que injetam o service direto), `Program.cs` (86 linhas, só composição), workers finos, `wwwroot/dev-auth.html`   |
+
+**Fundação transversal já entregue (spec `0013`, `.adrs/0012-use-case-por-fluxo-handler-por-endpoint-e-erros-de-aplicacao.md` (proposto)):** `TimeProvider` injetado (o Domain recebe `now` por parâmetro); `ICurrentUser`/`CurrentUserExtensions` como única leitura do `sub`; port de conta com `FindAsync` (não cria) e `EnsureAsync` (cria); hierarquia `ApplicationError` em `Application/Errors` e **um** mapeamento para `ProblemDetails` por filtro de endpoint (`WithApplicationProblems`, em `Api/Errors`) que os módulos adotam ao migrar; `PageRequest` com políticas nomeadas e `CursorCodec` em `Application/Common`; DI por módulo (`Add<Modulo>Application`/`Add<Modulo>Infrastructure`); registro único dos limites de requisição em `Api/RateLimiting`; `GET /auth/me` em `Api/Authentication` como piloto do padrão de DTO (`Contracts/`) e de handler (`Handlers/`). Os fluxos em si ainda estão nos services gordos até as specs `0014` a `0016`.
 
 **Alvo** (a implementar por specs; registrar ADR ao implementar): fatia vertical por módulo **e por fluxo**, mantendo os quatro projetos.
 
@@ -139,18 +141,23 @@ Regras de qualidade do alvo: `CancellationToken` em toda operação de I/O; `GET
 
 ### 4.3 Mobile: composição hoje e alvo
 
-**Hoje** (12,5 mil linhas em `mobile/src`; telas 9,1 mil):
+**Hoje** (spec `0017` aplicada: fundação HTTP e dados; telas e hooks seguem para a `0018`):
 
 ```text
 mobile/src/
   app/          # rotas do Expo Router; telas grandes com dados, estado e UI juntos
   components/   # por tipo: auth/, discovery/, social/, reviews/, navigation/, gamification/
+  features/     # <modulo>/api/*-api.ts (schemas zod + funções) e <modulo>/query-keys.ts: account, onboarding,
+                #   catalog, profile, social, notifications, gamification, ratings, lists, tracking
   hooks/        # só use-tracking.ts
+  lib/          # api-error.ts, http-client.ts, format.ts, pagination.ts, query/ (createQueryClient, stale-time)
   providers/    # auth-provider.tsx, toast-provider.tsx
   schemas/      # só auth-forms.ts
-  services/     # api-client.ts (848 linhas), lists-api.ts, tracking-api.ts, supabase.ts, ...
+  services/     # api-client.ts (barrel temporário de 10 linhas), api-url.ts, supabase.ts, ...
   theme/        # tokens.ts
 ```
+
+Fundação de dados (spec `0017`, ADR `0013`): **um** cliente HTTP (`lib/http-client`, `httpRequest`) é o único ponto com `fetch` à API; erro tipado `ApiError` (`status`, `title`, `detail`) mais erros de rede e de contrato, traduzidos por `toUserMessage`; 401 tratado globalmente no `QueryClient` (`createQueryClient`: sessão local encerrada sem revogar push, cache limpo, um toast, sem retry de 401); fábricas de query key por domínio (`features/<modulo>/query-keys.ts`) com uma chave por recurso (detalhe de título em `catalogQueryKeys.title`); `lib/pagination`, `lib/query/stale-time` e `lib/format` (pt-BR). `services/api-client.ts` reexporta os nomes anteriores e some quando as telas passarem a importar de `features/` (spec `0018`).
 
 **Alvo** (specs de arquitetura do mobile): organização por feature (`features/<modulo>/{api,hooks,components}`), um `http-client` único com erro tipado `ApiError`, fábricas de query key por feature, hooks de query/mutation por feature, telas finas que só compõem, primitivos de UI compartilhados em `components/ui`, formulários com zod + React Hook Form, utilidades de formatação em `lib/`, tratamento global de 401 no `QueryClient`.
 
@@ -263,27 +270,27 @@ ADRs vivem em `./.adrs/` (`0001` a `0011`, registros retroativos). Crie `./.adrs
 
 1. **Regra de negócio em repositórios:** `GamificationRepository.GetDashboardAsync` abre transação `RepeatableRead` com `SELECT … FOR UPDATE`, avalia regras de conquista, concede/revoga e calcula estatísticas; `NotificationsRepository.ProcessSocialEventAsync` decide por string de `EventType`. As regras não são testáveis sem PostgreSQL e um `GET` grava.
 2. **Sem caso de uso por fluxo:** serviços com 8 a 15 métodos (`TrackingService` 11, `UserListsService` ~15); endpoints repetem a extração do `sub` (`TryGetUserId` em 8 arquivos, `Results.Unauthorized` ~63 vezes), o parse de enums e o mapeamento de exceção, e injetam o service direto.
-3. **Erros por exceção sem contrato único:** `InvalidOperationException` vira 409 em Social e 503 em Notifications; `ToUserMessage()` é aplicado em alguns módulos e não em outros (Social/Gamification/Notifications podem vazar o sufixo `(Parameter '…')`).
-4. **Sem abstração de tempo:** 41 usos de `UtcNow` em Domain e outros em Application/Infrastructure; não existe `TimeProvider`. Regras temporais (episódio lançado, data futura, leases, backoff) não são determinísticas nos testes.
+3. **Erros por exceção sem contrato único (parcial):** a hierarquia `ApplicationError` e o mapeador único existem (spec `0013`), mas os endpoints ainda têm `try/catch` próprio: `InvalidOperationException` vira 409 em Social e 503 em Notifications; `ToUserMessage()` é aplicado em alguns módulos e não em outros (Social/Gamification/Notifications ainda vazam o sufixo `(Parameter '…')` até migrarem; `0014` e `0016`).
+4. ~~**Sem abstração de tempo**~~ **Resolvido (spec `0013`):** `TimeProvider` é registrado e injetado, o Domain recebe o instante por parâmetro e nenhum arquivo de Domain, Application ou Infrastructure usa `DateTime(Offset).UtcNow`; os testes usam um relógio fixo (`FixedTimeProvider`, escrito à mão).
 5. **Application conhece detalhes de HTTP e de fornecedor:** `CatalogProviderException` carrega `HttpStatusCode`/`RetryAfter`; processors capturam `HttpRequestException`; `IExpoPushClient` é um port com nome de fornecedor; `TrackingCatalog` (Infrastructure) depende do `CatalogService` concreto.
 6. **Domain vaza até a Api:** `SocialService` devolve `FriendRelationship`; endpoints usam `ReviewTargetType`, `FriendRelationshipStatus` e `TrackingItemType` de `Reelix.Domain`.
 7. **DTOs de Application como contrato HTTP** e `*Contracts.cs` misturando DTOs, ports e exceções (`CatalogContracts` 217 linhas): mudar a API pública exige mudar Application.
 8. **Repositórios gordos e acesso cruzado de tabelas:** `NotificationsRepository` 500 linhas, `SocialRepository` 429, `GamificationRepository` 422; `IUserListsRepository` com 16 operações; quatro variantes de "o título existe no catálogo"; `GamificationRepository`, `SocialRepository` e `NotificationsRepository` leem tabelas de outros módulos.
-9. **Duplicação transversal:** `GetOrCreateAsync` 36 vezes; `ValidatePage` 3 vezes com limites divergentes (100 mil/1 milhão de páginas); cursor base64 repetido; cache estático em `CatalogGenreService`.
-10. **Composição irregular:** dois `TrackingDependencyInjection` (namespaces diferentes), DI de Lists/Tracking em níveis distintos, `Program.cs` com quatro políticas de rate limit copiadas e opções TMDB/OMDb sem `ValidateOnStart`.
+9. **Duplicação transversal (parcial):** `ValidatePage`, cursor base64 e o cache estático de `CatalogGenreService` foram unificados (`PagePolicy`/`PageRequest`, `CursorCodec`, `ICatalogGenreCache`); os limites de página continuam diferentes por fluxo de propósito. Resta `GetOrCreateAsync` 36 vezes, que `0014` a `0016` trocam por `FindAsync`/`EnsureAsync`.
+10. ~~**Composição irregular**~~ **Resolvido (spec `0013`):** DI por módulo no mesmo padrão e nível de pasta (sem nome de classe repetido), `Program.cs` com 86 linhas, uma tabela de rate limit e opções TMDB/OMDb com `ValidateOnStart` (credencial ausente continua válida; só valor malformado derruba a partida).
 
 **Já está bem feito (preservar):** grafo de projetos correto; Application sem EF; ports em Application; Domain rico e sem dependências; workers finos; outbox Social → Notifications; opções de Expo/OpenAI validadas na partida; isolamento entre contas testado em PostgreSQL real; interfaces de catálogo segregadas.
 
 ### 6.2 Arquitetura do mobile (auditoria de 2026-11-19)
 
 1. **Telas "god component":** `lists.tsx` 995 linhas, `tracking.tsx` 903, `onboarding.tsx` 748, `gamification.tsx` 638, `rating-review-section.tsx` 771; dados, estado de formulário e UI no mesmo arquivo (`tracking.tsx` tem 18 `useState`).
-2. **Três clientes HTTP duplicados** (`apiRequest`, `trackingRequest`, `request`) e `api-client.ts` monolítico de 848 linhas (schemas e fetch de ~12 domínios).
-3. **Camada de hooks quase inexistente:** só `use-tracking.ts`; 93 `queryKey` inline sem fábrica (exceto `trackingQueryKeys`), com o mesmo título sob chaves diferentes e cache fragmentado; `getNextPageParam` reescrito 10 vezes.
-4. **Erro e sessão espalhados:** `useErrorToast` 79 vezes, "Sua sessão expirou" 11 vezes, sem `ApiError` tipado nem tratamento global de 401.
+2. ~~**Três clientes HTTP duplicados** (`apiRequest`, `trackingRequest`, `request`) e `api-client.ts` monolítico de 848 linhas (schemas e fetch de ~12 domínios).~~ **Resolvido pela spec `0017`:** `lib/http-client` único; `api-client.ts` dividido por domínio em `features/<modulo>/api/` (barrel de 10 linhas).
+3. **Camada de hooks quase inexistente:** só `use-tracking.ts` (**pendente, spec `0018`**). ~~93 `queryKey` inline sem fábrica, com o mesmo título sob chaves diferentes e cache fragmentado; `getNextPageParam` reescrito 10 vezes.~~ **Resolvido pela `0017`:** fábricas por domínio, uma chave por título, `lib/pagination`.
+4. ~~**Erro e sessão espalhados:** `useErrorToast` 79 vezes, "Sua sessão expirou" 11 vezes, sem `ApiError` tipado nem tratamento global de 401.~~ **Resolvido pela spec `0017`:** `ApiError`, `toUserMessage`, mensagem de sessão em uma constante e 401 global no `QueryClient` (`useErrorToast` segue em uso e ignora 401).
 5. **Guardas duplicadas:** 8 telas repetem `Redirect` apesar de `Stack.Protected`.
 6. **Primitivos de UI mal localizados e duplicados:** `PrimaryButton` em `components/auth/`; toggles, chips, pager e estados de loading/erro reimplementados por tela.
 7. **Formulários não-auth sem zod/RHF** (validação manual com `useState`).
-8. **Formatação e paginação duplicadas** (~20 usos de `Intl.DateTimeFormat`/`toLocale*`), sem módulo `lib/`.
+8. ~~**Formatação e paginação duplicadas** (~20 usos de `Intl.DateTimeFormat`/`toLocale*`), sem módulo `lib/`.~~ **Resolvido pela spec `0017`:** `lib/format`, `lib/pagination` e `lib/query/stale-time` (as três cópias de iniciais viram `getInitials` na `0018`).
 
 **Já está bem feito (preservar):** disciplina de tokens (zero hex em telas e componentes), validação zod de toda resposta, autenticação (PKCE, `Stack.Protected`, signOut que revoga push e limpa cache), convenção toast × inline cumprida, acessibilidade acima da média (164 `accessibilityRole`, 103 `accessibilityLabel`), `trackingQueryKeys` como modelo de fábrica.
 

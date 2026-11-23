@@ -11,6 +11,8 @@ import { useAuthSession } from '@/providers/auth-provider';
 import { ToastViewport, useErrorToast, useToast } from '@/providers/toast-provider';
 import { fetchGamificationDashboard, fetchProfile } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { gamificationQueryKeys } from '@/features/gamification/query-keys';
+import { profileQueryKeys } from '@/features/profile/query-keys';
 import ProfileIcon from '../../../assets/brand/navigation-icons/profile.svg';
 import FavoritesIcon from '../../../assets/brand/navigation-icons/favorites.svg';
 import ListsIcon from '../../../assets/brand/navigation-icons/list-add.svg';
@@ -44,9 +46,9 @@ export function UserDrawer() {
   const [confirming, setConfirming] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [offset] = useState(() => new Animated.Value(-dimensions.drawerWidth));
-  const profile = useQuery({ queryKey: ['profile'], queryFn: fetchProfile, enabled: Boolean(session) });
+  const profile = useQuery({ queryKey: profileQueryKeys.profile, queryFn: fetchProfile, enabled: Boolean(session) });
   const gamification = useQuery({
-    queryKey: ['gamification', 'dashboard'],
+    queryKey: gamificationQueryKeys.dashboard,
     queryFn: ({ signal }) => fetchGamificationDashboard(signal),
     enabled: Boolean(session) && visible,
   });

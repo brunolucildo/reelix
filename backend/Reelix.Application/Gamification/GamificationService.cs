@@ -1,5 +1,6 @@
 using System.Globalization;
 using Reelix.Application.Authentication;
+using Reelix.Application.Common;
 
 namespace Reelix.Application.Gamification;
 
@@ -94,11 +95,8 @@ public sealed class GamificationService(
             return null;
         }
 
-        try
+        if (CursorCodec.TryDecodeText(cursor, out var decoded))
         {
-            var encoded = cursor.Replace('-', '+').Replace('_', '/');
-            encoded = encoded.PadRight(encoded.Length + (4 - encoded.Length % 4) % 4, '=');
-            var decoded = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(encoded));
             var parts = decoded.Split(':', 2);
             if (parts.Length == 2 &&
                 int.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out var count) &&
@@ -108,9 +106,6 @@ public sealed class GamificationService(
             {
                 return new GamificationRankingCursor(count, accountId);
             }
-        }
-        catch (FormatException)
-        {
         }
 
         throw new ArgumentException("O cursor de paginação é inválido.", nameof(cursor));

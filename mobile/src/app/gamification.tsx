@@ -25,12 +25,17 @@ import {
   type GamificationStatistics,
 } from '@/services/api-client';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { gamificationQueryKeys } from '@/features/gamification/query-keys';
+import { getNextCursor } from '@/lib/pagination';
+import { staleTime } from '@/lib/query/stale-time';
+import { formatDate, formatDateTimeMedium, formatMonthYear, formatNumber } from '@/lib/format';
 
 export default function GamificationScreen() {
   const queryClient = useQueryClient();
   const { showError } = useToast();
   const dashboard = useQuery({
-    queryKey: ['gamification', 'dashboard'],
+    queryKey: gamificationQueryKeys.dashboard,
     queryFn: ({ signal }) => fetchGamificationDashboard(signal),
   });
   const now = new Date();
@@ -39,7 +44,7 @@ export default function GamificationScreen() {
   const periodStart = new Date(Date.UTC(year, month - 1, 1));
   const periodEnd = new Date(Date.UTC(year, month, 1));
   const periodStatistics = useQuery({
-    queryKey: ['gamification', 'statistics', periodStart.toISOString(), periodEnd.toISOString()],
+    queryKey: gamificationQueryKeys.statistics(periodStart.toISOString(), periodEnd.toISOString()),
     queryFn: ({ signal }) => fetchGamificationStatistics(periodStart, periodEnd, signal),
   });
   const activityHistory = useTrackingHistory(1, 20);
@@ -48,7 +53,7 @@ export default function GamificationScreen() {
       const contentType = activity.type === 'movie' ? 'movie' : 'series';
       const externalId = activity.type === 'movie' ? activity.externalId : activity.seriesExternalId;
       return {
-        queryKey: ['gamification', 'activity-title', activity.id, activity.provider, externalId],
+        queryKey: catalogQueryKeys.title(activity.provider, contentType, externalId),
         queryFn: ({ signal }: { signal: AbortSignal }) => {
           if (!activity.provider || !externalId) {
             throw new Error('Os detalhes deste conteúdo não estão disponíveis.');
@@ -56,7 +61,7 @@ export default function GamificationScreen() {
           return fetchCatalogTitleDetails(activity.provider, contentType, externalId, signal);
         },
         enabled: Boolean(activity.provider && externalId),
-        staleTime: 300_000,
+        staleTime: staleTime.catalog,
       };
     }),
   });
@@ -71,33 +76,31 @@ export default function GamificationScreen() {
     [activityHistory.data?.items],
   );
   const ranking = useInfiniteQuery({
-    queryKey: ['gamification', 'ranking', year, month],
+    queryKey: gamificationQueryKeys.ranking(year, month),
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam, signal }) =>
       fetchMonthlyFriendsRanking(year, month, pageParam, signal),
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    getNextPageParam: getNextCursor,
     enabled: dashboard.data?.preferences.rankingEnabled === true,
   });
   const preferencesMutation = useMutation({
     mutationFn: saveGamificationPreferences,
     onSuccess: (preferences) => {
       queryClient.setQueryData(
-        ['gamification', 'dashboard'],
+        gamificationQueryKeys.dashboard,
         (current: typeof dashboard.data) => current
           ? { ...current, preferences }
           : current,
       );
-      void queryClient.invalidateQueries({ queryKey: ['gamification', 'ranking'] });
+      void queryClient.invalidateQueries({ queryKey: gamificationQueryKeys.rankingAll });
     },
     onError: (error) => {
       showError(error instanceof Error ? error.message : 'Não foi possível salvar as preferências.');
-      void queryClient.invalidateQueries({ queryKey: ['gamification', 'dashboard'] });
+      void queryClient.invalidateQueries({ queryKey: gamificationQueryKeys.dashboard });
     },
   });
 
-  useErrorToast(dashboard.error, dashboard.error && 'status' in dashboard.error && dashboard.error.status === 401
-    ? 'Sua sessão expirou. Entre novamente para continuar.'
-    : 'Não foi possível carregar suas conquistas.');
+  useErrorToast(dashboard.error, 'Não foi possível carregar suas conquistas.');
   useErrorToast(periodStatistics.error, 'Não foi possível carregar as estatísticas do período.');
   useErrorToast(activityHistory.error, 'Não foi possível carregar o histórico de atividades.');
   useErrorToast(
@@ -146,7 +149,7 @@ export default function GamificationScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
-            Este mês · {new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(now)}
+            Este mês · {formatMonthYear(now)}
           </Text>
           {periodStatistics.isPending ? (
             <ActivityIndicator color={colors.brand} />
@@ -188,8 +191,7 @@ export default function GamificationScreen() {
                       <Text style={styles.caption}>
                         {item.type === 'movie' ? 'Filme assistido' : 'Episódio assistido'}
                         {' · '}
-                        {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeStyle: 'short' })
-                          .format(new Date(item.watchedAt))}
+                        {formatDateTimeMedium(new Date(item.watchedAt))}
                       </Text>
                     </View>
                     {activityTitleById.get(item.id)?.posterUrl ? (
@@ -299,9 +301,7 @@ function StatisticsSummary({ statistics }: { statistics: GamificationStatistics 
       <Text style={styles.body}>
         {statistics.estimatedWatchHours === null
           ? 'Tempo estimado indisponível: ainda não há durações conhecidas.'
-          : `Tempo estimado: ${statistics.estimatedWatchHours.toLocaleString('pt-BR', {
-            maximumFractionDigits: 2,
-          })} h`}
+          : `Tempo estimado: ${formatNumber(statistics.estimatedWatchHours, { maximumFractionDigits: 2 })} h`}
       </Text>
       <Text style={styles.body}>
         Cobertura de duração: {statistics.itemsWithRuntime}/{statistics.itemsWithRuntime + statistics.itemsWithoutRuntime} itens
@@ -345,7 +345,7 @@ function groupActivitiesByMonth<T extends { id: string; type: 'movie' | 'episode
     if (!group) {
       group = {
         key,
-        label: new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(date),
+        label: formatMonthYear(date),
         items: [],
       };
       groups.set(key, group);
@@ -383,7 +383,7 @@ function AchievementCard({ achievement }: { achievement: AchievementProgress }) 
       ) : null}
       {achievement.firstEarnedAt ? (
         <Text style={styles.caption}>
-          Primeira conquista em {new Date(achievement.firstEarnedAt).toLocaleDateString('pt-BR')}.
+          Primeira conquista em {formatDate(achievement.firstEarnedAt)}.
         </Text>
       ) : null}
     </View>

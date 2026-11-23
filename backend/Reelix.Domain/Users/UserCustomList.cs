@@ -37,7 +37,7 @@ public sealed class UserCustomList
         Guid accountId,
         string name,
         string? description,
-        DateTimeOffset? createdAt = null)
+        DateTimeOffset createdAt)
     {
         if (accountId == Guid.Empty)
         {
@@ -50,15 +50,15 @@ public sealed class UserCustomList
             accountId,
             normalizedName,
             normalizedDescription,
-            createdAt ?? DateTimeOffset.UtcNow);
+            createdAt);
     }
 
-    public void Update(string name, string? description, DateTimeOffset? updatedAt = null)
+    public void Update(string name, string? description, DateTimeOffset updatedAt)
     {
         var (normalizedName, normalizedDescription) = Normalize(name, description);
         Name = normalizedName;
         Description = normalizedDescription;
-        UpdatedAt = updatedAt ?? DateTimeOffset.UtcNow;
+        UpdatedAt = updatedAt;
     }
 
     private static (string Name, string? Description) Normalize(string name, string? description)

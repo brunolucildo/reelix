@@ -9,6 +9,7 @@ using Reelix.Domain.Catalog;
 using Reelix.Domain.Gamification;
 using Reelix.Domain.Users;
 using Reelix.Infrastructure.Persistence;
+using Reelix.UnitTests.Common;
 
 namespace Reelix.UnitTests.Gamification;
 
@@ -18,7 +19,7 @@ public sealed class GamificationPersistenceTests
     public async Task Service_ResolvesAuthenticatedIdentityForAllPersonalOperations()
     {
         var userId = Guid.NewGuid();
-        var accounts = new StubAccounts(UserAccount.Create(userId));
+        var accounts = new StubAccounts(UserAccount.Create(userId, FixedTimeProvider.DefaultNow));
         var repository = new IdentityCheckingRepository(accounts.Account.Id);
         var service = new GamificationService(repository, accounts);
 
@@ -35,7 +36,7 @@ public sealed class GamificationPersistenceTests
     {
         var targetId = Guid.NewGuid();
         var repository = new IdentityCheckingRepository(targetId);
-        var service = new GamificationService(repository, new StubAccounts(UserAccount.Create(Guid.NewGuid())));
+        var service = new GamificationService(repository, new StubAccounts(UserAccount.Create(Guid.NewGuid(), FixedTimeProvider.DefaultNow)));
         await service.GetPublicBadgesAsync(targetId, CancellationToken.None);
         Assert.Equal(0, repository.PersonalCalls);
     }
@@ -43,7 +44,12 @@ public sealed class GamificationPersistenceTests
     private sealed class StubAccounts(UserAccount account) : IUserAccountRepository
     {
         public UserAccount Account { get; } = account;
-        public Task<UserAccount> GetOrCreateAsync(Guid supabaseUserId, CancellationToken cancellationToken)
+        public async Task<UserAccount?> FindAsync(
+            Guid supabaseUserId,
+            CancellationToken cancellationToken) =>
+            await EnsureAsync(supabaseUserId, cancellationToken);
+
+        public Task<UserAccount> EnsureAsync(Guid supabaseUserId, CancellationToken cancellationToken)
         {
             Assert.Equal(Account.SupabaseUserId, supabaseUserId);
             return Task.FromResult(Account);

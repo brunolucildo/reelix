@@ -8,8 +8,10 @@ import { RatingReviewSection } from '@/components/reviews/rating-review-section'
 import { usePendingEpisodes } from '@/hooks/use-tracking';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
-import { fetchCatalogSeason, type CatalogTitle } from '@/services/api-client';
+import { fetchCatalogSeason, isCatalogProvider } from '@/services/api-client';
 import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
 
 export default function CatalogEpisodeScreen() {
   const { session } = useAuthSession();
@@ -32,7 +34,7 @@ export default function CatalogEpisodeScreen() {
     seasonNumber !== null && episodeId !== null;
 
   const season = useQuery({
-    queryKey: ['catalog-season', provider, externalSeriesId, seasonNumber],
+    queryKey: catalogQueryKeys.season(provider, externalSeriesId, seasonNumber),
     queryFn: ({ signal }) => {
       if (!provider || !externalSeriesId || seasonNumber === null) {
         throw new Error('O endereço deste episódio é inválido.');
@@ -41,7 +43,7 @@ export default function CatalogEpisodeScreen() {
       return fetchCatalogSeason(provider, externalSeriesId, seasonNumber, signal);
     },
     enabled: isValid,
-    staleTime: 300_000,
+    staleTime: staleTime.catalog,
   });
   useErrorToast(season.error, 'Não foi possível carregar os detalhes do episódio.');
   const pendingEpisodes = usePendingEpisodes(
@@ -123,10 +125,6 @@ export default function CatalogEpisodeScreen() {
       />
     </ScrollView>
   );
-}
-
-function isCatalogProvider(value: unknown): value is CatalogTitle['provider'] {
-  return value === 'tmdb' || value === 'omdb';
 }
 
 const styles = StyleSheet.create({

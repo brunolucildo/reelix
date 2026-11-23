@@ -49,17 +49,17 @@ backend/Reelix.Infrastructure/
   <Provedor>/                            # adaptadores (Catalog, Notifications, Ratings...)
 ```
 
-**Hoje:** um `*Service` por módulo com vários métodos, `*Contracts.cs` com DTOs, ports e exceções misturados, endpoints que injetam o service direto e `Program.cs` com a configuração de rate limit copiada. Ao tocar um fluxo, prefira movê-lo para o alvo em vez de acrescentar um método ao service gordo. A refatoração completa é conduzida por specs.
+**Hoje:** um `*Service` por módulo com vários métodos, `*Contracts.cs` com DTOs, ports e exceções misturados e endpoints que injetam o service direto. A fundação transversal já existe (spec `0013`): `TimeProvider`, `ICurrentUser`, `FindAsync`/`EnsureAsync`, erros tipados com mapeador único (`WithApplicationProblems`), `PageRequest`/`PagePolicy`, `CursorCodec`, DI por módulo e rate limit por tabela; use-os em vez de recriá-los. Ao tocar um fluxo, prefira movê-lo para o alvo em vez de acrescentar um método ao service gordo. A refatoração completa é conduzida por specs.
 
 Regras:
 
 - **Um endpoint, um handler, um caso de uso** (alvo). Dois endpoints com o mesmo comportamento compartilham um serviço de capacidade, não um caso de uso.
 - **Nenhuma regra de negócio em repositório, endpoint ou adaptador.** Avaliação de conquistas, decisão de eventos sociais e regras de visibilidade vivem em casos de uso/serviços de domínio, testáveis sem banco. (Hoje há exceções em `GamificationRepository` e `NotificationsRepository`: não replique.)
-- **Tempo:** injete `TimeProvider` (nunca `DateTime.UtcNow`/`DateTimeOffset.UtcNow` em Domain/Application) e passe o instante ao domínio. Hoje há ~41 usos diretos de `UtcNow` no Domain.
+- **Tempo:** injete `TimeProvider` (nunca `DateTime.UtcNow`/`DateTimeOffset.UtcNow` em Domain/Application) e passe o instante ao domínio. Não há mais uso direto de `UtcNow` em Domain, Application nem Infrastructure; testes usam um relógio fixo escrito à mão.
 - **Fronteiras de módulo:** um módulo não lê tabelas de outro nem injeta o service concreto de outro. Exponha um port estreito no módulo dono (ex.: "título existe no catálogo" no Catalog).
 - **Ports com o nome da necessidade**, não do fornecedor (`IPushSender`, não `IExpoPushClient`); Application não conhece `HttpStatusCode` nem `HttpRequestException`: o adaptador traduz erros do provedor em erros de aplicação.
 - **Contrato HTTP na Api:** DTOs de request/response ficam em `Reelix.Api`; tipos de `Reelix.Domain` não aparecem em contratos HTTP nem em assinaturas de endpoints.
-- **Identidade:** leia o usuário autenticado por **uma** abstração (ex.: `ICurrentUser`/extensão de `ClaimsPrincipal`); não duplique `TryGetUserId`. O dono vem do `sub` validado, jamais do corpo ou da rota.
+- **Identidade:** leia o usuário autenticado por **uma** abstração (ex.: `ICurrentUser`/extensão de `ClaimsPrincipal`); não duplique `TryGetUserId` (os existentes delegam a `CurrentUserExtensions` até as specs `0014` a `0016`). O dono vem do `sub` validado, jamais do corpo ou da rota.
 - **GET não escreve.** Criar conta/perfil/preferências preguiçosamente deve ser um passo explícito, não efeito colateral de uma consulta.
 - **Concorrência** se resolve no banco (índice único, `ON CONFLICT`/tratamento de violação), nunca com "consulta e depois insere".
 - Todo método de I/O recebe e propaga `CancellationToken`.
@@ -86,7 +86,7 @@ mobile/src/
   theme/                  # tokens
 ```
 
-**Hoje:** organização por tipo (`components/<feature>`), três clientes HTTP duplicados, `api-client.ts` monolítico (848 linhas), só um hook (`use-tracking.ts`) e telas de 600 a 1000 linhas. Regras:
+**Hoje (spec `0017` aplicada):** `lib/http-client` único com `ApiError` e 401 global, `features/<modulo>/api` e `features/<modulo>/query-keys.ts` por domínio, `lib/format`, `lib/pagination` e `lib/query/stale-time`; `services/api-client.ts` é só um barrel temporário. Ainda organização por tipo (`components/<feature>`), só um hook (`use-tracking.ts`) e telas de 600 a 1000 linhas (spec `0018`). Código novo de dados nasce em `features/<modulo>/api`, chama `httpRequest` e usa a fábrica de chaves do módulo; nunca `fetch` direto, `queryKey` literal, `staleTime` numérico, `Intl`/`toLocale*` em tela nem texto técnico ("HTTP n") para o usuário. Regras:
 
 - **Telas são composição.** Dados e mutations vivem em hooks da feature; formulário e validação em hook/schema; a tela só liga as peças e trata estados (carregando, vazio, erro).
 - **Um cliente HTTP** (`lib/http-client`): base da API, Bearer do Supabase, parse de `ProblemDetails`, erro tipado `ApiError { status, code?, title, detail }`, validação da resposta com zod. 401 tratado **globalmente** (limpar sessão/cache e pedir novo login), não tela a tela.
@@ -161,7 +161,7 @@ Abordagem TDD quando fizer sentido: escreva o teste do comportamento antes ou ju
 
 | Nível                     | Ferramenta                              | Comando                                           | Onde vive                                    | Estado            |
 | ------------------------- | --------------------------------------- | ------------------------------------------------- | -------------------------------------------- | ----------------- |
-| Unitário e integração .NET | xUnit (+ `Mvc.Testing`, Testcontainers) | `dotnet test Reelix.sln --configuration Release`  | `backend/Reelix.UnitTests`                   | Existe (202)      |
+| Unitário e integração .NET | xUnit (+ `Mvc.Testing`, Testcontainers) | `dotnet test Reelix.sln --configuration Release`  | `backend/Reelix.UnitTests`                   | Existe (339)      |
 | Arquitetura .NET          | xUnit (análise de dependências)         | `dotnet test`                                     | projeto de testes de arquitetura             | **Futuro**        |
 | Unitário/componente mobile | Jest (`jest-expo`) + RNTL               | `npm test` (em `mobile/`)                         | `mobile/src/**/*.test.ts(x)`                 | **Futuro**        |
 | E2E                       | Playwright sobre o Expo web             | `npm run test:e2e`                                | pasta de E2E a definir pela spec             | **Futuro**        |

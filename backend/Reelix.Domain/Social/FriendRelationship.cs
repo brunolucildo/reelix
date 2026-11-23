@@ -49,7 +49,7 @@ public sealed class FriendRelationship
 
     public DateTimeOffset UpdatedAt { get; private set; }
 
-    public static FriendRelationship Create(Guid requesterAccountId, Guid addresseeAccountId)
+    public static FriendRelationship Create(Guid requesterAccountId, Guid addresseeAccountId, DateTimeOffset now)
     {
         ValidateParticipants(requesterAccountId, addresseeAccountId);
         var (first, second) = Order(requesterAccountId, addresseeAccountId);
@@ -59,10 +59,10 @@ public sealed class FriendRelationship
             second,
             requesterAccountId,
             addresseeAccountId,
-            DateTimeOffset.UtcNow);
+            now);
     }
 
-    public void StartRequest(Guid requesterAccountId, Guid addresseeAccountId)
+    public void StartRequest(Guid requesterAccountId, Guid addresseeAccountId, DateTimeOffset now)
     {
         ValidateParticipants(requesterAccountId, addresseeAccountId);
         if (Order(requesterAccountId, addresseeAccountId) != (FirstAccountId, SecondAccountId))
@@ -78,24 +78,24 @@ public sealed class FriendRelationship
         RequesterAccountId = requesterAccountId;
         AddresseeAccountId = addresseeAccountId;
         Status = FriendRelationshipStatus.Pending;
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = now;
     }
 
-    public void Accept(Guid actorAccountId)
+    public void Accept(Guid actorAccountId, DateTimeOffset now)
     {
         RequirePendingRecipient(actorAccountId);
         Status = FriendRelationshipStatus.Accepted;
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = now;
     }
 
-    public void Decline(Guid actorAccountId)
+    public void Decline(Guid actorAccountId, DateTimeOffset now)
     {
         RequirePendingRecipient(actorAccountId);
         Status = FriendRelationshipStatus.Declined;
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = now;
     }
 
-    public void Cancel(Guid actorAccountId)
+    public void Cancel(Guid actorAccountId, DateTimeOffset now)
     {
         if (Status != FriendRelationshipStatus.Pending || RequesterAccountId != actorAccountId)
         {
@@ -103,10 +103,10 @@ public sealed class FriendRelationship
         }
 
         Status = FriendRelationshipStatus.Cancelled;
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = now;
     }
 
-    public void Remove(Guid actorAccountId)
+    public void Remove(Guid actorAccountId, DateTimeOffset now)
     {
         if (Status != FriendRelationshipStatus.Accepted ||
             actorAccountId != FirstAccountId && actorAccountId != SecondAccountId)
@@ -115,7 +115,7 @@ public sealed class FriendRelationship
         }
 
         Status = FriendRelationshipStatus.Removed;
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = now;
     }
 
     public bool Includes(Guid accountId) =>

@@ -33,8 +33,16 @@ import {
 } from '@/hooks/use-tracking';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
-import { fetchCatalogSeason, fetchCatalogSeasons, fetchCatalogTitleDetails } from '@/services/api-client';
+import {
+  fetchCatalogSeason,
+  fetchCatalogSeasons,
+  fetchCatalogTitleDetails,
+  isCatalogProvider,
+} from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
+import { formatCatalogDate, formatDateLong } from '@/lib/format';
 
 export default function CatalogTitleScreen() {
   const router = useRouter();
@@ -56,7 +64,7 @@ export default function CatalogTitleScreen() {
     : null;
 
   const details = useQuery({
-    queryKey: ['catalog', 'title', provider, contentType, externalId],
+    queryKey: catalogQueryKeys.title(provider, contentType, externalId),
     queryFn: ({ signal }) => {
       if (!validParams) {
         throw new Error('O endereço deste título é inválido.');
@@ -70,11 +78,11 @@ export default function CatalogTitleScreen() {
       );
     },
     enabled: validParams !== null,
-    staleTime: 300_000,
+    staleTime: staleTime.catalog,
   });
   useErrorToast(details.error, 'Não foi possível carregar os detalhes deste título. Tente novamente.');
   const seasons = useQuery({
-    queryKey: ['catalog-seasons', provider, externalId],
+    queryKey: catalogQueryKeys.seasons(provider, externalId),
     queryFn: ({ signal }) => {
       if (!provider || !externalId) {
         throw new Error('O endereço desta série é inválido.');
@@ -83,7 +91,7 @@ export default function CatalogTitleScreen() {
       return fetchCatalogSeasons(provider, externalId, signal);
     },
     enabled: provider !== null && contentType === 'series' && externalId !== null && details.isSuccess,
-    staleTime: 300_000,
+    staleTime: staleTime.catalog,
   });
   useErrorToast(seasons.error, 'Não foi possível carregar as temporadas disponíveis.');
   const availableSeasons = seasons.data ?? [];
@@ -98,7 +106,7 @@ export default function CatalogTitleScreen() {
     setSeasonSelections((current) => ({ ...current, [seriesKey]: number }));
   };
   const season = useQuery({
-    queryKey: ['catalog-season', provider, externalId, seasonNumber],
+    queryKey: catalogQueryKeys.season(provider, externalId, seasonNumber),
     queryFn: ({ signal }) => {
       if (!provider || !externalId || seasonNumber === null) {
         throw new Error('Selecione uma temporada válida.');
@@ -107,7 +115,7 @@ export default function CatalogTitleScreen() {
       return fetchCatalogSeason(provider, externalId, seasonNumber, signal);
     },
     enabled: provider !== null && contentType === 'series' && externalId !== null && seasonNumber !== null,
-    staleTime: 300_000,
+    staleTime: staleTime.catalog,
   });
   useErrorToast(season.error, 'Não foi possível carregar os episódios desta temporada.');
   const pendingEpisodes = usePendingEpisodes(
@@ -162,8 +170,7 @@ export default function CatalogTitleScreen() {
   const title = details.data;
   const todayUtc = new Date().toISOString().slice(0, 10);
   const releaseDate = title.releaseDate
-    ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' })
-      .format(new Date(`${title.releaseDate}T00:00:00`))
+    ? formatDateLong(new Date(`${title.releaseDate}T00:00:00`))
     : null;
 
   return (
@@ -545,15 +552,7 @@ const styles = StyleSheet.create({
   },
 });
 
-function isCatalogProvider(value: unknown): value is 'tmdb' | 'omdb' {
-  return value === 'tmdb' || value === 'omdb';
-}
-
 function isCatalogContentType(value: unknown): value is 'movie' | 'series' {
   return value === 'movie' || value === 'series';
 }
 
-function formatCatalogDate(date: string) {
-  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' })
-    .format(new Date(`${date}T12:00:00`));
-}
