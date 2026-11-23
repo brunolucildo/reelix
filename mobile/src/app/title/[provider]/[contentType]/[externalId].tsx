@@ -40,6 +40,7 @@ import {
   isCatalogProvider,
 } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
 
 export default function CatalogTitleScreen() {
   const router = useRouter();
@@ -61,7 +62,7 @@ export default function CatalogTitleScreen() {
     : null;
 
   const details = useQuery({
-    queryKey: ['catalog', 'title', provider, contentType, externalId],
+    queryKey: catalogQueryKeys.title(provider, contentType, externalId),
     queryFn: ({ signal }) => {
       if (!validParams) {
         throw new Error('O endereço deste título é inválido.');
@@ -79,7 +80,7 @@ export default function CatalogTitleScreen() {
   });
   useErrorToast(details.error, 'Não foi possível carregar os detalhes deste título. Tente novamente.');
   const seasons = useQuery({
-    queryKey: ['catalog-seasons', provider, externalId],
+    queryKey: catalogQueryKeys.seasons(provider, externalId),
     queryFn: ({ signal }) => {
       if (!provider || !externalId) {
         throw new Error('O endereço desta série é inválido.');
@@ -103,7 +104,7 @@ export default function CatalogTitleScreen() {
     setSeasonSelections((current) => ({ ...current, [seriesKey]: number }));
   };
   const season = useQuery({
-    queryKey: ['catalog-season', provider, externalId, seasonNumber],
+    queryKey: catalogQueryKeys.season(provider, externalId, seasonNumber),
     queryFn: ({ signal }) => {
       if (!provider || !externalId || seasonNumber === null) {
         throw new Error('Selecione uma temporada válida.');

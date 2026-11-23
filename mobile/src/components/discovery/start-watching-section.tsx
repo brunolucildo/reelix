@@ -11,6 +11,7 @@ import {
   type TitleReference,
 } from '@/features/lists/api/lists-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { TitlePosterCard } from './title-poster-card';
 
 export function StartWatchingSection() {
@@ -35,7 +36,7 @@ export function StartWatchingSection() {
     .slice(0, 8);
   const details = useQueries({
     queries: references.map((reference) => ({
-      queryKey: ['catalog', 'title', reference.provider, 'series', reference.externalId],
+      queryKey: catalogQueryKeys.title(reference.provider, 'series', reference.externalId),
       queryFn: ({ signal }: { signal: AbortSignal }) => fetchTitleDetails(reference, signal),
       staleTime: 300_000,
     })),
@@ -43,7 +44,7 @@ export function StartWatchingSection() {
   const items = details.flatMap((result) => result.data ? [result.data] : []);
   const episodeSuggestions = useQueries({
     queries: items.map((item) => ({
-      queryKey: ['catalog', 'first-episode', item.provider, item.externalId],
+      queryKey: catalogQueryKeys.firstEpisode(item.provider, item.externalId),
       queryFn: async ({ signal }: { signal: AbortSignal }) => {
         const seasons = await fetchCatalogSeasons(item.provider, item.externalId, signal);
         const firstSeason = seasons.find((season) => season.seasonNumber > 0) ?? seasons[0];

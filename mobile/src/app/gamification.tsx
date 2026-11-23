@@ -25,6 +25,7 @@ import {
   type GamificationStatistics,
 } from '@/services/api-client';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
 
 export default function GamificationScreen() {
   const queryClient = useQueryClient();
@@ -48,7 +49,7 @@ export default function GamificationScreen() {
       const contentType = activity.type === 'movie' ? 'movie' : 'series';
       const externalId = activity.type === 'movie' ? activity.externalId : activity.seriesExternalId;
       return {
-        queryKey: ['gamification', 'activity-title', activity.id, activity.provider, externalId],
+        queryKey: catalogQueryKeys.title(activity.provider, contentType, externalId),
         queryFn: ({ signal }: { signal: AbortSignal }) => {
           if (!activity.provider || !externalId) {
             throw new Error('Os detalhes deste conteúdo não estão disponíveis.');

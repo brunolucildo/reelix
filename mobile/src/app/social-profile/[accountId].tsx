@@ -14,6 +14,7 @@ import { BackButton } from '@/components/navigation/back-button';
 import { useErrorToast } from '@/providers/toast-provider';
 import { cancelFriendRequest, fetchCatalogTitleDetails, fetchFriendActivities, fetchFriendProfile, fetchPublicGamificationBadges, removeFriend, respondToFriendRequest, sendFriendRequest, type FriendProfileData, type PublicBadges } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import OverviewIcon from '../../../assets/brand/navigation-icons/profile.svg';
 import ActivityIcon from '../../../assets/brand/navigation-icons/clock.svg';
 import FavoritesIcon from '../../../assets/brand/navigation-icons/favorites.svg';
@@ -220,7 +221,7 @@ export default function SocialProfileScreen() {
 function FavoritePoster({ favorite }: { favorite: FriendProfileData['favorites'][number] }) {
   const router = useRouter();
   const title = useQuery({
-    queryKey: ['catalog', 'title', favorite.provider, favorite.contentType, favorite.externalId],
+    queryKey: catalogQueryKeys.title(favorite.provider, favorite.contentType, favorite.externalId),
     queryFn: ({ signal }) => fetchCatalogTitleDetails(favorite.provider, favorite.contentType, favorite.externalId, signal),
     staleTime: 300_000,
   });

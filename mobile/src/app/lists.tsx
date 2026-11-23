@@ -42,6 +42,7 @@ import {
 } from '@/features/lists/api/lists-api';
 import type { CatalogTitle } from '@/features/catalog/api/catalog-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import AddListIcon from '../../assets/brand/navigation-icons/list-add.svg';
 import FavoritesIcon from '../../assets/brand/navigation-icons/favorites.svg';
 import ClockIcon from '../../assets/brand/navigation-icons/clock.svg';
@@ -134,7 +135,7 @@ export default function ListsScreen() {
 
   const titleDetails = useQueries({
     queries: currentReferences.map((reference) => ({
-      queryKey: ['catalog', 'title', reference.provider, reference.contentType, reference.externalId],
+      queryKey: catalogQueryKeys.title(reference.provider, reference.contentType, reference.externalId),
       queryFn: () => fetchTitleDetails(reference),
       staleTime: 300_000,
     })),

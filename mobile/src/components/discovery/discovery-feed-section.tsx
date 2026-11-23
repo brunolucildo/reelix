@@ -4,6 +4,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogDiscovery, type CatalogDiscoveryCategory } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { TitlePosterCard } from './title-poster-card';
 
 type Props = {
@@ -16,7 +17,7 @@ type Props = {
 export function DiscoveryFeedSection({ title, type, category, genreIds = [] }: Props) {
   const normalizedGenreIds = [...genreIds].sort((a, b) => a - b);
   const feed = useInfiniteQuery({
-    queryKey: ['catalog', 'discovery', type, category, normalizedGenreIds],
+    queryKey: catalogQueryKeys.discovery(type, category, normalizedGenreIds),
     queryFn: ({ pageParam, signal }) =>
       fetchCatalogDiscovery(type, category, normalizedGenreIds, pageParam, signal),
     initialPageParam: 1,

@@ -9,6 +9,7 @@ import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogSeason, fetchCatalogSeasons, fetchCatalogTitleDetails } from '@/services/api-client';
 import type { TrackedSeriesPage } from '@/features/tracking/api/tracking-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
 
 type CalendarFilter = 'all' | 'premiere' | 'final';
 
@@ -18,7 +19,7 @@ export function UpcomingCalendarSection() {
   const series = tracked.data?.items ?? [];
   const titleQueries = useQueries({
     queries: series.map((item) => ({
-      queryKey: ['catalog', 'title', item.provider, 'series', item.externalId],
+      queryKey: catalogQueryKeys.title(item.provider, 'series', item.externalId),
       queryFn: ({ signal }: { signal: AbortSignal }) =>
         fetchCatalogTitleDetails(item.provider!, 'series', item.externalId!, signal),
       enabled: Boolean(item.provider && item.externalId),

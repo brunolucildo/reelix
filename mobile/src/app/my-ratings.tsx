@@ -9,6 +9,7 @@ import { formatRatingStars } from '@/components/reviews/rating-stars';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogTitleDetails, fetchOwnRatings, type OwnRatingEntry } from '@/services/api-client';
 import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
 
 export default function MyRatingsScreen() {
   const [page, setPage] = useState(1);
@@ -64,7 +65,7 @@ function RatingCard({ rating }: { rating: OwnRatingEntry }) {
   const type = rating.targetType === 'episode' ? 'series' : rating.targetType;
   const externalId = rating.targetType === 'episode' ? rating.seriesExternalId : rating.externalId;
   const title = useQuery({
-    queryKey: ['catalog', 'title', rating.provider, type, externalId],
+    queryKey: catalogQueryKeys.title(rating.provider, type, externalId),
     queryFn: ({ signal }) => fetchCatalogTitleDetails(rating.provider, type, externalId!, signal),
     enabled: Boolean(externalId),
     staleTime: 300_000,

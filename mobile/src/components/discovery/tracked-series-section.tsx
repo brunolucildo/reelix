@@ -8,6 +8,7 @@ import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogSeason, fetchCatalogTitleDetails } from '@/services/api-client';
 import type { TrackedSeriesPage } from '@/features/tracking/api/tracking-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
 
 type Props = {
   onOpenTracking: () => void;
@@ -70,7 +71,7 @@ export function TrackedSeriesSection({ onOpenTracking }: Props) {
 function TrackedSeriesCard({ item }: { item: TrackedSeriesPage['items'][number] }) {
   const router = useRouter();
   const title = useQuery({
-    queryKey: ['catalog', 'title', item.provider, 'series', item.externalId],
+    queryKey: catalogQueryKeys.title(item.provider, 'series', item.externalId),
     queryFn: ({ signal }) => fetchCatalogTitleDetails(item.provider!, 'series', item.externalId!, signal),
     enabled: Boolean(item.provider && item.externalId),
     staleTime: 300_000,

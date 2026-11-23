@@ -10,6 +10,7 @@ import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogSeason, isCatalogProvider } from '@/services/api-client';
 import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
 
 export default function CatalogEpisodeScreen() {
   const { session } = useAuthSession();
@@ -32,7 +33,7 @@ export default function CatalogEpisodeScreen() {
     seasonNumber !== null && episodeId !== null;
 
   const season = useQuery({
-    queryKey: ['catalog-season', provider, externalSeriesId, seasonNumber],
+    queryKey: catalogQueryKeys.season(provider, externalSeriesId, seasonNumber),
     queryFn: ({ signal }) => {
       if (!provider || !externalSeriesId || seasonNumber === null) {
         throw new Error('O endereço deste episódio é inválido.');

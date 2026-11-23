@@ -10,12 +10,13 @@ import { UserAvatar } from '@/components/user-avatar';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogTitleDetails, type SocialActivityData } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
 
 export function SocialActivityCard({ activity, compact = false }: { activity: SocialActivityData; compact?: boolean }) {
   const router = useRouter();
   const contentType = activity.targetType === 'series' ? 'series' : 'movie';
   const title = useQuery({
-    queryKey: ['catalog', 'title', activity.provider, contentType, activity.externalId],
+    queryKey: catalogQueryKeys.title(activity.provider, contentType, activity.externalId),
     queryFn: ({ signal }) => fetchCatalogTitleDetails(activity.provider, contentType, activity.externalId, signal),
     enabled: !compact && activity.targetType !== 'episode',
     staleTime: 300_000,

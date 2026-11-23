@@ -19,6 +19,7 @@ import {
   type OnboardingProgress,
 } from '@/services/api-client';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
 
 const steps: Exclude<OnboardingPreferences['currentStep'], 'completed'>[] = [
   'welcome',
@@ -89,16 +90,16 @@ function OnboardingFlow({
   const isFavoriteStep = step === 'favoriteMovies' || step === 'favoriteSeries';
   const favoriteType = step === 'favoriteSeries' ? 'series' : 'movie';
   const movieGenres = useQuery({
-    queryKey: ['catalog', 'genres', 'movie'],
+    queryKey: catalogQueryKeys.genres('movie'),
     queryFn: () => fetchCatalogGenres('movie'),
   });
   const seriesGenres = useQuery({
-    queryKey: ['catalog', 'genres', 'series'],
+    queryKey: catalogQueryKeys.genres('series'),
     queryFn: () => fetchCatalogGenres('series'),
   });
 
   const search = useQuery({
-    queryKey: ['catalog', 'search', favoriteType, submittedSearch],
+    queryKey: catalogQueryKeys.search(favoriteType, submittedSearch),
     queryFn: () => searchCatalog(submittedSearch, favoriteType),
     enabled: isFavoriteStep && submittedSearch.trim().length >= 2,
   });

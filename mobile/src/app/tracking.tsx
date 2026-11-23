@@ -22,6 +22,7 @@ import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogTitleDetails, searchCatalog } from '@/services/api-client';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
 
 const HISTORY_PREVIEW_SIZE = 5;
 const HISTORY_PAGE_SIZE = 20;
@@ -73,7 +74,7 @@ function AuthenticatedTracking() {
       const contentType = entry.type === 'movie' ? 'movie' : 'series';
       const externalId = entry.type === 'movie' ? entry.externalId : entry.seriesExternalId;
       return {
-        queryKey: ['tracking', 'history-title', entry.id, entry.provider, externalId],
+        queryKey: catalogQueryKeys.title(entry.provider, contentType, externalId),
         queryFn: ({ signal }: { signal: AbortSignal }) => {
           if (!entry.provider || !externalId) {
             throw new Error('Os detalhes deste conteúdo não estão disponíveis.');
@@ -87,7 +88,7 @@ function AuthenticatedTracking() {
   });
   const seriesTitleQueries = useQueries({
     queries: (series.data?.items ?? []).map((item) => ({
-      queryKey: ['tracking', 'series-title', item.seriesId, item.provider, item.externalId],
+      queryKey: catalogQueryKeys.title(item.provider, 'series', item.externalId),
       queryFn: ({ signal }: { signal: AbortSignal }) => {
         if (!item.provider || !item.externalId) {
           throw new Error('Os detalhes desta série não estão disponíveis.');
@@ -104,13 +105,13 @@ function AuthenticatedTracking() {
   const removeEpisode = useRemoveWatchedEpisode();
   const pendingEpisodes = usePendingEpisodes(selectedSeries?.id ?? '', seasonNumber);
   const seriesResults = useQuery({
-    queryKey: ['catalog', 'tracking-series-search', submittedSeriesSearch],
+    queryKey: catalogQueryKeys.trackingSeriesSearch(submittedSeriesSearch),
     queryFn: () => searchCatalog(submittedSeriesSearch, 'series'),
     enabled: submittedSeriesSearch.length > 0,
   });
   useErrorToast(seriesResults.error, 'Não foi possível buscar séries. Tente novamente.');
   const movieResults = useQuery({
-    queryKey: ['catalog', 'tracking-movie-search', submittedSearch],
+    queryKey: catalogQueryKeys.trackingMovieSearch(submittedSearch),
     queryFn: () => searchCatalog(submittedSearch, 'movie'),
     enabled: submittedSearch.length > 0,
   });
