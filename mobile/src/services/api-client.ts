@@ -1,28 +1,8 @@
 import { z } from 'zod';
 
 import { httpRequest } from '@/lib/http-client';
-
-const accountSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email().nullable(),
-  createdAt: z.string().datetime({ offset: true }),
-});
-
-const onboardingSchema = z.object({
-  isComplete: z.boolean(),
-  currentStep: z.enum([
-    'welcome',
-    'genres',
-    'favoriteMovies',
-    'favoriteSeries',
-    'review',
-    'completed',
-  ]),
-  movieGenreIds: z.array(z.number().int().positive()),
-  seriesGenreIds: z.array(z.number().int().positive()),
-  favoriteMovieIds: z.array(z.string().uuid()),
-  favoriteSeriesIds: z.array(z.string().uuid()),
-});
+export * from '@/features/account/api/account-api';
+export * from '@/features/onboarding/api/onboarding-api';
 
 const genreSchema = z.object({
   id: z.number().int().positive(),
@@ -80,6 +60,7 @@ const friendRelationshipStatusSchema = z.enum([
   'cancelled',
   'removed',
 ]);
+
 const socialUserSchema = z.object({
   accountId: z.string().uuid(),
   displayName: z.string(),
@@ -88,6 +69,7 @@ const socialUserSchema = z.object({
   requestSentByMe: z.boolean(),
   avatarUrl: z.string().url().nullable().optional(),
 });
+
 const friendRequestSchema = z.object({
   relationshipId: z.string().uuid(),
   accountId: z.string().uuid(),
@@ -95,6 +77,7 @@ const friendRequestSchema = z.object({
   createdAt: z.string().datetime({ offset: true }),
   avatarUrl: z.string().url().nullable().optional(),
 });
+
 const friendItemSchema = z.object({
   relationshipId: z.string().uuid(),
   accountId: z.string().uuid(),
@@ -102,10 +85,12 @@ const friendItemSchema = z.object({
   since: z.string().datetime({ offset: true }),
   avatarUrl: z.string().url().nullable().optional(),
 });
+
 const socialListPageSchema = <T extends z.ZodType>(itemSchema: T) => z.object({
   items: z.array(itemSchema),
   nextCursor: z.string().nullable(),
 });
+
 const socialActivitySchema = z.object({
   id: z.string().uuid(),
   actorAccountId: z.string().uuid(),
@@ -118,10 +103,12 @@ const socialActivitySchema = z.object({
   externalId: z.string().min(1),
   occurredAt: z.string().datetime({ offset: true }),
 });
+
 const socialActivityPageSchema = z.object({
   items: z.array(socialActivitySchema),
   nextCursor: z.string().nullable(),
 });
+
 const friendProfileSchema = z.object({
   accountId: z.string().uuid(),
   displayName: z.string(),
@@ -142,11 +129,13 @@ const friendProfileSchema = z.object({
     externalId: z.string().min(1),
   })),
 });
+
 const notificationPreferencesSchema = z.object({
   socialEnabled: z.boolean(),
   newEpisodeEnabled: z.boolean(),
   premiereEnabled: z.boolean(),
 });
+
 const notificationInboxItemSchema = z.object({
   id: z.string().uuid(),
   category: z.enum(['social', 'newEpisode', 'premiere']),
@@ -156,24 +145,29 @@ const notificationInboxItemSchema = z.object({
   createdAt: z.string().datetime({ offset: true }),
   readAt: z.string().datetime({ offset: true }).nullable(),
 });
+
 const notificationInboxPageSchema = z.object({
   items: z.array(notificationInboxItemSchema),
   nextCursor: z.string().nullable(),
 });
+
 const notificationUnreadCountSchema = z.object({
   count: z.number().int().nonnegative(),
 });
+
 const notificationDeviceSchema = z.object({
   id: z.string().uuid(),
   platform: z.enum(['ios', 'android']),
   createdAt: z.string().datetime({ offset: true }),
   lastRegisteredAt: z.string().datetime({ offset: true }),
 });
+
 const gamificationPreferencesSchema = z.object({
   badgesPublic: z.boolean(),
   rankingEnabled: z.boolean(),
   updatedAt: z.string().datetime({ offset: true }),
 });
+
 const achievementProgressSchema = z.object({
   code: z.string(),
   title: z.string(),
@@ -187,6 +181,7 @@ const achievementProgressSchema = z.object({
   lastRevokedAt: z.string().datetime({ offset: true }).nullable(),
   reactivatedAt: z.string().datetime({ offset: true }).nullable(),
 });
+
 const gamificationStatisticsSchema = z.object({
   periodStart: z.string().datetime({ offset: true }),
   periodEnd: z.string().datetime({ offset: true }),
@@ -206,11 +201,13 @@ const gamificationStatisticsSchema = z.object({
   calculatedAt: z.string().datetime({ offset: true }),
   runtimeCoverage: z.number().min(0).max(1),
 });
+
 const gamificationDashboardSchema = z.object({
   preferences: gamificationPreferencesSchema,
   lifetimeStatistics: gamificationStatisticsSchema,
   achievements: z.array(achievementProgressSchema),
 });
+
 const publicBadgesSchema = z.object({
   isPublic: z.boolean(),
   badges: z.array(z.object({
@@ -220,6 +217,7 @@ const publicBadgesSchema = z.object({
     firstEarnedAt: z.string().datetime({ offset: true }),
   })),
 });
+
 const gamificationRankingSchema = z.object({
   isEnabled: z.boolean(),
   periodStart: z.string().datetime({ offset: true }),
@@ -235,8 +233,11 @@ const gamificationRankingSchema = z.object({
 });
 
 const reviewTargetTypeSchema = z.enum(['movie', 'series', 'episode']);
+
 const reviewAudienceSchema = z.enum(['private', 'public']);
+
 const commentModerationStatusSchema = z.enum(['pending', 'published', 'blocked']);
+
 const ownRatingSchema = z.object({
   id: z.string().uuid(),
   score: z.number().min(0).max(5),
@@ -244,6 +245,7 @@ const ownRatingSchema = z.object({
   createdAt: z.string().datetime({ offset: true }),
   updatedAt: z.string().datetime({ offset: true }),
 });
+
 const ratingSummarySchema = z.object({
   targetId: z.string().uuid(),
   targetType: reviewTargetTypeSchema,
@@ -274,6 +276,7 @@ export type OwnRatingEntry = z.infer<typeof ownRatingsPageSchema>['items'][numbe
 export function fetchOwnRatings(page: number, signal?: AbortSignal) {
   return httpRequest(`/api/v1/ratings/mine?page=${page}&pageSize=20`, ownRatingsPageSchema, { signal });
 }
+
 const commentItemSchema = z.object({
   id: z.string().uuid(),
   targetId: z.string().uuid(),
@@ -290,16 +293,19 @@ const commentItemSchema = z.object({
   createdAt: z.string().datetime({ offset: true }),
   updatedAt: z.string().datetime({ offset: true }),
 });
+
 const pagedCommentsSchema = z.object({
   items: z.array(commentItemSchema),
   page: z.number().int().positive(),
   pageSize: z.number().int().positive(),
   totalCount: z.number().int().nonnegative(),
 });
+
 const revealedCommentSchema = z.object({
   id: z.string().uuid(),
   content: z.string(),
 });
+
 const catalogSeasonSchema = z.object({
   id: z.string().uuid(),
   seriesId: z.string().uuid(),
@@ -319,70 +325,71 @@ const catalogSeasonSchema = z.object({
     runtimeMinutes: z.number().int().positive().nullable(),
   })),
 });
+
 const catalogSeasonSummarySchema = z.object({
   seasonNumber: z.number().int().nonnegative(),
   title: z.string().nullable(),
   releaseDate: z.string().nullable(),
 });
 
-export type AuthenticatedAccount = z.infer<typeof accountSchema>;
-export type OnboardingPreferences = z.infer<typeof onboardingSchema>;
 export type CatalogGenre = z.infer<typeof genreSchema>;
+
 export type CatalogTitle = z.infer<typeof catalogTitleSchema>;
+
 export type CatalogDiscoveryPage = z.infer<typeof catalogDiscoverySchema>;
+
 export type CatalogDiscoveryCategory = CatalogDiscoveryPage['category'];
+
 export type ProfileData = z.infer<typeof profileSchema>;
+
 export type SocialUser = z.infer<typeof socialUserSchema>;
+
 export type FriendRequestData = z.infer<typeof friendRequestSchema>;
+
 export type FriendItemData = z.infer<typeof friendItemSchema>;
+
 export type SocialActivityData = z.infer<typeof socialActivitySchema>;
+
 export type FriendProfileData = z.infer<typeof friendProfileSchema>;
+
 export type NotificationPreferences = z.infer<typeof notificationPreferencesSchema>;
+
 export type NotificationInboxItem = z.infer<typeof notificationInboxItemSchema>;
+
 export type NotificationInboxPage = z.infer<typeof notificationInboxPageSchema>;
+
 export type GamificationPreferences = z.infer<typeof gamificationPreferencesSchema>;
+
 export type AchievementProgress = z.infer<typeof achievementProgressSchema>;
+
 export type GamificationStatistics = z.infer<typeof gamificationStatisticsSchema>;
+
 export type GamificationDashboard = z.infer<typeof gamificationDashboardSchema>;
+
 export type PublicBadges = z.infer<typeof publicBadgesSchema>;
+
 export type GamificationRanking = z.infer<typeof gamificationRankingSchema>;
+
 export type SocialPage<T> = {
   items: T[];
   nextCursor: string | null;
 };
+
 export type SocialActivityPage = z.infer<typeof socialActivityPageSchema>;
+
 export type ReviewTargetType = z.infer<typeof reviewTargetTypeSchema>;
+
 export type ReviewAudience = z.infer<typeof reviewAudienceSchema>;
+
 export type RatingSummary = z.infer<typeof ratingSummarySchema>;
+
 export type CommentItem = z.infer<typeof commentItemSchema>;
+
 export type PagedComments = z.infer<typeof pagedCommentsSchema>;
+
 export type CatalogSeason = z.infer<typeof catalogSeasonSchema>;
+
 export type CatalogSeasonSummary = z.infer<typeof catalogSeasonSummarySchema>;
-
-export type OnboardingProgress = Omit<OnboardingPreferences, 'isComplete' | 'currentStep'> & {
-  currentStep: Exclude<OnboardingPreferences['currentStep'], 'completed'>;
-};
-
-export async function fetchAuthenticatedAccount(): Promise<AuthenticatedAccount> {
-  return httpRequest('/api/v1/auth/me', accountSchema);
-}
-
-export async function fetchOnboarding(): Promise<OnboardingPreferences> {
-  return httpRequest('/api/v1/onboarding', onboardingSchema);
-}
-
-export async function saveOnboardingProgress(
-  progress: OnboardingProgress,
-): Promise<OnboardingPreferences> {
-  return httpRequest('/api/v1/onboarding/progress', onboardingSchema, {
-    method: 'PUT',
-    body: progress,
-  });
-}
-
-export async function completeOnboarding(): Promise<OnboardingPreferences> {
-  return httpRequest('/api/v1/onboarding/complete', onboardingSchema, { method: 'POST' });
-}
 
 export async function fetchCatalogGenres(type: 'movie' | 'series'): Promise<CatalogGenre[]> {
   return httpRequest(
