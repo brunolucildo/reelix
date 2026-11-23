@@ -14,7 +14,7 @@
 | Formatação mobile | Ausente (sem Prettier nem equivalente em `devDependencies`) |
 | Tipos | Backend: C# com `Nullable` habilitado. Mobile: `tsc --noEmit` com `strict: true`; passa (último registro: 2026-11-04) |
 | Build | Backend: `dotnet build` / `dotnet test` em Release; passa (2026-11-19). Mobile: não há script de build; o bundle Android foi exportado com sucesso em 2026-11-05; o APK EAS de development concluiu |
-| Testes backend | xUnit 2.9.3 em `backend/Reelix.UnitTests`: **202 testes, 202 aprovados** (2026-11-19). 10 deles exigem Docker (`PostgresAuthorizationIntegrationTests`, `postgres:17-alpine`); o restante roda sem Docker |
+| Testes backend | xUnit 2.9.3 em `backend/Reelix.UnitTests`: **339 testes, 339 aprovados** (2026-11-23, integração das specs `0013`/`0017`; eram 202 em 2026-11-19). 13 deles exigem Docker (`PostgresAuthorizationIntegrationTests` e `UserAccountRepositoryPostgresTests`, `postgres:17-alpine`); o restante roda sem Docker |
 | Testes mobile | **Ausentes.** Não há runner (nem jest, jest-expo, Testing Library, Playwright, Detox ou Vitest) nem script de teste em `mobile/package.json` |
 | Testes E2E | **Ausentes** |
 | Testes de arquitetura | **Ausentes** (ver `TESTING.md` §7) |
@@ -30,7 +30,7 @@ Backend, na raiz do repositório, com Docker em execução (daemon ativo, versã
 
 | Gate | Comando | Resultado | Observação |
 | --- | --- | --- | --- |
-| Testes backend | `dotnet test Reelix.sln --configuration Release --no-restore` | Passa | 202 testes, 202 aprovados, 0 falhos, 0 ignorados; ~6 s de teste, ~21 s com build |
+| Testes backend | `dotnet test Reelix.sln --configuration Release --no-restore` | Passa | 339 testes, 339 aprovados, 0 falhos, 0 ignorados; ~7 s de teste (2026-11-23; em 2026-11-19: 202 testes, ~21 s com build) |
 
 Ambiente da máquina nessa data: SDKs .NET `10.0.404` e `11.0.100` (não há `global.json`, então o `dotnet` usa por padrão o SDK mais recente instalado; a CI fixa `10.0.x`; confirme com `dotnet --version` e registre), Node 24.20, npm 12.2.1, Docker 29.9.3. Playwright não está instalado. Aviso `NU1900` local por um feed privado do Azure DevOps na configuração NuGet da máquina; não afeta a CI, que restaura só de `nuget.org`.
 
@@ -288,7 +288,7 @@ Aplique apenas o que a mudança afeta, mas registre o que foi verificado. O mobi
 | --- | --- | --- |
 | 1 | **Sem testes automatizados do app mobile** (nenhum runner; REELIX-003) | Auth, navegação, mutações, privacidade e estados de erro podem regredir sem aviso; a verificação é só manual |
 | 2 | **Sem E2E** (Playwright não instalado) | A jornada app + API + banco só é exercitada à mão |
-| 3 | **Cobertura não medida** (`coverlet.collector` referenciado e sem uso) | Não há número nem piso; 202 testes não dizem quanto código é exercitado |
+| 3 | **Cobertura não medida** (`coverlet.collector` referenciado e sem uso) | Não há número nem piso; 339 testes não dizem quanto código é exercitado |
 | 4 | **Sem testes de arquitetura** nem de contrato OpenAPI | Regra de dependência entre camadas e contrato HTTP não são verificados por máquina |
 | 5 | **Workers sem teste** (`CommentModerationWorker`, `SocialNotificationWorker`, `NotificationDeliveryWorker`) | Moderação, notificações sociais e entrega push só por verificação manual |
 | 6 | 21 advisories npm moderados/baixos (3 low, 18 moderate) sem correção compatível (REELIX-019, bloqueado) | O gate `--audit-level=high` passa, mas o risco moderado segue aberto; não forçar downgrade |

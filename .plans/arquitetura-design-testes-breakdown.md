@@ -107,3 +107,17 @@ As 11 specs foram criadas com as 12 seções do template; 10 estão `pronta` e a
 | —  | **Constante nomeada** para idioma/provedor padrão do catálogo                                  | `0015`                                                                                          |
 
 Q1 (exceções tipadas no lugar de `Result<T>`) e Q5 (URLs de provedores configuráveis para E2E) seguem como premissas do mapa; não foram levadas ao quiz.
+
+## 10. Execução
+
+| Passo | Specs | Estado | Branch / PR | Observações |
+| ----- | ----- | ------ | ----------- | ----------- |
+| 0 | Fundação do processo (docs, skills, specs) | Concluído | PR #13 mesclado na `main` | — |
+| 1 | `0013` ‖ `0017` | **Integrado** em `orchestrate/0013-0017` (2026-11-23); aguardando PR e merge | `feat/0013-backend-fundacao-transversal`, `feat/0017-mobile-fundacao-http-e-dados` | Backend: 339 testes verdes (eram 202). Mobile: lint, tsc e audit passam. **Roteiro manual da `0017` ainda não executado** (`.claude/orchestrate/20261123-1316-0013-0017/0017.report.md`). ADRs: `0012` (backend) e `0013` (mobile). |
+| 2 | `0014` ‖ `0018` | Pendente | — | — |
+| 3 | `0015` ‖ `0019` | Pendente | — | — |
+| 4 | `0016`, depois `0020` | Pendente | — | A `0020` começa pelo plano de design (aprovação do usuário). |
+| 5 | `0021` ‖ `0022` | Pendente | — | — |
+| 6 | `0023` | Pendente | — | — |
+
+Achados do passo 1 que afetam as próximas specs: (a) o `429` do rate limiter responde `application/json` (e não `problem+json`), preservado e fixado por teste; (b) o auditor ainda acusa `handler-without-usecase` no piloto `GET /auth/me`, a corrigir na `0016`; (c) `0017` criou `features/<modulo>/api` e `query-keys.ts`, então a `0018` só acrescenta `hooks/` e `components/`; (d) `getInitials` existe em `lib/format` sem consumidores (a troca das 3 cópias é da `0018`).

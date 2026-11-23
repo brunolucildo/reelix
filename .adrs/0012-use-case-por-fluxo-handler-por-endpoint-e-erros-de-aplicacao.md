@@ -1,9 +1,9 @@
-# XXXX-0013 — Use case por fluxo, handler por endpoint e erros de aplicação
+# 0012 — Use case por fluxo, handler por endpoint e erros de aplicação
 
 - **Status:** proposto
 - **Data:** 2026-11-23
 
-> Prefixo `XXXX` provisório: o orquestrador renumera ao mesclar (a spec `0013` cita `0012`, mas esse número já pertence a outra decisão). Complementa o ADR 0001.
+> Registrado pela spec `0013` (número definitivo atribuído na integração). Complementa o ADR 0001.
 
 ## Contexto
 

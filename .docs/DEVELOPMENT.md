@@ -161,7 +161,7 @@ Abordagem TDD quando fizer sentido: escreva o teste do comportamento antes ou ju
 
 | Nível                     | Ferramenta                              | Comando                                           | Onde vive                                    | Estado            |
 | ------------------------- | --------------------------------------- | ------------------------------------------------- | -------------------------------------------- | ----------------- |
-| Unitário e integração .NET | xUnit (+ `Mvc.Testing`, Testcontainers) | `dotnet test Reelix.sln --configuration Release`  | `backend/Reelix.UnitTests`                   | Existe (202)      |
+| Unitário e integração .NET | xUnit (+ `Mvc.Testing`, Testcontainers) | `dotnet test Reelix.sln --configuration Release`  | `backend/Reelix.UnitTests`                   | Existe (339)      |
 | Arquitetura .NET          | xUnit (análise de dependências)         | `dotnet test`                                     | projeto de testes de arquitetura             | **Futuro**        |
 | Unitário/componente mobile | Jest (`jest-expo`) + RNTL               | `npm test` (em `mobile/`)                         | `mobile/src/**/*.test.ts(x)`                 | **Futuro**        |
 | E2E                       | Playwright sobre o Expo web             | `npm run test:e2e`                                | pasta de E2E a definir pela spec             | **Futuro**        |

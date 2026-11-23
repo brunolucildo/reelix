@@ -167,4 +167,4 @@ Como validar que a spec foi atendida:
 | Data       | O que mudou | Motivo |
 | ---------- | ----------- | ------ |
 | 2026-11-19 | Criação da spec em modo lote (breakdown arquitetura/design/testes); linha de base medida no código. | Fundação de dados do mobile antes da `0018`. |
-| 2026-11-23 | Implementada em fatias por domínio (plano `.plans/mobile-fundacao-http-e-dados-plan.md`, ADR `XXXX-0017`). Premissas registradas: cliente chamado `httpRequest`; fallback genérico único para erro HTTP/contrato; 204 validado com `safeParse(undefined)`; chaves órfãs de temporada normalizadas sob `catalog`. Roteiro manual (Expo web e Android) não executado por agente. | Execução da spec via implement-me (modo orquestrado). |
+| 2026-11-23 | Implementada em fatias por domínio (plano `.plans/mobile-fundacao-http-e-dados-plan.md`, ADR `0013`). Premissas registradas: cliente chamado `httpRequest`; fallback genérico único para erro HTTP/contrato; 204 validado com `safeParse(undefined)`; chaves órfãs de temporada normalizadas sob `catalog`. Roteiro manual (Expo web e Android) não executado por agente. | Execução da spec via implement-me (modo orquestrado). |

@@ -34,7 +34,7 @@ O app consome uma API REST própria (ADR 0001) com dezenas de endpoints e precis
 
 ## Atualização (2026-11-23, spec `0017`)
 
-Atualizado pelo ADR `XXXX-0017` (`.adrs/XXXX-0017-cliente-http-unico-401-global-e-fabricas-de-chave.md`; número provisório até a integração). O que muda em relação ao texto acima, sem revogar a decisão original:
+Atualizado pelo ADR `0013` (`.adrs/0013-cliente-http-unico-401-global-e-fabricas-de-chave.md`; número provisório até a integração). O que muda em relação ao texto acima, sem revogar a decisão original:
 
 - O cliente HTTP deixa de ter três cópias: passa a ser `mobile/src/lib/http-client.ts` (`httpRequest`), com `ApiError` tipado (`status`, `title`, `detail`) em vez de `Object.assign(new Error(...), { status })`.
 - O `QueryClient` é criado por `createQueryClient` (`lib/query/create-query-client.ts`) e trata 401 globalmente (sessão local encerrada, cache limpo, um toast, sem retry de 401); `retry: 1` e `staleTime` de 30 s seguem para os demais erros.

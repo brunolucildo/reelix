@@ -39,7 +39,7 @@ TMDB, OMDb e Expo sem mudança de contrato; só passam a receber `TimeProvider` 
 
 ## Decisões e premissas
 
-- Decisão: erros por exceções tipadas; mapeamento por **filtro de endpoint**, não `IExceptionHandler` (log em Error de 4xx esperado); título por metadado de rota (`ApplicationProblemOptions`) ou carregado pelo erro. ADR `.adrs/XXXX-0013-use-case-por-fluxo-handler-por-endpoint-e-erros-de-aplicacao.md` (número provisório).
+- Decisão: erros por exceções tipadas; mapeamento por **filtro de endpoint**, não `IExceptionHandler` (log em Error de 4xx esperado); título por metadado de rota (`ApplicationProblemOptions`) ou carregado pelo erro. ADR `.adrs/0012-use-case-por-fluxo-handler-por-endpoint-e-erros-de-aplicacao.md` (número provisório).
 - Decisão: `ICurrentUser` (interface + `CurrentUser` sobre `IHttpContextAccessor`) e `CurrentUserExtensions` (`GetSubject`, `ReadSubjectId`, `GetEmail`); o rate limiter usa `GetSubject`.
 - Decisão: `IUserAccountRepository` ganha `FindAsync` e `EnsureAsync`; `GetOrCreateAsync` fica como método de interface com implementação padrão que chama `EnsureAsync` (alias transitório até `0014` a `0016`).
 - Decisão: cache de gêneros atrás do port `ICatalogGenreCache` (implementação `InMemoryCatalogGenreCache` em Infrastructure, singleton, relógio injetado).

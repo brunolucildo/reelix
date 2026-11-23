@@ -1,9 +1,9 @@
-# XXXX — Cliente HTTP único, 401 global e fábricas de chave no mobile
+# 0013 — Cliente HTTP único, 401 global e fábricas de chave no mobile
 
 - **Status:** aceito
 - **Data:** 2026-11-23
 - **Origem:** spec `0017` (`.specs/0017-mobile-fundacao-http-e-dados.md`); atualiza o ADR 0008
-- **Nota de numeração:** o prefixo `XXXX` é provisório (execução orquestrada); o número definitivo é atribuído na integração.
+- **Nota de numeração:** número atribuído na integração da execução orquestrada 0013/0017 (a spec `0017` o chamava de provisório).
 
 ## Contexto
 

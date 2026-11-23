@@ -52,7 +52,7 @@ R1 a R15 da spec (ver `.specs/0017-mobile-fundacao-http-e-dados.md` seção 4).
 - Decisão: a unificação do detalhe de título muda o formato de chaves órfãs (`catalog-seasons`/`catalog-season` viram `['catalog','seasons'|'season',…]`) porque nenhuma invalidação usava o prefixo antigo; as demais chaves mantêm os valores.
 - Premissa: a mensagem genérica de fallback dos três clientes antigos ("atualizar seu acompanhamento", "dados de acompanhamento em formato inesperado") passa a ser a genérica única; os hooks de tracking já exibem textos próprios por consulta e mutação.
 - Premissa: 204 é validado com `schema.safeParse(undefined)` (todos os endpoints 204 usam `z.void()`/`z.undefined()`).
-- Premissa: número do ADR provisório `XXXX-0017`; o orquestrador renumera.
+- Premissa: ADR da spec: `0013` (renumerado na integração).
 
 ## Abordagem (fatias; um commit por fatia/domínio, `lint` e `tsc` verdes em cada)
 
@@ -68,7 +68,7 @@ R1 a R15 da spec (ver `.specs/0017-mobile-fundacao-http-e-dados.md` seção 4).
 
 ## Arquivos previstos
 
-`mobile/src/lib/**`, `mobile/src/features/<modulo>/{api,query-keys}`, `mobile/src/services/api-client.ts` (barrel), `mobile/src/providers/{auth,toast}-provider.tsx`, `mobile/src/app/_layout.tsx`, telas e componentes (imports, chaves, `staleTime`, paginação, formatação), `.docs/{ARCHITECTURE,DEVELOPMENT,DESIGN_SYSTEM}.md`, `.adrs/XXXX-0017-*.md`, `.adrs/0008-*.md` (nota de atualização).
+`mobile/src/lib/**`, `mobile/src/features/<modulo>/{api,query-keys}`, `mobile/src/services/api-client.ts` (barrel), `mobile/src/providers/{auth,toast}-provider.tsx`, `mobile/src/app/_layout.tsx`, telas e componentes (imports, chaves, `staleTime`, paginação, formatação), `.docs/{ARCHITECTURE,DEVELOPMENT,DESIGN_SYSTEM}.md`, `.adrs/0013-*.md`, `.adrs/0008-*.md` (nota de atualização).
 
 ## Testes
 

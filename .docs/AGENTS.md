@@ -8,7 +8,7 @@
 
 **Reelix** é um aplicativo para descobrir e acompanhar filmes e séries, registrar o que se assistiu, organizar títulos em listas e compartilhar atividades autorizadas com amigos. O repositório reúne o app mobile (React Native + Expo, em `mobile/`) e uma API ASP.NET Core (.NET 10, em `backend/`) em monólito modular com Clean Architecture; a identidade é do Supabase Auth e os dados da conta Reelix ficam em PostgreSQL.
 
-**Estado atual (2026-11-19):** autenticação, onboarding, perfil, catálogo (TMDB/OMDb), Home de descoberta, tracking, favoritos/watchlist/listas, avaliações e comentários com proteção contra spoilers, social, notificações (inbox) e gamificação estão implementados no mobile e na API; o único ambiente verificado é `Development`. O APK EAS de development foi validado no Samsung (login, navegação, logout e recuperação de senha). **Ainda não existem:** widgets Android, push remoto habilitado, alertas de catálogo, recomendação por IA, posts e reações sociais, moderação administrativa, upload de avatar, exclusão/exportação de conta, observabilidade, **testes automatizados do mobile e testes E2E**. O backend tem 202 testes xUnit que passam. A estrutura interna do código ainda não segue integralmente a arquitetura-alvo (`ARCHITECTURE.md` §4 e §6): refatorar a arquitetura, o design visual e criar a camada de testes são os próximos passos, conduzidos por specs em `.specs/`. Não trate a arquitetura-alvo como se já estivesse implementada.
+**Estado atual (2026-11-19):** autenticação, onboarding, perfil, catálogo (TMDB/OMDb), Home de descoberta, tracking, favoritos/watchlist/listas, avaliações e comentários com proteção contra spoilers, social, notificações (inbox) e gamificação estão implementados no mobile e na API; o único ambiente verificado é `Development`. O APK EAS de development foi validado no Samsung (login, navegação, logout e recuperação de senha). **Ainda não existem:** widgets Android, push remoto habilitado, alertas de catálogo, recomendação por IA, posts e reações sociais, moderação administrativa, upload de avatar, exclusão/exportação de conta, observabilidade, **testes automatizados do mobile e testes E2E**. O backend tem 339 testes xUnit que passam (2026-11-23). A estrutura interna do código ainda não segue integralmente a arquitetura-alvo (`ARCHITECTURE.md` §4 e §6): refatorar a arquitetura, o design visual e criar a camada de testes são os próximos passos, conduzidos por specs em `.specs/`. Não trate a arquitetura-alvo como se já estivesse implementada.
 
 ## 2. Leia antes de trabalhar
 
@@ -60,7 +60,7 @@ Portas e endereços em `ARCHITECTURE.md` §2.1 (API em `http://localhost:5035`).
 
 **Não existem** (não invente): `npm test`, `npm run test:e2e`, `npm run typecheck`, scripts de Bun/Turborepo, `docker compose` do projeto, hooks de pre-commit, `dotnet format` configurado, testes de arquitetura. Eles são alvo das specs de testes (`ARCHITECTURE.md` §3.2).
 
-**Baseline em 2026-11-19:** `dotnet test Reelix.sln --configuration Release --no-restore` passa (202 testes, 0 falhas); `npm run lint` e `npx tsc --noEmit` passam (verificados em 2026-11-04 na última auditoria). Evidências e limites em `QA.md` §1.
+**Baseline em 2026-11-23** (branch de integração das specs `0013` e `0017`): `dotnet test Reelix.sln --configuration Release` passa (339 testes, 0 falhas, com Docker); `npm run lint` e `npx tsc --noEmit` passam em `mobile/`. Evidências e limites em `QA.md` §1.
 
 ## 4. Regras não negociáveis
 
