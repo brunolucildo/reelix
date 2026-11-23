@@ -21,7 +21,7 @@ npx expo-doctor             # diagnose dependency and config issues
 npx expo install --fix      # fix incompatible package versions
 ```
 
-Run lint and typecheck before declaring any task done.
+Run lint and typecheck before declaring any task done. There is no `npm test` yet; do not claim tests passed for the mobile app (see `../.docs/QA.md`).
 
 ## Navigation & Routing
 
@@ -36,7 +36,7 @@ Docs: https://docs.expo.dev/eas/index.md
 
 ## Reelix UI standards (mandatory)
 
-Before creating or changing any screen, read the "UI and design system" and "UX standards for every mobile screen" sections of `../docs/architecture.md`. In short:
+Before creating or changing any screen, read `../.docs/DESIGN.md` and `../.docs/DESIGN_SYSTEM.md` (and `../.docs/DEVELOPMENT.md` §2.3 for how mobile code is organized). The repository-wide guide is `../.docs/AGENTS.md`. In short:
 
 - API, network, loading, and save errors use the toast in `src/providers/toast-provider.tsx` (`useToast().showError` or `useErrorToast`). Never render them inline.
 - Field validation, selection limits, and success messages stay inline.
@@ -44,7 +44,8 @@ Before creating or changing any screen, read the "UI and design system" and "UX 
 - Password inputs use `AuthInput`, which includes the Mostrar/Ocultar toggle.
 - Touch targets must be at least 44 px and need accessibility labels. User-facing copy is pt-BR.
 - Do not use fake data or simulate modules that are not implemented.
-- Update `../docs/wireframes/reelix-visual-wireframes.html` whenever a screen changes.
+- Update `../.docs/design/wireframes/reelix-visual-wireframes.html` whenever a screen changes.
+- Do not make network calls or `useQuery`/`useMutation` directly in screens, and do not add another HTTP client: follow `../.docs/DEVELOPMENT.md` §2.3.
 
 ## Rules
 

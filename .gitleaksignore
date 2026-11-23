@@ -1,0 +1,8 @@
+# Falsos positivos do Gitleaks (regra generic-api-key), revisados manualmente em 2026-11-23.
+# Cada linha é a fingerprint <commit>:<arquivo>:<regra>:<linha> do commit que introduziu o trecho.
+
+# Frase em pt-BR na descrição das dimensões do agente de code review; não contém credencial.
+4ab9656b6c7aa48347b7ecc8f118bc837f20f58b:.claude/agents/code-reviewer.md:generic-api-key:46
+
+# Token fictício de exemplo ('test-verification-abc123') em doc da skill playwright-best-practices (terceiros).
+4ab9656b6c7aa48347b7ecc8f118bc837f20f58b:.claude/skills/playwright-best-practices/advanced/authentication-flows.md:generic-api-key:54

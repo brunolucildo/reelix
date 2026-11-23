@@ -22,3 +22,16 @@
 .agent/skills/
 .agents/skills/
 refs/
+
+# Claude Code local run state (never versioned)
+.claude/worktrees/
+.claude/review/
+.claude/orchestrate/
+.claude/refactor/
+.claude/settings.local.json
+
+# Test and build outputs
+**/TestResults/
+**/test-results/
+**/playwright-report/
+**/coverage/

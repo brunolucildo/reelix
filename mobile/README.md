@@ -1,12 +1,12 @@
 # Reelix mobile
 
-Aplicativo mobile React Native + Expo, com navegação por Expo Router e autenticação pelo Supabase Auth.
+Aplicativo mobile React Native + Expo, com navegação por Expo Router e autenticação pelo Supabase Auth. A documentação canônica do projeto está em [`../.docs/`](../.docs/); o guia para agentes é [`AGENTS.md`](AGENTS.md).
 
 ## Identidade visual
 
-Os logotipos, ícones vetoriais, badges e ícones de plataforma ficam em [`assets/brand/`](assets/brand/). Veja o [catálogo, paleta e orientações de uso](assets/brand/README.md). O kit segue a referência [`docs/visual_identity.png`](../docs/visual_identity.png); `npm run brand:generate` exporta os PNGs de plataforma a partir dos SVGs.
+Os logotipos, ícones vetoriais, badges e ícones de plataforma ficam em [`assets/brand/`](assets/brand/). Veja o [catálogo, paleta e orientações de uso](assets/brand/README.md). O kit segue o mood board [`visual_identity.png`](../.docs/design/visual_identity.png); `npm run brand:generate` exporta os PNGs de plataforma a partir dos SVGs.
 
-Os tokens de cor, espaçamento e tipografia ficam em [`src/theme/tokens.ts`](src/theme/tokens.ts).
+Os tokens de cor, espaçamento e tipografia ficam em [`src/theme/tokens.ts`](src/theme/tokens.ts). Regras de design: [`DESIGN.md`](../.docs/DESIGN.md) e [`DESIGN_SYSTEM.md`](../.docs/DESIGN_SYSTEM.md).
 
 ## Feedback ao usuário
 
@@ -14,7 +14,7 @@ Use `useToast().showError` ou `useErrorToast(error, mensagem)` de [`src/provider
 
 ## Configuração local
 
-Siga [`docs/authentication-setup.md`](../docs/authentication-setup.md) para configurar Supabase, deep links, variáveis locais e a API.
+Siga a seção de ambiente de [`../.docs/QA.md`](../.docs/QA.md) (§2 e §4) para configurar Supabase, deep links, variáveis locais e a API.
 
 ```powershell
 Copy-Item .env.example .env
@@ -22,4 +22,11 @@ npm install
 npx expo start
 ```
 
-Configure `mobile/.env` antes de iniciar o app. As chaves privadas do Supabase e a `service_role` não pertencem ao cliente.
+Configure `mobile/.env` antes de iniciar o app (`EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` e `EXPO_PUBLIC_API_URL`). As chaves privadas do Supabase e a `service_role` não pertencem ao cliente.
+
+## Verificações
+
+```powershell
+npm run lint
+npx tsc --noEmit
+```
