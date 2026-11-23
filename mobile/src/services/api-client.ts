@@ -4,20 +4,7 @@ import { httpRequest } from '@/lib/http-client';
 export * from '@/features/account/api/account-api';
 export * from '@/features/onboarding/api/onboarding-api';
 export * from '@/features/catalog/api/catalog-api';
-
-const profileSchema = z.object({
-  displayName: z.string().nullable(),
-  biography: z.string().nullable(),
-  avatarUrl: z.string().url().nullable(),
-  avatarKey: z.string().nullable().optional(),
-  profileIsPublic: z.boolean(),
-  favoritesArePublic: z.boolean(),
-  watchHistoryIsPublic: z.boolean(),
-  isDiscoverable: z.boolean(),
-  watchHistorySharedWithFriends: z.boolean(),
-  favoritesSharedWithFriends: z.boolean(),
-  ratingsSharedWithFriends: z.boolean(),
-});
+export * from '@/features/profile/api/profile-api';
 
 const friendRelationshipStatusSchema = z.enum([
   'pending',
@@ -272,8 +259,6 @@ const revealedCommentSchema = z.object({
   content: z.string(),
 });
 
-export type ProfileData = z.infer<typeof profileSchema>;
-
 export type SocialUser = z.infer<typeof socialUserSchema>;
 
 export type FriendRequestData = z.infer<typeof friendRequestSchema>;
@@ -318,19 +303,6 @@ export type RatingSummary = z.infer<typeof ratingSummarySchema>;
 export type CommentItem = z.infer<typeof commentItemSchema>;
 
 export type PagedComments = z.infer<typeof pagedCommentsSchema>;
-
-export async function fetchProfile(): Promise<ProfileData> {
-  return httpRequest('/api/v1/profile', profileSchema);
-}
-
-export async function saveProfile(
-  profile: Omit<ProfileData, 'avatarUrl'>,
-): Promise<ProfileData> {
-  return httpRequest('/api/v1/profile', profileSchema, {
-    method: 'PUT',
-    body: profile,
-  });
-}
 
 export async function searchSocialUsers(
   query: string,
