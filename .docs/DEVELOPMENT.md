@@ -49,17 +49,17 @@ backend/Reelix.Infrastructure/
   <Provedor>/                            # adaptadores (Catalog, Notifications, Ratings...)
 ```
 
-**Hoje:** um `*Service` por módulo com vários métodos, `*Contracts.cs` com DTOs, ports e exceções misturados, endpoints que injetam o service direto e `Program.cs` com a configuração de rate limit copiada. Ao tocar um fluxo, prefira movê-lo para o alvo em vez de acrescentar um método ao service gordo. A refatoração completa é conduzida por specs.
+**Hoje:** um `*Service` por módulo com vários métodos, `*Contracts.cs` com DTOs, ports e exceções misturados e endpoints que injetam o service direto. A fundação transversal já existe (spec `0013`): `TimeProvider`, `ICurrentUser`, `FindAsync`/`EnsureAsync`, erros tipados com mapeador único (`WithApplicationProblems`), `PageRequest`/`PagePolicy`, `CursorCodec`, DI por módulo e rate limit por tabela; use-os em vez de recriá-los. Ao tocar um fluxo, prefira movê-lo para o alvo em vez de acrescentar um método ao service gordo. A refatoração completa é conduzida por specs.
 
 Regras:
 
 - **Um endpoint, um handler, um caso de uso** (alvo). Dois endpoints com o mesmo comportamento compartilham um serviço de capacidade, não um caso de uso.
 - **Nenhuma regra de negócio em repositório, endpoint ou adaptador.** Avaliação de conquistas, decisão de eventos sociais e regras de visibilidade vivem em casos de uso/serviços de domínio, testáveis sem banco. (Hoje há exceções em `GamificationRepository` e `NotificationsRepository`: não replique.)
-- **Tempo:** injete `TimeProvider` (nunca `DateTime.UtcNow`/`DateTimeOffset.UtcNow` em Domain/Application) e passe o instante ao domínio. Hoje há ~41 usos diretos de `UtcNow` no Domain.
+- **Tempo:** injete `TimeProvider` (nunca `DateTime.UtcNow`/`DateTimeOffset.UtcNow` em Domain/Application) e passe o instante ao domínio. Não há mais uso direto de `UtcNow` em Domain, Application nem Infrastructure; testes usam um relógio fixo escrito à mão.
 - **Fronteiras de módulo:** um módulo não lê tabelas de outro nem injeta o service concreto de outro. Exponha um port estreito no módulo dono (ex.: "título existe no catálogo" no Catalog).
 - **Ports com o nome da necessidade**, não do fornecedor (`IPushSender`, não `IExpoPushClient`); Application não conhece `HttpStatusCode` nem `HttpRequestException`: o adaptador traduz erros do provedor em erros de aplicação.
 - **Contrato HTTP na Api:** DTOs de request/response ficam em `Reelix.Api`; tipos de `Reelix.Domain` não aparecem em contratos HTTP nem em assinaturas de endpoints.
-- **Identidade:** leia o usuário autenticado por **uma** abstração (ex.: `ICurrentUser`/extensão de `ClaimsPrincipal`); não duplique `TryGetUserId`. O dono vem do `sub` validado, jamais do corpo ou da rota.
+- **Identidade:** leia o usuário autenticado por **uma** abstração (ex.: `ICurrentUser`/extensão de `ClaimsPrincipal`); não duplique `TryGetUserId` (os existentes delegam a `CurrentUserExtensions` até as specs `0014` a `0016`). O dono vem do `sub` validado, jamais do corpo ou da rota.
 - **GET não escreve.** Criar conta/perfil/preferências preguiçosamente deve ser um passo explícito, não efeito colateral de uma consulta.
 - **Concorrência** se resolve no banco (índice único, `ON CONFLICT`/tratamento de violação), nunca com "consulta e depois insere".
 - Todo método de I/O recebe e propaga `CancellationToken`.

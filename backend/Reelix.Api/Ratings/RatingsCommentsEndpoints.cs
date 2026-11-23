@@ -1,3 +1,4 @@
+using Reelix.Api.Authentication;
 using Reelix.Application.Ratings;
 using Reelix.Domain.Ratings;
 
@@ -342,5 +343,5 @@ public static class RatingsCommentsEndpoints
         Enum.IsDefined(targetType);
 
     private static bool TryGetUserId(HttpContext context, out Guid userId) =>
-        Guid.TryParse(context.User.FindFirst("sub")?.Value, out userId) && userId != Guid.Empty;
+        context.User.ReadSubjectId(out userId);
 }

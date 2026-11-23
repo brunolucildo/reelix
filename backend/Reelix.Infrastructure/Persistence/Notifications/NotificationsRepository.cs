@@ -5,7 +5,8 @@ using Reelix.Domain.Social;
 
 namespace Reelix.Infrastructure.Persistence.Notifications;
 
-public sealed class NotificationsRepository(ReelixDbContext dbContext) : INotificationsRepository
+public sealed class NotificationsRepository(ReelixDbContext dbContext, TimeProvider clock)
+    : INotificationsRepository
 {
     public async Task<NotificationPreferences> GetPreferencesAsync(
         Guid accountId,
@@ -51,7 +52,7 @@ public sealed class NotificationsRepository(ReelixDbContext dbContext) : INotifi
             .ToArrayAsync(cancellationToken);
         foreach (var delivery in pendingDeliveries)
         {
-            delivery.Cancel("preference_disabled");
+            delivery.Cancel("preference_disabled", clock.GetUtcNow());
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -91,7 +92,8 @@ public sealed class NotificationsRepository(ReelixDbContext dbContext) : INotifi
                 registration.InstallationId,
                 registration.ExpoPushToken,
                 registration.Platform,
-                registration.ProjectId);
+                registration.ProjectId,
+                clock.GetUtcNow());
             dbContext.NotificationDevices.Add(device);
         }
         else
@@ -100,7 +102,8 @@ public sealed class NotificationsRepository(ReelixDbContext dbContext) : INotifi
                 accountId,
                 registration.ExpoPushToken,
                 registration.Platform,
-                registration.ProjectId);
+                registration.ProjectId,
+                clock.GetUtcNow());
             await CancelDeliveriesAsync(device.Id, "account_changed", cancellationToken);
         }
 
@@ -177,7 +180,7 @@ public sealed class NotificationsRepository(ReelixDbContext dbContext) : INotifi
             return false;
         }
 
-        notification.MarkRead();
+        notification.MarkRead(clock.GetUtcNow());
         await dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }
@@ -205,7 +208,7 @@ public sealed class NotificationsRepository(ReelixDbContext dbContext) : INotifi
         {
             var outcome = await ProcessSocialEventAsync(socialEvent, cancellationToken);
             dbContext.ProcessedNotificationEvents.Add(
-                ProcessedNotificationEvent.Create(socialEvent.Id, outcome));
+                ProcessedNotificationEvent.Create(socialEvent.Id, outcome, clock.GetUtcNow()));
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -254,14 +257,14 @@ public sealed class NotificationsRepository(ReelixDbContext dbContext) : INotifi
                 !device.IsActive ||
                 notification.AccountId != device.AccountId)
             {
-                delivery.Cancel("device_or_notification_inactive");
+                delivery.Cancel("device_or_notification_inactive", now);
                 continue;
             }
 
             if (!preferences.TryGetValue(notification.AccountId, out var preference) ||
                 !preference.IsEnabled(notification.Category))
             {
-                delivery.Cancel("preference_disabled");
+                delivery.Cancel("preference_disabled", now);
                 continue;
             }
 
@@ -297,12 +300,14 @@ public sealed class NotificationsRepository(ReelixDbContext dbContext) : INotifi
             return;
         }
 
+        var now = clock.GetUtcNow();
         if (response.Accepted && response.TicketId is not null)
         {
             delivery.RecordTicket(
                 workItem.LeaseId,
                 response.TicketId,
-                DateTimeOffset.UtcNow.AddMinutes(15));
+                now.AddMinutes(15),
+                now);
         }
         else
         {
@@ -323,8 +328,9 @@ public sealed class NotificationsRepository(ReelixDbContext dbContext) : INotifi
             delivery.Retry(
                 workItem.LeaseId,
                 deviceNotRegistered || !response.Retryable ? 1 : maxAttempts,
-                DateTimeOffset.UtcNow.Add(retryDelay),
-                response.ErrorCode ?? "expo_push_rejected");
+                now.Add(retryDelay),
+                response.ErrorCode ?? "expo_push_rejected",
+                now);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -353,7 +359,7 @@ public sealed class NotificationsRepository(ReelixDbContext dbContext) : INotifi
             if (delivery.ExpoTicketId is null ||
                 delivery.ExpoTicketCreatedAt <= now.AddHours(-24))
             {
-                delivery.ExpireReceipt();
+                delivery.ExpireReceipt(now);
                 continue;
             }
 
@@ -403,7 +409,7 @@ public sealed class NotificationsRepository(ReelixDbContext dbContext) : INotifi
                 device?.Deactivate();
             }
 
-            delivery.CompleteReceipt(response.Delivered, response.ErrorCode);
+            delivery.CompleteReceipt(response.Delivered, now, response.ErrorCode);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -470,14 +476,18 @@ public sealed class NotificationsRepository(ReelixDbContext dbContext) : INotifi
             $"social:{socialEvent.Id}",
             title,
             body,
-            "/social");
+            "/social",
+            clock.GetUtcNow());
         dbContext.UserNotifications.Add(notification);
 
         var devices = await dbContext.NotificationDevices
             .Where(device => device.AccountId == socialEvent.RecipientAccountId && device.IsActive)
             .ToArrayAsync(cancellationToken);
         dbContext.NotificationDeliveries.AddRange(
-            devices.Select(device => NotificationDelivery.Create(notification.Id, device.Id)));
+            devices.Select(device => NotificationDelivery.Create(
+                notification.Id,
+                device.Id,
+                clock.GetUtcNow())));
         return "created";
     }
 
@@ -494,7 +504,7 @@ public sealed class NotificationsRepository(ReelixDbContext dbContext) : INotifi
             .ToArrayAsync(cancellationToken);
         foreach (var delivery in deliveries)
         {
-            delivery.Cancel(reason);
+            delivery.Cancel(reason, clock.GetUtcNow());
         }
     }
 }

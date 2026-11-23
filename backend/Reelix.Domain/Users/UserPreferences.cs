@@ -44,9 +44,9 @@ public sealed class UserPreferences
         CurrentStep = currentStep;
     }
 
-    public void Complete()
+    public void Complete(DateTimeOffset now)
     {
-        CompletedAt ??= DateTimeOffset.UtcNow;
+        CompletedAt ??= now;
         CurrentStep = "Completed";
     }
 }

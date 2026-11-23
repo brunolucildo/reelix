@@ -92,12 +92,12 @@ public sealed class UserComment
         bool containsSpoiler,
         ReviewAudience audience,
         bool requestAutomatedAnalysis,
-        bool automatedAnalysisEnabled)
+        bool automatedAnalysisEnabled,
+        DateTimeOffset now)
     {
         ValidateTarget(accountId, targetId, targetType, seriesId);
         ValidateAudience(audience);
         var normalizedContent = NormalizeContent(content);
-        var now = DateTimeOffset.UtcNow;
         return new UserComment(
             Guid.NewGuid(),
             accountId,
@@ -120,7 +120,8 @@ public sealed class UserComment
         bool containsSpoiler,
         ReviewAudience audience,
         bool requestAutomatedAnalysis,
-        bool automatedAnalysisEnabled)
+        bool automatedAnalysisEnabled,
+        DateTimeOffset now)
     {
         ValidateAudience(audience);
         var normalizedContent = NormalizeContent(content);
@@ -140,13 +141,14 @@ public sealed class UserComment
                 : CommentModerationStatus.Published;
         }
 
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = now;
     }
 
     public void CompleteModeration(
         int version,
         Guid leaseId,
-        bool possibleSpoiler)
+        bool possibleSpoiler,
+        DateTimeOffset now)
     {
         if (version != ModerationVersion ||
             leaseId == Guid.Empty ||
@@ -160,7 +162,7 @@ public sealed class UserComment
         ModerationStatus = CommentModerationStatus.Published;
         ModerationLeaseId = null;
         ModerationLeaseUntil = null;
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = now;
     }
 
     public void RecordModerationFailure(

@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Reelix.Application.Lists;
 
-public static class ListsDependencyInjection
+public static class ListsApplicationModule
 {
     public static IServiceCollection AddListsApplication(this IServiceCollection services)
     {

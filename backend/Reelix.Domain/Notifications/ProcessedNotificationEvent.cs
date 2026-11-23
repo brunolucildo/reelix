@@ -19,13 +19,13 @@ public sealed class ProcessedNotificationEvent
 
     public DateTimeOffset ProcessedAt { get; private set; }
 
-    public static ProcessedNotificationEvent Create(Guid eventId, string outcome)
+    public static ProcessedNotificationEvent Create(Guid eventId, string outcome, DateTimeOffset now)
     {
         if (eventId == Guid.Empty || outcome is not ("created" or "disabled" or "obsolete"))
         {
             throw new ArgumentException("O recibo de evento de notificação é inválido.");
         }
 
-        return new ProcessedNotificationEvent(eventId, outcome, DateTimeOffset.UtcNow);
+        return new ProcessedNotificationEvent(eventId, outcome, now);
     }
 }

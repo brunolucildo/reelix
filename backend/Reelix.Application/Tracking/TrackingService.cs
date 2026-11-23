@@ -1,5 +1,6 @@
 using Reelix.Application.Authentication;
 using Reelix.Application.Catalog;
+using Reelix.Application.Common;
 using Reelix.Domain.Tracking;
 
 namespace Reelix.Application.Tracking;
@@ -7,7 +8,8 @@ namespace Reelix.Application.Tracking;
 public sealed class TrackingService(
     IUserAccountRepository accounts,
     ITrackingRepository tracking,
-    ITrackingCatalog catalog)
+    ITrackingCatalog catalog,
+    TimeProvider clock)
 {
     public async Task<bool> IsMovieWatchedAsync(
         Guid supabaseUserId,
@@ -28,7 +30,11 @@ public sealed class TrackingService(
     {
         var accountId = await GetAccountIdAsync(supabaseUserId, cancellationToken);
         await RequireCatalogReferenceAsync(titleId, CatalogReferenceType.Movie, cancellationToken);
-        var record = TrackingRecord.CreateMovie(accountId, titleId, watchedAt);
+        var record = TrackingRecord.CreateMovie(
+            accountId,
+            titleId,
+            clock.GetUtcNow(),
+            watchedAt);
         return ToEntry(await tracking.AddOrUpdateAsync(record, cancellationToken));
     }
 
@@ -65,7 +71,12 @@ public sealed class TrackingService(
             throw new TrackingSeriesMismatchException();
         }
 
-        var record = TrackingRecord.CreateEpisode(accountId, seriesId, episodeId, watchedAt);
+        var record = TrackingRecord.CreateEpisode(
+            accountId,
+            seriesId,
+            episodeId,
+            clock.GetUtcNow(),
+            watchedAt);
         return ToEntry(await tracking.AddOrUpdateAsync(record, cancellationToken));
     }
 
@@ -95,7 +106,7 @@ public sealed class TrackingService(
         TrackingHistoryOrder order,
         CancellationToken cancellationToken)
     {
-        ValidatePage(page, pageSize);
+        PageRequest.Validate(page, pageSize, PagePolicy.Tracking);
         var accountId = await GetAccountIdAsync(supabaseUserId, cancellationToken);
         return await tracking.GetHistoryAsync(
             accountId,
@@ -112,7 +123,7 @@ public sealed class TrackingService(
         int pageSize,
         CancellationToken cancellationToken)
     {
-        ValidatePage(page, pageSize);
+        PageRequest.Validate(page, pageSize, PagePolicy.Tracking);
         var accountId = await GetAccountIdAsync(supabaseUserId, cancellationToken);
         return await tracking.GetSeriesAsync(accountId, page, pageSize, cancellationToken);
     }
@@ -133,7 +144,7 @@ public sealed class TrackingService(
             return new SeriesProgress(seriesId, trackedCount, null, null, null);
         }
 
-        var todayUtc = DateOnly.FromDateTime(DateTime.UtcNow);
+        var todayUtc = TodayUtc();
         var availableIds = new HashSet<Guid>();
         foreach (var summary in seasons
             .Where(item => item.SeasonNumber >= 0 &&
@@ -266,28 +277,17 @@ public sealed class TrackingService(
         return season;
     }
 
-    private static CatalogEpisode[] GetAvailableEpisodes(CatalogSeason season)
+    private DateOnly TodayUtc() => DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
+
+    private CatalogEpisode[] GetAvailableEpisodes(CatalogSeason season)
     {
-        var todayUtc = DateOnly.FromDateTime(DateTime.UtcNow);
+        var todayUtc = TodayUtc();
         return season.Episodes
             .Where(episode =>
                 episode.ReleaseDate is null ||
                 episode.ReleaseDate.Value <= todayUtc)
             .DistinctBy(episode => episode.Id)
             .ToArray();
-    }
-
-    private static void ValidatePage(int page, int pageSize)
-    {
-        if (page is < 1 or > 100_000)
-        {
-            throw new ArgumentOutOfRangeException(nameof(page), "A página deve estar entre 1 e 100000.");
-        }
-
-        if (pageSize is < 1 or > 100)
-        {
-            throw new ArgumentOutOfRangeException(nameof(pageSize), "O tamanho da página deve estar entre 1 e 100.");
-        }
     }
 
     private static TrackingHistoryEntry ToEntry(TrackingRecord record) =>

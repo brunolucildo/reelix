@@ -1,12 +1,13 @@
-using System.Text.Json;
 using Reelix.Application.Authentication;
+using Reelix.Application.Common;
 using Reelix.Domain.Social;
 
 namespace Reelix.Application.Social;
 
 public sealed class SocialService(
     IUserAccountRepository accounts,
-    ISocialRepository socialRepository)
+    ISocialRepository socialRepository,
+    TimeProvider clock)
 {
     private const int ActivityPageSize = 20;
     private const int RelationshipPageSize = 20;
@@ -63,7 +64,7 @@ public sealed class SocialService(
 
         if (accept)
         {
-            relationship.Accept(account.Id);
+            relationship.Accept(account.Id, clock.GetUtcNow());
             await socialRepository.SaveRelationshipAsync(
                 relationship,
                 account.Id,
@@ -72,7 +73,7 @@ public sealed class SocialService(
         }
         else
         {
-            relationship.Decline(account.Id);
+            relationship.Decline(account.Id, clock.GetUtcNow());
             await socialRepository.SaveRelationshipAsync(
                 relationship,
                 account.Id,
@@ -98,7 +99,7 @@ public sealed class SocialService(
         }
 
         var accountId = await GetAccountIdAsync(supabaseUserId, cancellationToken);
-        relationship.Cancel(accountId);
+        relationship.Cancel(accountId, clock.GetUtcNow());
         await socialRepository.SaveRelationshipAsync(
             relationship,
             accountId,
@@ -122,7 +123,7 @@ public sealed class SocialService(
         }
 
         var accountId = await GetAccountIdAsync(supabaseUserId, cancellationToken);
-        relationship.Remove(accountId);
+        relationship.Remove(accountId, clock.GetUtcNow());
         await socialRepository.SaveRelationshipAsync(
             relationship,
             accountId,
@@ -244,12 +245,8 @@ public sealed class SocialService(
     private static string EncodeCursor(SocialActivity activity)
         => EncodeCursor(activity.OccurredAt, activity.Id);
 
-    private static string EncodeCursor(DateTimeOffset occurredAt, Guid id)
-    {
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(
-            new SocialCursor(occurredAt, id));
-        return Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
-    }
+    private static string EncodeCursor(DateTimeOffset occurredAt, Guid id) =>
+        CursorCodec.EncodeJson(new SocialCursor(occurredAt, id));
 
     private static SocialCursor? DecodeCursor(string? encodedCursor)
     {
@@ -258,30 +255,12 @@ public sealed class SocialService(
             return null;
         }
 
-        if (encodedCursor.Length > 200)
-        {
-            throw new ArgumentException("O cursor do feed é inválido.", nameof(encodedCursor));
-        }
-
-        try
-        {
-            var value = encodedCursor.Replace('-', '+').Replace('_', '/');
-            value = value.PadRight(value.Length + ((4 - value.Length % 4) % 4), '=');
-            var cursor = JsonSerializer.Deserialize<SocialCursor>(Convert.FromBase64String(value));
-            if (cursor is null || cursor.Id == Guid.Empty)
-            {
-                throw new ArgumentException("O cursor do feed é inválido.", nameof(encodedCursor));
-            }
-
-            return cursor;
-        }
-        catch (FormatException exception)
-        {
-            throw new ArgumentException("O cursor do feed é inválido.", nameof(encodedCursor), exception);
-        }
-        catch (JsonException exception)
-        {
-            throw new ArgumentException("O cursor do feed é inválido.", nameof(encodedCursor), exception);
-        }
+        var cursor = CursorCodec.DecodeJson<SocialCursor>(encodedCursor, InvalidCursor);
+        return cursor is null || cursor.Id == Guid.Empty
+            ? throw InvalidCursor(null)
+            : cursor;
     }
+
+    private static ArgumentException InvalidCursor(Exception? innerException) =>
+        new("O cursor do feed é inválido.", "encodedCursor", innerException);
 }

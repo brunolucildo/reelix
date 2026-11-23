@@ -47,26 +47,28 @@ public sealed class TrackingRecord
     public static TrackingRecord CreateMovie(
         Guid accountId,
         Guid titleId,
+        DateTimeOffset now,
         DateTimeOffset? watchedAt = null)
     {
         ValidateIdentity(accountId, titleId, nameof(titleId));
-        return Create(accountId, titleId, TrackingItemType.Movie, null, watchedAt);
+        return Create(accountId, titleId, TrackingItemType.Movie, null, now, watchedAt);
     }
 
     public static TrackingRecord CreateEpisode(
         Guid accountId,
         Guid seriesId,
         Guid episodeId,
+        DateTimeOffset now,
         DateTimeOffset? watchedAt = null)
     {
         ValidateIdentity(accountId, seriesId, nameof(seriesId));
         ValidateIdentity(accountId, episodeId, nameof(episodeId));
-        return Create(accountId, episodeId, TrackingItemType.Episode, seriesId, watchedAt);
+        return Create(accountId, episodeId, TrackingItemType.Episode, seriesId, now, watchedAt);
     }
 
-    public void CorrectWatchedAt(DateTimeOffset watchedAt)
+    public void CorrectWatchedAt(DateTimeOffset watchedAt, DateTimeOffset now)
     {
-        WatchedAt = NormalizeWatchedAt(watchedAt);
+        WatchedAt = NormalizeWatchedAt(watchedAt, now);
     }
 
     private static TrackingRecord Create(
@@ -74,9 +76,10 @@ public sealed class TrackingRecord
         Guid targetId,
         TrackingItemType itemType,
         Guid? seriesId,
+        DateTimeOffset now,
         DateTimeOffset? watchedAt)
     {
-        var timestamp = NormalizeWatchedAt(watchedAt ?? DateTimeOffset.UtcNow);
+        var timestamp = NormalizeWatchedAt(watchedAt ?? now, now);
         return new TrackingRecord(
             Guid.NewGuid(),
             accountId,
@@ -84,7 +87,7 @@ public sealed class TrackingRecord
             itemType,
             seriesId,
             timestamp,
-            DateTimeOffset.UtcNow);
+            now);
     }
 
     private static void ValidateIdentity(Guid accountId, Guid targetId, string parameterName)
@@ -100,9 +103,9 @@ public sealed class TrackingRecord
         }
     }
 
-    private static DateTimeOffset NormalizeWatchedAt(DateTimeOffset watchedAt)
+    private static DateTimeOffset NormalizeWatchedAt(DateTimeOffset watchedAt, DateTimeOffset now)
     {
-        if (watchedAt > DateTimeOffset.UtcNow)
+        if (watchedAt > now)
         {
             throw new ArgumentException("A data de visualização não pode estar no futuro.", nameof(watchedAt));
         }

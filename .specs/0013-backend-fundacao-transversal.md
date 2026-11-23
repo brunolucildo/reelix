@@ -3,12 +3,12 @@
 > Spec executável. Preencha todas as seções; `TODO` é lacuna, não requisito.
 > Use `create-spec` para criar, `refine-spec` para auditar e `implement-me` para executar.
 
-- **Status:** pronta
+- **Status:** concluída
 - **Slug:** backend-fundacao-transversal
 - **Data:** 2026-11-19
-- **Atualizado em:** 2026-11-19
+- **Atualizado em:** 2026-11-23
 - **Owner:** Tech lead (a confirmar)
-- **Relacionados:** `.plans/arquitetura-design-testes-breakdown.md` (D1–D5, D10–D11, Q1, Q5); `.adrs/0001-*` (complementa); ADR novo `.adrs/0012-use-case-por-fluxo-handler-por-endpoint-e-erros-de-aplicacao.md` (proposto, entregue por esta spec); specs vizinhas `0014`, `0015`, `0016` (migram os fluxos) e `0021` (testes de arquitetura); `.docs/ARCHITECTURE.md` §4.2 e §6.1; `.docs/DEVELOPMENT.md` §2.1, §5, §9, §13; `.claude/skills/refactor-slices/references/target-architecture.md`.
+- **Relacionados:** `.plans/arquitetura-design-testes-breakdown.md` (D1–D5, D10–D11, Q1, Q5); `.adrs/0001-*` (complementa); ADR novo `.adrs/XXXX-0013-use-case-por-fluxo-handler-por-endpoint-e-erros-de-aplicacao.md` (proposto, entregue por esta spec; número provisório, renumerado ao mesclar); specs vizinhas `0014`, `0015`, `0016` (migram os fluxos) e `0021` (testes de arquitetura); `.docs/ARCHITECTURE.md` §4.2 e §6.1; `.docs/DEVELOPMENT.md` §2.1, §5, §9, §13; `.claude/skills/refactor-slices/references/target-architecture.md`.
 
 ## 1. Escopo
 
@@ -158,3 +158,4 @@ Linha de base medida em 2026-11-19 (grep na raiz, Git Bash; `audit-slices.mjs --
 | Data       | O que mudou | Motivo |
 | ---------- | ----------- | ------ |
 | 2026-11-19 | Criação em modo lote (`breakdown-specs`); linha de base medida por grep e auditor; tabela de erros levantada em `*Endpoints.cs` | Épico arquitetura-design-testes, spec 1 de 4 do backend |
+| 2026-11-23 | Implementada (modo orquestrado). Premissas registradas: (1) mapeador por **filtro de endpoint** e título por metadado de rota ou carregado pelo erro (ADR provisório `XXXX-0013`); (2) a linha 12 da tabela de §5 tem hoje `Content-Type: application/json` (o `WriteAsJsonAsync` substitui o `problem+json`), preservado como está e fixado por teste; (3) a linha 8 foi confirmada: o 404 de `Results.NotFound()` sai como `application/problem+json` com `title` "Not Found"; (4) as classes de DI se chamam `<Modulo>ApplicationModule`/`<Modulo>InfrastructureModule` para G5; (5) `GetOrCreateAsync` fica como alias de `EnsureAsync` até `0014` a `0016`; (6) `TmdbCatalogProvider`, `OmdbCatalogProvider` e `ExpoPushClient` recebem `TimeProvider?` opcional (padrão `TimeProvider.System`, resolvido pelo DI) para não quebrar os testes de provedor; (7) a leitura do `sub` se chama `ReadSubjectId` (o auditor trata nomes `TryGet*Id` como o helper duplicado) | Execução com `implement-me`; sem alteração de escopo ou de contrato |

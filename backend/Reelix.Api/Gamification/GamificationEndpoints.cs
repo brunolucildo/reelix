@@ -1,5 +1,5 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.RateLimiting;
+using Reelix.Api.Authentication;
 using Reelix.Application.Gamification;
 
 namespace Reelix.Api.Gamification;
@@ -160,6 +160,5 @@ public static class GamificationEndpoints
     }
 
     private static bool TryGetAccountId(HttpContext context, out Guid accountId) =>
-        Guid.TryParse(context.User.FindFirst("sub")?.Value, out accountId) &&
-        accountId != Guid.Empty;
+        context.User.ReadSubjectId(out accountId);
 }

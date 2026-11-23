@@ -7,7 +7,7 @@ using Reelix.Domain.Tracking;
 
 namespace Reelix.Infrastructure.Persistence.Tracking;
 
-public sealed class TrackingRepository(ReelixDbContext dbContext) :
+public sealed class TrackingRepository(ReelixDbContext dbContext, TimeProvider clock) :
     ITrackingRepository,
     IEpisodeTrackingLookup
 {
@@ -61,7 +61,7 @@ public sealed class TrackingRepository(ReelixDbContext dbContext) :
         var existing = await GetAsync(record.AccountId, record.TargetId, cancellationToken);
         if (existing is not null)
         {
-            existing.CorrectWatchedAt(record.WatchedAt);
+            existing.CorrectWatchedAt(record.WatchedAt, clock.GetUtcNow());
             await dbContext.SaveChangesAsync(cancellationToken);
             return existing;
         }
@@ -91,7 +91,7 @@ public sealed class TrackingRepository(ReelixDbContext dbContext) :
                 throw new TrackingSeriesMismatchException();
             }
 
-            concurrent.CorrectWatchedAt(record.WatchedAt);
+            concurrent.CorrectWatchedAt(record.WatchedAt, clock.GetUtcNow());
             await dbContext.SaveChangesAsync(cancellationToken);
             return concurrent;
         }

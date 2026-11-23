@@ -55,10 +55,10 @@ public sealed class NotificationDevice
         Guid installationId,
         string expoPushToken,
         NotificationDevicePlatform platform,
-        Guid projectId)
+        Guid projectId,
+        DateTimeOffset now)
     {
         Validate(accountId, installationId, expoPushToken, platform, projectId);
-        var now = DateTimeOffset.UtcNow;
         return new NotificationDevice(
             Guid.NewGuid(),
             accountId,
@@ -73,7 +73,8 @@ public sealed class NotificationDevice
         Guid accountId,
         string expoPushToken,
         NotificationDevicePlatform platform,
-        Guid projectId)
+        Guid projectId,
+        DateTimeOffset now)
     {
         if (IsActive && AccountId != accountId)
         {
@@ -87,7 +88,7 @@ public sealed class NotificationDevice
         Platform = platform;
         ProjectId = projectId;
         IsActive = true;
-        LastRegisteredAt = DateTimeOffset.UtcNow;
+        LastRegisteredAt = now;
     }
 
     public void Deactivate() => IsActive = false;

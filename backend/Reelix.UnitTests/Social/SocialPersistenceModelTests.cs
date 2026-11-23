@@ -10,6 +10,7 @@ using Reelix.Domain.Social;
 using Reelix.Domain.Users;
 using Reelix.Infrastructure.Persistence;
 using Reelix.Infrastructure.Persistence.Social;
+using Reelix.UnitTests.Common;
 
 namespace Reelix.UnitTests.Social;
 
@@ -92,7 +93,7 @@ public sealed class SocialPersistenceModelTests
             .UseNpgsql("Host=localhost;Database=reelix_test;Username=test;Password=test")
             .AddInterceptors(new SuppressConnectionInterceptor(), commands)
             .Options);
-        var repository = new SocialRepository(context);
+        var repository = new SocialRepository(context, FixedTimeProvider.AtDefault());
 
         var result = await repository.GetActivityPageAsync(
             Guid.NewGuid(), null, 20, CancellationToken.None, filterAuthor ? Guid.NewGuid() : null);
@@ -115,7 +116,7 @@ public sealed class SocialPersistenceModelTests
             .UseNpgsql("Host=localhost;Database=reelix_test;Username=test;Password=test")
             .AddInterceptors(new SuppressConnectionInterceptor(), commands)
             .Options);
-        var repository = new SocialRepository(context);
+        var repository = new SocialRepository(context, FixedTimeProvider.AtDefault());
 
         var result = await repository.GetFriendProfileAsync(Guid.NewGuid(), Guid.NewGuid(), CancellationToken.None);
 

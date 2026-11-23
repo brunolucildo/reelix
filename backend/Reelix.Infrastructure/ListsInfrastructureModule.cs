@@ -4,7 +4,7 @@ using Reelix.Infrastructure.Persistence.Lists;
 
 namespace Reelix.Infrastructure;
 
-public static class ListsDependencyInjection
+public static class ListsInfrastructureModule
 {
     public static IServiceCollection AddListsInfrastructure(this IServiceCollection services)
     {

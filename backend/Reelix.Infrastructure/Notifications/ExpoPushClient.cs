@@ -9,9 +9,11 @@ namespace Reelix.Infrastructure.Notifications;
 
 public sealed class ExpoPushClient(
     HttpClient httpClient,
-    IOptions<ExpoPushOptions> options) : IExpoPushClient
+    IOptions<ExpoPushOptions> options,
+    TimeProvider? clock = null) : IExpoPushClient
 {
     private readonly ExpoPushOptions _options = options.Value;
+    private readonly TimeProvider _clock = clock ?? TimeProvider.System;
 
     public async Task<ExpoPushResponse> SendAsync(
         NotificationPushWorkItem workItem,
@@ -148,7 +150,7 @@ public sealed class ExpoPushClient(
         }
     }
 
-    private static TimeSpan? GetRetryAfter(HttpResponseMessage response)
+    private TimeSpan? GetRetryAfter(HttpResponseMessage response)
     {
         var retryAfter = response.Headers.RetryAfter;
         if (retryAfter?.Delta is TimeSpan delta)
@@ -159,7 +161,7 @@ public sealed class ExpoPushClient(
         if (retryAfter?.Date is DateTimeOffset date)
         {
             return TimeSpan.FromSeconds(Math.Clamp(
-                (date - DateTimeOffset.UtcNow).TotalSeconds,
+                (date - _clock.GetUtcNow()).TotalSeconds,
                 1,
                 3600));
         }

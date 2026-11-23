@@ -35,7 +35,7 @@ public sealed class UserCustomListTitle
         Guid titleId,
         string contentType,
         int position,
-        DateTimeOffset? addedAt = null)
+        DateTimeOffset addedAt)
     {
         if (listId == Guid.Empty || titleId == Guid.Empty ||
             contentType is not ("movie" or "series") || position < 0)
@@ -48,7 +48,7 @@ public sealed class UserCustomListTitle
             titleId,
             contentType,
             position,
-            addedAt ?? DateTimeOffset.UtcNow);
+            addedAt);
     }
 
     public void MoveTo(int position)

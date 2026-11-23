@@ -1,5 +1,6 @@
 using Reelix.Application.Authentication;
 using Reelix.Application.Catalog;
+using Reelix.Application.Common;
 using Reelix.Application.Users;
 
 namespace Reelix.Application.Lists;
@@ -31,7 +32,7 @@ public sealed class UserListsService(
         int pageSize,
         CancellationToken cancellationToken)
     {
-        ValidatePage(page, pageSize);
+        PageRequest.Validate(page, pageSize, PagePolicy.Lists);
         var account = await accounts.GetOrCreateAsync(supabaseUserId, cancellationToken);
         return await lists.GetFavoritesAsync(
             account.Id,
@@ -73,7 +74,7 @@ public sealed class UserListsService(
         bool oldestFirst,
         CancellationToken cancellationToken)
     {
-        ValidatePage(page, pageSize);
+        PageRequest.Validate(page, pageSize, PagePolicy.Lists);
         var account = await accounts.GetOrCreateAsync(supabaseUserId, cancellationToken);
         return await lists.GetWatchlistAsync(
             account.Id,
@@ -114,7 +115,7 @@ public sealed class UserListsService(
         int pageSize,
         CancellationToken cancellationToken)
     {
-        ValidatePage(page, pageSize);
+        PageRequest.Validate(page, pageSize, PagePolicy.Lists);
         var account = await accounts.GetOrCreateAsync(supabaseUserId, cancellationToken);
         return await lists.GetCustomListsAsync(account.Id, page, pageSize, cancellationToken);
     }
@@ -126,7 +127,7 @@ public sealed class UserListsService(
         int pageSize,
         CancellationToken cancellationToken)
     {
-        ValidatePage(page, pageSize);
+        PageRequest.Validate(page, pageSize, PagePolicy.Lists);
         var account = await accounts.GetOrCreateAsync(supabaseUserId, cancellationToken);
         return await lists.GetCustomListAsync(account.Id, listId, page, pageSize, cancellationToken);
     }
@@ -236,12 +237,4 @@ public sealed class UserListsService(
             CatalogContentType.Series => "series",
             _ => throw new ArgumentException("Informe um tipo de conteúdo válido.", nameof(contentType)),
         };
-
-    private static void ValidatePage(int page, int pageSize)
-    {
-        if (page is < 1 or > 1_000_000 || pageSize is < 1 or > 100)
-        {
-            throw new ArgumentException("Informe uma página entre 1 e 1.000.000 e um limite entre 1 e 100 títulos.");
-        }
-    }
 }

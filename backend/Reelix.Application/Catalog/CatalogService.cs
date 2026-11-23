@@ -1,4 +1,5 @@
 using System.Net;
+using Reelix.Application.Common;
 
 namespace Reelix.Application.Catalog;
 
@@ -258,11 +259,7 @@ public sealed class CatalogService(
             throw new ArgumentException("A busca deve ter entre 1 e 200 caracteres.", nameof(query));
         }
 
-        if (page is < 1 or > 100)
-        {
-            throw new ArgumentOutOfRangeException(nameof(page), "A página deve estar entre 1 e 100.");
-        }
-
+        PageRequest.ValidatePage(page, PagePolicy.Catalog);
         ValidateLanguage(language);
     }
 
@@ -279,10 +276,7 @@ public sealed class CatalogService(
             throw new ArgumentException("Informe um tipo de conteúdo e uma seção válidos.");
         }
 
-        if (page is < 1 or > 100)
-        {
-            throw new ArgumentOutOfRangeException(nameof(page), "A página deve estar entre 1 e 100.");
-        }
+        PageRequest.ValidatePage(page, PagePolicy.Catalog);
 
         if (genreIds.Count > 20 || genreIds.Any(id => id <= 0) ||
             genreIds.Distinct().Count() != genreIds.Count)

@@ -1,5 +1,5 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.RateLimiting;
+using Reelix.Api.Authentication;
 using Reelix.Application.Social;
 using Reelix.Domain.Social;
 
@@ -362,5 +362,5 @@ public static class SocialEndpoints
     }
 
     private static bool TryGetUserId(HttpContext context, out Guid userId) =>
-        Guid.TryParse(context.User.FindFirstValue("sub"), out userId) && userId != Guid.Empty;
+        context.User.ReadSubjectId(out userId);
 }

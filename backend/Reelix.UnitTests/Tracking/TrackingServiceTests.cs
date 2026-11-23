@@ -4,6 +4,7 @@ using Reelix.Application.Tracking;
 using Reelix.Domain.Catalog;
 using Reelix.Domain.Tracking;
 using Reelix.Domain.Users;
+using Reelix.UnitTests.Common;
 
 namespace Reelix.UnitTests.Tracking;
 
@@ -16,7 +17,7 @@ public sealed class TrackingServiceTests
         var repository = new StubTrackingRepository();
         var titleId = Guid.NewGuid();
         repository.AddCatalogReference(titleId, CatalogReferenceType.Movie);
-        var service = new TrackingService(accounts, repository, new StubTrackingCatalog());
+        var service = new TrackingService(accounts, repository, new StubTrackingCatalog(), FixedTimeProvider.AtDefault());
         var userId = Guid.NewGuid();
 
         var first = await service.MarkMovieAsync(
@@ -44,7 +45,7 @@ public sealed class TrackingServiceTests
         var service = new TrackingService(
             new StubAccountRepository(),
             repository,
-            new StubTrackingCatalog());
+            new StubTrackingCatalog(), FixedTimeProvider.AtDefault());
         var userId = Guid.NewGuid();
 
         Assert.False(await service.IsMovieWatchedAsync(userId, titleId, CancellationToken.None));
@@ -61,7 +62,7 @@ public sealed class TrackingServiceTests
         var repository = new StubTrackingRepository();
         var titleId = Guid.NewGuid();
         repository.AddCatalogReference(titleId, CatalogReferenceType.Movie);
-        var service = new TrackingService(accounts, repository, new StubTrackingCatalog());
+        var service = new TrackingService(accounts, repository, new StubTrackingCatalog(), FixedTimeProvider.AtDefault());
 
         await service.MarkMovieAsync(
             Guid.NewGuid(),
@@ -113,10 +114,10 @@ public sealed class TrackingServiceTests
             [
                 Episode(watchedEpisodeId, 1, new DateOnly(2020, 1, 1)),
                 Episode(specialWithoutNumberId, null, null),
-                Episode(upcomingEpisodeId, 2, DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1)),
+                Episode(upcomingEpisodeId, 2, DateOnly.FromDateTime(FixedTimeProvider.DefaultNow.UtcDateTime).AddDays(1)),
             ]);
         var catalog = new StubTrackingCatalog { Season = season };
-        var service = new TrackingService(accountRepository, trackingRepository, catalog);
+        var service = new TrackingService(accountRepository, trackingRepository, catalog, FixedTimeProvider.AtDefault());
 
         await service.MarkEpisodeAsync(
             userId,
@@ -168,7 +169,7 @@ public sealed class TrackingServiceTests
             Enumerable.Range(1, count).Select(number =>
                 Episode(Guid.NewGuid(), number, new DateOnly(2020, 1, 1))).ToArray())).ToArray();
         var catalog = new StubTrackingCatalog { Seasons = seasons };
-        var service = new TrackingService(new StubAccountRepository(), repository, catalog);
+        var service = new TrackingService(new StubAccountRepository(), repository, catalog, FixedTimeProvider.AtDefault());
         var episodes = seasons.SelectMany(season => season.Episodes).ToArray();
         foreach (var episode in episodes)
         {
@@ -206,7 +207,7 @@ public sealed class TrackingServiceTests
         var repository = new StubTrackingRepository();
         var seriesId = Guid.NewGuid();
         repository.AddCatalogReference(seriesId, CatalogReferenceType.Series);
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = DateOnly.FromDateTime(FixedTimeProvider.DefaultNow.UtcDateTime);
         var special = Episode(Guid.NewGuid(), null, null);
         var released = Episode(Guid.NewGuid(), 1, today);
         var future = Episode(Guid.NewGuid(), 2, today.AddDays(1));
@@ -218,7 +219,7 @@ public sealed class TrackingServiceTests
             new CatalogSeason(Guid.NewGuid(), seriesId, CatalogProvider.Tmdb, "series", "Inválida", -1, null, [Episode(Guid.NewGuid(), 1, null)]),
         };
         var catalog = new StubTrackingCatalog { Seasons = [.. seasons, seasons[1]] };
-        var service = new TrackingService(new StubAccountRepository(), repository, catalog);
+        var service = new TrackingService(new StubAccountRepository(), repository, catalog, FixedTimeProvider.AtDefault());
         var userId = Guid.NewGuid();
         repository.AddCatalogReference(future.Id, CatalogReferenceType.Episode);
         await service.MarkEpisodeAsync(userId, seriesId, future.Id, null, CancellationToken.None);
@@ -240,7 +241,7 @@ public sealed class TrackingServiceTests
         {
             Summaries = [new CatalogSeasonSummary(1, null, null)],
         };
-        var service = new TrackingService(new StubAccountRepository(), repository, catalog);
+        var service = new TrackingService(new StubAccountRepository(), repository, catalog, FixedTimeProvider.AtDefault());
         await Assert.ThrowsAsync<TrackingContentNotFoundException>(() =>
             service.GetSeriesProgressAsync(Guid.NewGuid(), seriesId, CancellationToken.None));
     }
@@ -252,7 +253,7 @@ public sealed class TrackingServiceTests
         var seriesId = Guid.NewGuid();
         repository.AddCatalogReference(seriesId, CatalogReferenceType.Series);
         var service = new TrackingService(new StubAccountRepository(), repository,
-            new StubTrackingCatalog { Seasons = [] });
+            new StubTrackingCatalog { Seasons = [] }, FixedTimeProvider.AtDefault());
         var progress = await service.GetSeriesProgressAsync(Guid.NewGuid(), seriesId, CancellationToken.None);
         Assert.Equal(0, progress.AvailableEpisodeCount);
         Assert.Equal(0, progress.PendingEpisodeCount);
@@ -272,7 +273,7 @@ public sealed class TrackingServiceTests
         repository.AddCatalogReference(seriesId, CatalogReferenceType.Series);
         repository.AddCatalogReference(otherSeriesId, CatalogReferenceType.Series);
         repository.AddCatalogReference(episodeId, CatalogReferenceType.Episode);
-        var service = new TrackingService(accountRepository, repository, new StubTrackingCatalog());
+        var service = new TrackingService(accountRepository, repository, new StubTrackingCatalog(), FixedTimeProvider.AtDefault());
         await service.MarkEpisodeAsync(
             userId,
             seriesId,
@@ -296,11 +297,16 @@ public sealed class TrackingServiceTests
     {
         private readonly Dictionary<Guid, UserAccount> _accounts = [];
 
-        public Task<UserAccount> GetOrCreateAsync(Guid supabaseUserId, CancellationToken cancellationToken)
+        public async Task<UserAccount?> FindAsync(
+            Guid supabaseUserId,
+            CancellationToken cancellationToken) =>
+            await EnsureAsync(supabaseUserId, cancellationToken);
+
+        public Task<UserAccount> EnsureAsync(Guid supabaseUserId, CancellationToken cancellationToken)
         {
             if (!_accounts.TryGetValue(supabaseUserId, out var account))
             {
-                account = UserAccount.Create(supabaseUserId);
+                account = UserAccount.Create(supabaseUserId, FixedTimeProvider.DefaultNow);
                 _accounts.Add(supabaseUserId, account);
             }
 
@@ -349,7 +355,7 @@ public sealed class TrackingServiceTests
                 return Task.FromResult(record);
             }
 
-            existing.CorrectWatchedAt(record.WatchedAt);
+            existing.CorrectWatchedAt(record.WatchedAt, FixedTimeProvider.DefaultNow);
             return Task.FromResult(existing);
         }
 
