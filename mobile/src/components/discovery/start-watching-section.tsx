@@ -9,7 +9,7 @@ import {
   fetchTitleDetails,
   fetchWatchlist,
   type TitleReference,
-} from '@/services/lists-api';
+} from '@/features/lists/api/lists-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { TitlePosterCard } from './title-poster-card';
 

@@ -12,8 +12,9 @@ import { PrimaryButton } from '@/components/auth/primary-button';
 import { useErrorToast } from '@/providers/toast-provider';
 import {
   createCustomList, fetchCustomLists, fetchTitleStatuses, removeFavorite, removeWatchlistTitle,
-  setCustomListTitle, setFavorite, setWatchlistTitle, type CatalogTitle,
-} from '@/services/lists-api';
+  setCustomListTitle, setFavorite, setWatchlistTitle,
+} from '@/features/lists/api/lists-api';
+import type { CatalogTitle } from '@/features/catalog/api/catalog-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 
 export function TitleCollectionActions({ title }: { title: CatalogTitle }) {

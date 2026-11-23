@@ -37,10 +37,10 @@ import {
   setFavorite,
   setWatchlistTitle,
   updateCustomList,
-  type CatalogTitle,
   type CustomListSummary,
   type TitleReference,
-} from '@/services/lists-api';
+} from '@/features/lists/api/lists-api';
+import type { CatalogTitle } from '@/features/catalog/api/catalog-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import AddListIcon from '../../assets/brand/navigation-icons/list-add.svg';
 import FavoritesIcon from '../../assets/brand/navigation-icons/favorites.svg';

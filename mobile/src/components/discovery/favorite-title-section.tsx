@@ -5,7 +5,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { useErrorToast } from '@/providers/toast-provider';
 import { IconAction } from '@/components/icon-action';
 import ClockIcon from '../../../assets/brand/navigation-icons/clock.svg';
-import { fetchFavorites, fetchTitleDetails, fetchWatchlist } from '@/services/lists-api';
+import { fetchFavorites, fetchTitleDetails, fetchWatchlist } from '@/features/lists/api/lists-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { TitlePosterCard } from './title-poster-card';
 

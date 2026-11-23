@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { httpRequest } from '@/lib/http-client';
-import { catalogTitleSchema } from '@/services/api-client';
+import { catalogTitleSchema, type CatalogTitle } from '@/features/catalog/api/catalog-api';
 
 const titleSchema = catalogTitleSchema;
 
@@ -49,7 +49,6 @@ const titleStatusSchema = z.object({
   isInWatchlist: z.boolean(),
 });
 
-export type CatalogTitle = z.infer<typeof titleSchema>;
 export type TitleReference = z.infer<typeof titleReferenceSchema>;
 export type CustomListSummary = z.infer<typeof customListSummarySchema>;
 export type PagedTitleList = z.infer<typeof pagedTitleListSchema>;
