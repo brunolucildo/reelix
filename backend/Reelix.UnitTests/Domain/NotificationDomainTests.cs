@@ -1,9 +1,12 @@
 using Reelix.Domain.Notifications;
+using Reelix.UnitTests.Common;
 
 namespace Reelix.UnitTests.Domain;
 
 public sealed class NotificationDomainTests
 {
+    private static readonly DateTimeOffset Now = FixedTimeProvider.DefaultNow;
+
     [Fact]
     public void Preferences_DefaultToDisabledAndUpdateByCategory()
     {
@@ -31,7 +34,8 @@ public sealed class NotificationDomainTests
             "social:source",
             "Título",
             "Mensagem",
-            "https://example.com"));
+            "https://example.com",
+            Now));
 
         var notification = UserNotification.Create(
             accountId,
@@ -39,41 +43,56 @@ public sealed class NotificationDomainTests
             "social:source",
             "Título",
             "Mensagem",
-            "/social");
+            "/social",
+            Now);
 
         Assert.Equal("/social", notification.DeepLink);
+        Assert.Equal(Now, notification.CreatedAt);
         Assert.Null(notification.ReadAt);
-        notification.MarkRead();
+        notification.MarkRead(Now.AddMinutes(1));
         var readAt = notification.ReadAt;
-        notification.MarkRead();
+        notification.MarkRead(Now.AddMinutes(2));
+        Assert.Equal(Now.AddMinutes(1), readAt);
         Assert.Equal(readAt, notification.ReadAt);
     }
 
     [Fact]
     public void Delivery_RequiresLeaseAndWaitsForExpoReceipt()
     {
-        var delivery = NotificationDelivery.Create(Guid.NewGuid(), Guid.NewGuid());
-        var now = DateTimeOffset.UtcNow;
+        var delivery = NotificationDelivery.Create(Guid.NewGuid(), Guid.NewGuid(), Now);
         var leaseId = Guid.NewGuid();
 
+        Assert.Equal(Now, delivery.NextAttemptAt);
         Assert.Throws<InvalidOperationException>(() =>
-            delivery.RecordTicket(Guid.NewGuid(), "ticket", now.AddMinutes(15)));
+            delivery.RecordTicket(Guid.NewGuid(), "ticket", Now.AddMinutes(15), Now));
 
-        delivery.Claim(leaseId, now.AddMinutes(2), now);
-        delivery.RecordTicket(leaseId, "ticket", DateTimeOffset.UtcNow.AddMinutes(15));
+        delivery.Claim(leaseId, Now.AddMinutes(2), Now);
+        delivery.RecordTicket(leaseId, "ticket", Now.AddMinutes(15), Now);
 
         Assert.Equal(NotificationDeliveryStatus.Ticketed, delivery.Status);
-        Assert.NotNull(delivery.ExpoTicketCreatedAt);
-        delivery.RetryReceipt(DateTimeOffset.UtcNow.AddMinutes(30), "receipt_pending");
+        Assert.Equal(Now, delivery.ExpoTicketCreatedAt);
+        delivery.RetryReceipt(Now.AddMinutes(30), "receipt_pending");
         Assert.Equal(1, delivery.ReceiptCheckCount);
         Assert.Throws<InvalidOperationException>(() => delivery.Claim(
             Guid.NewGuid(),
-            DateTimeOffset.UtcNow.AddMinutes(2),
-            DateTimeOffset.UtcNow));
+            Now.AddMinutes(2),
+            Now));
 
-        delivery.CompleteReceipt(delivered: true);
+        delivery.CompleteReceipt(delivered: true, Now.AddMinutes(31));
 
         Assert.Equal(NotificationDeliveryStatus.Completed, delivery.Status);
+        Assert.Equal(Now.AddMinutes(31), delivery.CompletedAt);
+    }
+
+    [Fact]
+    public void Delivery_RejectsATicketWhoseReceiptCheckIsNotInTheFuture()
+    {
+        var delivery = NotificationDelivery.Create(Guid.NewGuid(), Guid.NewGuid(), Now);
+        var leaseId = Guid.NewGuid();
+        delivery.Claim(leaseId, Now.AddMinutes(2), Now);
+
+        Assert.Throws<ArgumentException>(() =>
+            delivery.RecordTicket(leaseId, "ticket", Now, Now));
     }
 
     [Fact]
@@ -84,7 +103,8 @@ public sealed class NotificationDomainTests
             Guid.NewGuid(),
             "not-a-token",
             NotificationDevicePlatform.Android,
-            Guid.NewGuid()));
+            Guid.NewGuid(),
+            Now));
     }
 
     [Fact]
@@ -99,22 +119,27 @@ public sealed class NotificationDomainTests
             installationId,
             "ExpoPushToken[abc12345678901234567890]",
             NotificationDevicePlatform.Android,
-            projectId);
+            projectId,
+            Now);
 
         Assert.Throws<InvalidOperationException>(() => device.RegisterFor(
             newAccountId,
             "ExpoPushToken[abc12345678901234567890]",
             NotificationDevicePlatform.Android,
-            projectId));
+            projectId,
+            Now.AddMinutes(1)));
 
         device.Deactivate();
         device.RegisterFor(
             newAccountId,
             "ExpoPushToken[abc12345678901234567890]",
             NotificationDevicePlatform.Android,
-            projectId);
+            projectId,
+            Now.AddMinutes(2));
 
         Assert.Equal(newAccountId, device.AccountId);
         Assert.True(device.IsActive);
+        Assert.Equal(Now, device.CreatedAt);
+        Assert.Equal(Now.AddMinutes(2), device.LastRegisteredAt);
     }
 }

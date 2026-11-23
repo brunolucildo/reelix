@@ -5,7 +5,7 @@ using Reelix.Domain.Catalog;
 
 namespace Reelix.Infrastructure.Persistence.Catalog;
 
-public sealed class ExternalCatalogReferenceRepository(ReelixDbContext dbContext)
+public sealed class ExternalCatalogReferenceRepository(ReelixDbContext dbContext, TimeProvider clock)
     : IExternalCatalogReferenceRepository
 {
     public async Task<IReadOnlyDictionary<CatalogReferenceKey, Guid>> GetOrCreateIdsAsync(
@@ -30,7 +30,8 @@ public sealed class ExternalCatalogReferenceRepository(ReelixDbContext dbContext
             .Select(reference => ExternalCatalogReference.Create(
                 providerName,
                 reference.ExternalId,
-                reference.Type.ToString()))
+                reference.Type.ToString(),
+                clock.GetUtcNow()))
             .ToArray();
 
         dbContext.ExternalCatalogReferences.AddRange(missing);
@@ -125,7 +126,8 @@ public sealed class ExternalCatalogReferenceRepository(ReelixDbContext dbContext
             update.Reference.UpdateMetadata(
                 update.RuntimeMinutes,
                 hasGenreIds,
-                runtimeChanged || genreSetChanged);
+                runtimeChanged || genreSetChanged,
+                clock.GetUtcNow());
 
             if (!genreSetChanged)
             {

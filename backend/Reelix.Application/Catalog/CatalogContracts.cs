@@ -1,3 +1,5 @@
+using Reelix.Application.Errors;
+
 namespace Reelix.Application.Catalog;
 
 public enum CatalogProvider
@@ -207,11 +209,4 @@ public sealed class CatalogProviderException(
     string code,
     string message,
     int statusCode,
-    TimeSpan? retryAfter = null) : Exception(message)
-{
-    public string Code { get; } = code;
-
-    public int StatusCode { get; } = statusCode;
-
-    public TimeSpan? RetryAfter { get; } = retryAfter;
-}
+    TimeSpan? retryAfter = null) : ExternalDependencyError(code, message, statusCode, retryAfter);

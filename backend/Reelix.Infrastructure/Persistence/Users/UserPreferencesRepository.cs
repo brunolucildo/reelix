@@ -6,7 +6,7 @@ using Reelix.Domain.Users;
 
 namespace Reelix.Infrastructure.Persistence.Users;
 
-public sealed class UserPreferencesRepository(ReelixDbContext dbContext)
+public sealed class UserPreferencesRepository(ReelixDbContext dbContext, TimeProvider clock)
     : IUserPreferencesRepository
 {
     public async Task<OnboardingPreferences?> GetExistingAsync(
@@ -69,7 +69,7 @@ public sealed class UserPreferencesRepository(ReelixDbContext dbContext)
         var preferences = await FindAsync(accountId, cancellationToken)
             ?? throw new InvalidOperationException("The preference row could not be loaded for completion.");
 
-        preferences.Complete();
+        preferences.Complete(clock.GetUtcNow());
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 

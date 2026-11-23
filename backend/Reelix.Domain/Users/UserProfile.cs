@@ -60,6 +60,7 @@ public sealed class UserProfile
         bool profileIsPublic,
         bool favoritesArePublic,
         bool watchHistoryIsPublic,
+        DateTimeOffset now,
         bool isDiscoverable = false,
         bool watchHistorySharedWithFriends = false,
         bool favoritesSharedWithFriends = false,
@@ -77,7 +78,6 @@ public sealed class UserProfile
             throw new ArgumentException("A biografia pode ter no máximo 280 caracteres.", nameof(biography));
         }
 
-        var now = DateTimeOffset.UtcNow;
         if (watchHistorySharedWithFriends != WatchHistorySharedWithFriends)
         {
             WatchHistorySharedWithFriendsSince = watchHistorySharedWithFriends ? now : null;

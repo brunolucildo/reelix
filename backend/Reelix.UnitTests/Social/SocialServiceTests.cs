@@ -2,6 +2,7 @@ using Reelix.Application.Authentication;
 using Reelix.Application.Social;
 using Reelix.Domain.Social;
 using Reelix.Domain.Users;
+using Reelix.UnitTests.Common;
 
 namespace Reelix.UnitTests.Social;
 
@@ -10,10 +11,10 @@ public sealed class SocialServiceTests
     [Fact]
     public async Task RespondToRequest_ReturnsNotFoundForAnAccountOutsideTheRelationship()
     {
-        var caller = UserAccount.Create(Guid.NewGuid());
-        var relationship = FriendRelationship.Create(Guid.NewGuid(), Guid.NewGuid());
+        var caller = UserAccount.Create(Guid.NewGuid(), FixedTimeProvider.DefaultNow);
+        var relationship = FriendRelationship.Create(Guid.NewGuid(), Guid.NewGuid(), FixedTimeProvider.DefaultNow);
         var repository = new TestSocialRepository(relationship);
-        var service = new SocialService(new TestAccountRepository(caller), repository);
+        var service = new SocialService(new TestAccountRepository(caller), repository, FixedTimeProvider.AtDefault());
 
         var result = await service.RespondToRequestAsync(
             caller.SupabaseUserId,
@@ -30,10 +31,10 @@ public sealed class SocialServiceTests
     public async Task RespondToRequest_PersistsAcceptanceEventOnlyForRecipientAction()
     {
         var requester = Guid.NewGuid();
-        var recipient = UserAccount.Create(Guid.NewGuid());
-        var relationship = FriendRelationship.Create(requester, recipient.Id);
+        var recipient = UserAccount.Create(Guid.NewGuid(), FixedTimeProvider.DefaultNow);
+        var relationship = FriendRelationship.Create(requester, recipient.Id, FixedTimeProvider.DefaultNow);
         var repository = new TestSocialRepository(relationship);
-        var service = new SocialService(new TestAccountRepository(recipient), repository);
+        var service = new SocialService(new TestAccountRepository(recipient), repository, FixedTimeProvider.AtDefault());
 
         var result = await service.RespondToRequestAsync(
             recipient.SupabaseUserId,
@@ -57,10 +58,10 @@ public sealed class SocialServiceTests
         string storedContentType,
         string expectedContentType)
     {
-        var caller = UserAccount.Create(Guid.NewGuid());
+        var caller = UserAccount.Create(Guid.NewGuid(), FixedTimeProvider.DefaultNow);
         var friendAccountId = Guid.NewGuid();
         var favorite = new SharedFavorite(Guid.NewGuid(), storedContentType, "tmdb", "123");
-        var repository = new TestSocialRepository(FriendRelationship.Create(caller.Id, friendAccountId))
+        var repository = new TestSocialRepository(FriendRelationship.Create(caller.Id, friendAccountId, FixedTimeProvider.DefaultNow))
         {
             Profile = new FriendProfile(friendAccountId, "Amigo", null, [favorite])
             {
@@ -68,7 +69,7 @@ public sealed class SocialServiceTests
                 FavoritesShared = true,
             },
         };
-        var service = new SocialService(new TestAccountRepository(caller), repository);
+        var service = new SocialService(new TestAccountRepository(caller), repository, FixedTimeProvider.AtDefault());
 
         var result = await service.GetFriendProfileAsync(
             caller.SupabaseUserId,
@@ -84,10 +85,10 @@ public sealed class SocialServiceTests
     [Fact]
     public async Task GetFriendProfile_PreservesAnUnavailableProfile()
     {
-        var caller = UserAccount.Create(Guid.NewGuid());
+        var caller = UserAccount.Create(Guid.NewGuid(), FixedTimeProvider.DefaultNow);
         var friendAccountId = Guid.NewGuid();
-        var repository = new TestSocialRepository(FriendRelationship.Create(caller.Id, friendAccountId));
-        var service = new SocialService(new TestAccountRepository(caller), repository);
+        var repository = new TestSocialRepository(FriendRelationship.Create(caller.Id, friendAccountId, FixedTimeProvider.DefaultNow));
+        var service = new SocialService(new TestAccountRepository(caller), repository, FixedTimeProvider.AtDefault());
 
         var result = await service.GetFriendProfileAsync(
             caller.SupabaseUserId,
@@ -108,9 +109,9 @@ public sealed class SocialServiceTests
         FriendRelationshipStatus? status,
         bool shared)
     {
-        var caller = UserAccount.Create(Guid.NewGuid());
+        var caller = UserAccount.Create(Guid.NewGuid(), FixedTimeProvider.DefaultNow);
         var friendAccountId = Guid.NewGuid();
-        var repository = new TestSocialRepository(FriendRelationship.Create(caller.Id, friendAccountId))
+        var repository = new TestSocialRepository(FriendRelationship.Create(caller.Id, friendAccountId, FixedTimeProvider.DefaultNow))
         {
             Profile = new FriendProfile(friendAccountId, "Amigo", null,
                 [new SharedFavorite(Guid.NewGuid(), "Movie", "tmdb", "123")])
@@ -121,7 +122,7 @@ public sealed class SocialServiceTests
                 RatingsShared = shared,
             },
         };
-        var service = new SocialService(new TestAccountRepository(caller), repository);
+        var service = new SocialService(new TestAccountRepository(caller), repository, FixedTimeProvider.AtDefault());
 
         var result = await service.GetFriendProfileAsync(caller.SupabaseUserId, friendAccountId, CancellationToken.None);
 
@@ -138,10 +139,10 @@ public sealed class SocialServiceTests
     [Fact]
     public async Task GetActivityFeed_UsesTheResolvedCallerAndRequestedAuthor()
     {
-        var caller = UserAccount.Create(Guid.NewGuid());
+        var caller = UserAccount.Create(Guid.NewGuid(), FixedTimeProvider.DefaultNow);
         var friendAccountId = Guid.NewGuid();
-        var repository = new TestSocialRepository(FriendRelationship.Create(caller.Id, friendAccountId));
-        var service = new SocialService(new TestAccountRepository(caller), repository);
+        var repository = new TestSocialRepository(FriendRelationship.Create(caller.Id, friendAccountId, FixedTimeProvider.DefaultNow));
+        var service = new SocialService(new TestAccountRepository(caller), repository, FixedTimeProvider.AtDefault());
 
         var result = await service.GetActivityFeedAsync(caller.SupabaseUserId, null, CancellationToken.None, friendAccountId);
 
@@ -153,7 +154,12 @@ public sealed class SocialServiceTests
 
     private sealed class TestAccountRepository(UserAccount account) : IUserAccountRepository
     {
-        public Task<UserAccount> GetOrCreateAsync(
+        public async Task<UserAccount?> FindAsync(
+            Guid supabaseUserId,
+            CancellationToken cancellationToken) =>
+            await EnsureAsync(supabaseUserId, cancellationToken);
+
+        public Task<UserAccount> EnsureAsync(
             Guid supabaseUserId,
             CancellationToken cancellationToken) =>
             Task.FromResult(account);

@@ -7,6 +7,7 @@ using Reelix.Application.Catalog;
 using Reelix.Application.Ratings;
 using Reelix.Domain.Ratings;
 using Reelix.Infrastructure.Ratings;
+using Reelix.UnitTests.Common;
 
 namespace Reelix.UnitTests.Ratings;
 
@@ -121,7 +122,7 @@ public sealed class CommentModerationTests
         var processor = new CommentModerationProcessor(
             repository,
             classifier,
-            NullLogger<CommentModerationProcessor>.Instance);
+            NullLogger<CommentModerationProcessor>.Instance, FixedTimeProvider.AtDefault());
 
         await processor.ProcessBatchAsync(CancellationToken.None);
 

@@ -5,7 +5,8 @@ namespace Reelix.Application.Notifications;
 public sealed class NotificationDeliveryProcessor(
     INotificationsRepository repository,
     IExpoPushClient expoPushClient,
-    IPushRegistrationConfiguration configuration)
+    IPushRegistrationConfiguration configuration,
+    TimeProvider clock)
 {
     public async Task<int> ProcessBatchAsync(CancellationToken cancellationToken)
     {
@@ -14,7 +15,7 @@ public sealed class NotificationDeliveryProcessor(
             return 0;
         }
 
-        var now = DateTimeOffset.UtcNow;
+        var now = clock.GetUtcNow();
         var deliveries = await repository.ClaimPushDeliveriesAsync(
             50,
             now,
@@ -50,14 +51,14 @@ public sealed class NotificationDeliveryProcessor(
                 cancellationToken);
         }
 
-        var receipts = await repository.ClaimReceiptChecksAsync(50, DateTimeOffset.UtcNow, cancellationToken);
+        var receipts = await repository.ClaimReceiptChecksAsync(50, clock.GetUtcNow(), cancellationToken);
         foreach (var receipt in receipts)
         {
             var response = await expoPushClient.GetReceiptAsync(receipt.TicketId, cancellationToken);
             await repository.RecordReceiptResponseAsync(
                 receipt,
                 response,
-                DateTimeOffset.UtcNow,
+                clock.GetUtcNow(),
                 cancellationToken);
         }
 

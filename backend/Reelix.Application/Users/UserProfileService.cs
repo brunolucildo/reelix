@@ -6,7 +6,8 @@ namespace Reelix.Application.Users;
 public sealed class UserProfileService(
     IUserAccountRepository accounts,
     IUserProfileRepository profiles,
-    IUserPreferencesRepository preferences)
+    IUserPreferencesRepository preferences,
+    TimeProvider clock)
 {
     public async Task<UserProfileData> GetAsync(
         Guid supabaseUserId,
@@ -31,6 +32,7 @@ public sealed class UserProfileService(
             update.ProfileIsPublic,
             update.FavoritesArePublic,
             update.WatchHistoryIsPublic,
+            clock.GetUtcNow(),
             update.IsDiscoverable ?? profile.IsDiscoverable,
             update.WatchHistorySharedWithFriends ?? profile.WatchHistorySharedWithFriends,
             update.FavoritesSharedWithFriends ?? profile.FavoritesSharedWithFriends,

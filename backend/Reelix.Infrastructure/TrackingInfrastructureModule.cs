@@ -1,9 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Reelix.Application.Tracking;
+using Reelix.Infrastructure.Persistence.Tracking;
 
-namespace Reelix.Infrastructure.Persistence.Tracking;
+namespace Reelix.Infrastructure;
 
-public static class TrackingDependencyInjection
+public static class TrackingInfrastructureModule
 {
     public static IServiceCollection AddTrackingInfrastructure(this IServiceCollection services)
     {

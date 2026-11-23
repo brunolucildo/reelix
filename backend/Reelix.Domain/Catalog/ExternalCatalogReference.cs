@@ -39,7 +39,8 @@ public sealed class ExternalCatalogReference
     public static ExternalCatalogReference Create(
         string provider,
         string externalId,
-        string contentType)
+        string contentType,
+        DateTimeOffset now)
     {
         if (string.IsNullOrWhiteSpace(provider))
         {
@@ -61,10 +62,10 @@ public sealed class ExternalCatalogReference
             provider.Trim().ToLowerInvariant(),
             externalId.Trim(),
             contentType.Trim().ToLowerInvariant(),
-            DateTimeOffset.UtcNow);
+            now);
     }
 
-    public void UpdateMetadata(int? runtimeMinutes, bool hasGenreIds, bool hasChanged)
+    public void UpdateMetadata(int? runtimeMinutes, bool hasGenreIds, bool hasChanged, DateTimeOffset now)
     {
         if (runtimeMinutes is <= 0 or > 1440)
         {
@@ -78,7 +79,7 @@ public sealed class ExternalCatalogReference
 
         if (hasChanged && (runtimeMinutes is not null || hasGenreIds))
         {
-            MetadataUpdatedAt = DateTimeOffset.UtcNow;
+            MetadataUpdatedAt = now;
             MetadataVersion++;
         }
     }

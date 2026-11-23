@@ -3,6 +3,7 @@ using Reelix.Application.Catalog;
 using Reelix.Application.Lists;
 using Reelix.Application.Users;
 using Reelix.Domain.Users;
+using Reelix.UnitTests.Common;
 
 namespace Reelix.UnitTests.Lists;
 
@@ -159,9 +160,14 @@ public sealed class UserListsServiceTests
 
     private sealed class FakeAccounts(Guid supabaseUserId) : IUserAccountRepository
     {
-        public UserAccount Account { get; } = UserAccount.Create(supabaseUserId);
+        public UserAccount Account { get; } = UserAccount.Create(supabaseUserId, FixedTimeProvider.DefaultNow);
 
-        public Task<UserAccount> GetOrCreateAsync(Guid subject, CancellationToken cancellationToken) =>
+        public async Task<UserAccount?> FindAsync(
+            Guid supabaseUserId,
+            CancellationToken cancellationToken) =>
+            await EnsureAsync(supabaseUserId, cancellationToken);
+
+        public Task<UserAccount> EnsureAsync(Guid subject, CancellationToken cancellationToken) =>
             Task.FromResult(subject == supabaseUserId
                 ? Account
                 : throw new InvalidOperationException("Unexpected authenticated subject."));

@@ -53,14 +53,14 @@ public sealed class NotificationDelivery
 
     public DateTimeOffset? CompletedAt { get; private set; }
 
-    public static NotificationDelivery Create(Guid notificationId, Guid deviceId)
+    public static NotificationDelivery Create(Guid notificationId, Guid deviceId, DateTimeOffset now)
     {
         if (notificationId == Guid.Empty || deviceId == Guid.Empty)
         {
             throw new ArgumentException("Informe notificação e dispositivo válidos.");
         }
 
-        return new NotificationDelivery(notificationId, deviceId, DateTimeOffset.UtcNow);
+        return new NotificationDelivery(notificationId, deviceId, now);
     }
 
     public void Claim(Guid leaseId, DateTimeOffset leaseUntil, DateTimeOffset now)
@@ -78,17 +78,21 @@ public sealed class NotificationDelivery
         AttemptCount++;
     }
 
-    public void RecordTicket(Guid leaseId, string ticketId, DateTimeOffset receiptCheckAt)
+    public void RecordTicket(
+        Guid leaseId,
+        string ticketId,
+        DateTimeOffset receiptCheckAt,
+        DateTimeOffset now)
     {
         RequireLease(leaseId);
-        if (string.IsNullOrWhiteSpace(ticketId) || receiptCheckAt <= DateTimeOffset.UtcNow)
+        if (string.IsNullOrWhiteSpace(ticketId) || receiptCheckAt <= now)
         {
             throw new ArgumentException("O ticket Expo é inválido.");
         }
 
         Status = NotificationDeliveryStatus.Ticketed;
         ExpoTicketId = ticketId;
-        ExpoTicketCreatedAt = DateTimeOffset.UtcNow;
+        ExpoTicketCreatedAt = now;
         ReceiptCheckCount = 0;
         ReceiptCheckAt = receiptCheckAt;
         ClearLease();
@@ -98,14 +102,15 @@ public sealed class NotificationDelivery
         Guid leaseId,
         int maxAttempts,
         DateTimeOffset nextAttemptAt,
-        string errorCode)
+        string errorCode,
+        DateTimeOffset now)
     {
         RequireLease(leaseId);
         LastErrorCode = NormalizeErrorCode(errorCode);
         if (AttemptCount >= maxAttempts)
         {
             Status = NotificationDeliveryStatus.Failed;
-            CompletedAt = DateTimeOffset.UtcNow;
+            CompletedAt = now;
         }
         else
         {
@@ -115,7 +120,7 @@ public sealed class NotificationDelivery
         ClearLease();
     }
 
-    public void CompleteReceipt(bool delivered, string? errorCode = null)
+    public void CompleteReceipt(bool delivered, DateTimeOffset now, string? errorCode = null)
     {
         if (Status != NotificationDeliveryStatus.Ticketed)
         {
@@ -124,7 +129,7 @@ public sealed class NotificationDelivery
 
         Status = delivered ? NotificationDeliveryStatus.Completed : NotificationDeliveryStatus.Failed;
         LastErrorCode = errorCode is null ? null : NormalizeErrorCode(errorCode);
-        CompletedAt = DateTimeOffset.UtcNow;
+        CompletedAt = now;
         ReceiptCheckAt = null;
     }
 
@@ -140,7 +145,7 @@ public sealed class NotificationDelivery
         ReceiptCheckCount++;
     }
 
-    public void ExpireReceipt()
+    public void ExpireReceipt(DateTimeOffset now)
     {
         if (Status != NotificationDeliveryStatus.Ticketed)
         {
@@ -149,11 +154,11 @@ public sealed class NotificationDelivery
 
         Status = NotificationDeliveryStatus.Failed;
         LastErrorCode = "receipt_expired";
-        CompletedAt = DateTimeOffset.UtcNow;
+        CompletedAt = now;
         ReceiptCheckAt = null;
     }
 
-    public void Cancel(string errorCode)
+    public void Cancel(string errorCode, DateTimeOffset now)
     {
         if (Status is NotificationDeliveryStatus.Completed or NotificationDeliveryStatus.Failed)
         {
@@ -162,7 +167,7 @@ public sealed class NotificationDelivery
 
         Status = NotificationDeliveryStatus.Cancelled;
         LastErrorCode = NormalizeErrorCode(errorCode);
-        CompletedAt = DateTimeOffset.UtcNow;
+        CompletedAt = now;
         ClearLease();
     }
 

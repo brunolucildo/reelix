@@ -1,4 +1,5 @@
 using Reelix.Application.Catalog;
+using Reelix.Application.Errors;
 using Reelix.Domain.Tracking;
 
 namespace Reelix.Application.Tracking;
@@ -131,7 +132,7 @@ public interface ITrackingCatalog
 }
 
 public sealed class TrackingContentNotFoundException()
-    : Exception("O conteúdo informado não foi encontrado no catálogo.");
+    : NotFoundError("O conteúdo informado não foi encontrado no catálogo.");
 
 public sealed class TrackingSeriesMismatchException()
-    : Exception("O episódio não pertence à série informada.");
+    : ConflictError("O episódio não pertence à série informada.", "Episódio incompatível.");

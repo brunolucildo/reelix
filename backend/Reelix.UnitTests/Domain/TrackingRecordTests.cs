@@ -1,17 +1,19 @@
 using Reelix.Domain.Tracking;
+using Reelix.UnitTests.Common;
 
 namespace Reelix.UnitTests.Domain;
 
 public sealed class TrackingRecordTests
 {
+    private static readonly DateTimeOffset Now = FixedTimeProvider.DefaultNow;
+
     [Fact]
-    public void CreateMovie_UsesCurrentTimeWhenNoDateIsProvided()
+    public void CreateMovie_UsesTheReceivedInstantWhenNoDateIsProvided()
     {
-        var before = DateTimeOffset.UtcNow;
+        var record = TrackingRecord.CreateMovie(Guid.NewGuid(), Guid.NewGuid(), Now);
 
-        var record = TrackingRecord.CreateMovie(Guid.NewGuid(), Guid.NewGuid());
-
-        Assert.InRange(record.WatchedAt, before, DateTimeOffset.UtcNow);
+        Assert.Equal(Now, record.WatchedAt);
+        Assert.Equal(Now, record.CreatedAt);
         Assert.Equal(TrackingItemType.Movie, record.ItemType);
         Assert.Null(record.SeriesId);
     }
@@ -27,6 +29,7 @@ public sealed class TrackingRecordTests
             Guid.NewGuid(),
             seriesId,
             episodeId,
+            Now,
             watchedAt);
 
         Assert.Equal(episodeId, record.TargetId);
@@ -38,15 +41,24 @@ public sealed class TrackingRecordTests
     public void CreateEpisode_RejectsEmptyCatalogIds()
     {
         Assert.Throws<ArgumentException>(() =>
-            TrackingRecord.CreateEpisode(Guid.NewGuid(), Guid.NewGuid(), Guid.Empty));
+            TrackingRecord.CreateEpisode(Guid.NewGuid(), Guid.NewGuid(), Guid.Empty, Now));
     }
 
     [Fact]
-    public void CorrectWatchedAt_RejectsFutureDates()
+    public void CorrectWatchedAt_RejectsDatesAfterTheReceivedInstant()
     {
-        var record = TrackingRecord.CreateMovie(Guid.NewGuid(), Guid.NewGuid());
+        var record = TrackingRecord.CreateMovie(Guid.NewGuid(), Guid.NewGuid(), Now);
 
         Assert.Throws<ArgumentException>(() =>
-            record.CorrectWatchedAt(DateTimeOffset.UtcNow.AddDays(1)));
+            record.CorrectWatchedAt(Now.AddSeconds(1), Now));
+        record.CorrectWatchedAt(Now, Now);
+        Assert.Equal(Now, record.WatchedAt);
+    }
+
+    [Fact]
+    public void CreateMovie_RejectsAWatchedDateAfterTheReceivedInstant()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            TrackingRecord.CreateMovie(Guid.NewGuid(), Guid.NewGuid(), Now, Now.AddMinutes(1)));
     }
 }

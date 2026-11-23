@@ -18,6 +18,7 @@ using Reelix.Application.Catalog;
 using Reelix.Application.Authentication;
 using Reelix.Application.Users;
 using Reelix.Domain.Users;
+using Reelix.UnitTests.Common;
 
 namespace Reelix.UnitTests.Api;
 
@@ -391,25 +392,16 @@ public sealed class AuthenticationEndpointTests
     }
 }
 
-public sealed class AuthenticationApiFactory : WebApplicationFactory<Program>
+public class AuthenticationApiFactory : WebApplicationFactory<Program>
 {
-    private static readonly RSA SigningRsa = RSA.Create(2048);
-    private static readonly RSA ForeignRsa = RSA.Create(2048);
+    private readonly RSA SigningRsa = RSA.Create(2048);
+    private readonly RSA ForeignRsa = RSA.Create(2048);
 
-    private readonly string? _previousSupabaseUrl =
-        Environment.GetEnvironmentVariable("Supabase__Url");
-    private readonly string? _previousConnectionString =
-        Environment.GetEnvironmentVariable("ConnectionStrings__Reelix");
-    private readonly string? _previousCorsOrigin =
-        Environment.GetEnvironmentVariable("Cors__AllowedOrigins__0");
+    private bool _environmentReleased;
 
     public AuthenticationApiFactory()
     {
-        Environment.SetEnvironmentVariable("Cors__AllowedOrigins__0", "http://localhost:8081");
-        Environment.SetEnvironmentVariable("Supabase__Url", "https://reelix-test.supabase.co");
-        Environment.SetEnvironmentVariable(
-            "ConnectionStrings__Reelix",
-            "Host=localhost;Database=reelix_test;Username=test;Password=test");
+        ApiTestEnvironment.Acquire();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -439,10 +431,18 @@ public sealed class AuthenticationApiFactory : WebApplicationFactory<Program>
                     options.TokenValidationParameters.IssuerSigningKey =
                         new RsaSecurityKey(SigningRsa);
                 });
+            ConfigureTestOverrides(services);
         });
     }
 
-    public string CreateToken(string scenario, Guid? subject = null)
+    protected virtual void ConfigureTestOverrides(IServiceCollection services)
+    {
+    }
+
+    public string CreateToken(string scenario, Guid? subject = null) =>
+        CreateTokenForSubject(scenario, (subject ?? Guid.NewGuid()).ToString());
+
+    public string CreateTokenForSubject(string scenario, string? subject)
     {
         var issuer = scenario == "wrong-issuer"
             ? "https://untrusted.example/auth/v1"
@@ -461,7 +461,7 @@ public sealed class AuthenticationApiFactory : WebApplicationFactory<Program>
         var token = new JwtSecurityToken(
             issuer,
             audience,
-            [new Claim("sub", (subject ?? Guid.NewGuid()).ToString())],
+            subject is null ? [] : [new Claim("sub", subject)],
             notBefore,
             expires,
             credentials);
@@ -476,9 +476,69 @@ public sealed class AuthenticationApiFactory : WebApplicationFactory<Program>
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-        Environment.SetEnvironmentVariable("Supabase__Url", _previousSupabaseUrl);
-        Environment.SetEnvironmentVariable("ConnectionStrings__Reelix", _previousConnectionString);
-        Environment.SetEnvironmentVariable("Cors__AllowedOrigins__0", _previousCorsOrigin);
+        if (disposing && !_environmentReleased)
+        {
+            _environmentReleased = true;
+            ApiTestEnvironment.Release();
+            SigningRsa.Dispose();
+            ForeignRsa.Dispose();
+        }
+    }
+}
+
+/// <summary>
+/// The host reads its configuration from environment variables while it is built, and several
+/// factories run in parallel in one process: the variables are set by the first live factory and
+/// restored only when the last one is disposed, so a finished test class cannot clear them under
+/// a class that is still starting its host.
+/// </summary>
+internal static class ApiTestEnvironment
+{
+    private static readonly object Gate = new();
+
+    private static readonly (string Name, string Value)[] Values =
+    [
+        ("Cors__AllowedOrigins__0", "http://localhost:8081"),
+        ("Supabase__Url", "https://reelix-test.supabase.co"),
+        ("ConnectionStrings__Reelix", "Host=localhost;Database=reelix_test;Username=test;Password=test"),
+    ];
+
+    private static int _holders;
+    private static (string Name, string? Previous)[] _saved = [];
+
+    public static void Acquire()
+    {
+        lock (Gate)
+        {
+            if (_holders++ > 0)
+            {
+                return;
+            }
+
+            _saved = Values
+                .Select(value => (value.Name, Environment.GetEnvironmentVariable(value.Name)))
+                .ToArray();
+            foreach (var (name, value) in Values)
+            {
+                Environment.SetEnvironmentVariable(name, value);
+            }
+        }
+    }
+
+    public static void Release()
+    {
+        lock (Gate)
+        {
+            if (--_holders > 0)
+            {
+                return;
+            }
+
+            foreach (var (name, previous) in _saved)
+            {
+                Environment.SetEnvironmentVariable(name, previous);
+            }
+        }
     }
 }
 
@@ -495,11 +555,16 @@ internal sealed class TestUserAccountRepository : IUserAccountRepository
 {
     private readonly ConcurrentDictionary<Guid, UserAccount> accounts = new();
 
-    public Task<UserAccount> GetOrCreateAsync(Guid supabaseUserId, CancellationToken cancellationToken) =>
-        Task.FromResult(accounts.GetOrAdd(supabaseUserId, UserAccount.Create));
+    public async Task<UserAccount?> FindAsync(
+        Guid supabaseUserId,
+        CancellationToken cancellationToken) =>
+        await EnsureAsync(supabaseUserId, cancellationToken);
+
+    public Task<UserAccount> EnsureAsync(Guid supabaseUserId, CancellationToken cancellationToken) =>
+        Task.FromResult(accounts.GetOrAdd(supabaseUserId, id => UserAccount.Create(id, FixedTimeProvider.DefaultNow)));
 
     public Guid GetAccountId(Guid supabaseUserId) =>
-        accounts.GetOrAdd(supabaseUserId, UserAccount.Create).Id;
+        accounts.GetOrAdd(supabaseUserId, id => UserAccount.Create(id, FixedTimeProvider.DefaultNow)).Id;
 }
 
 internal sealed class TestUserProfileRepository : IUserProfileRepository

@@ -1,9 +1,12 @@
 using Reelix.Domain.Ratings;
+using Reelix.UnitTests.Common;
 
 namespace Reelix.UnitTests.Domain;
 
 public sealed class UserRatingTests
 {
+    private static readonly DateTimeOffset Now = FixedTimeProvider.DefaultNow;
+
     [Theory]
     [InlineData(0)]
     [InlineData(0.5)]
@@ -17,9 +20,12 @@ public sealed class UserRatingTests
             ReviewTargetType.Movie,
             null,
             score,
-            ReviewAudience.Private);
+            ReviewAudience.Private,
+            Now);
 
         Assert.Equal(score, rating.Value);
+        Assert.Equal(Now, rating.CreatedAt);
+        Assert.Equal(Now, rating.UpdatedAt);
     }
 
     [Theory]
@@ -35,7 +41,8 @@ public sealed class UserRatingTests
                 ReviewTargetType.Movie,
                 null,
                 score,
-                ReviewAudience.Private));
+                ReviewAudience.Private,
+                Now));
     }
 
     [Fact]
@@ -48,7 +55,8 @@ public sealed class UserRatingTests
                 ReviewTargetType.Episode,
                 null,
                 4,
-                ReviewAudience.Public));
+                ReviewAudience.Public,
+                Now));
         Assert.Throws<ArgumentException>(() =>
             UserRating.Create(
                 Guid.NewGuid(),
@@ -56,6 +64,7 @@ public sealed class UserRatingTests
                 ReviewTargetType.Series,
                 Guid.NewGuid(),
                 4,
-                ReviewAudience.Public));
+                ReviewAudience.Public,
+                Now));
     }
 }

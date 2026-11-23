@@ -7,7 +7,7 @@ using Reelix.Domain.Ratings;
 
 namespace Reelix.Infrastructure.Persistence.Ratings;
 
-public sealed class RatingsCommentsRepository(ReelixDbContext dbContext)
+public sealed class RatingsCommentsRepository(ReelixDbContext dbContext, TimeProvider clock)
     : IRatingsCommentsRepository
 {
     public async Task<OwnRatingsPage> GetOwnRatingsAsync(
@@ -145,7 +145,8 @@ public sealed class RatingsCommentsRepository(ReelixDbContext dbContext)
             containsSpoiler,
             audience,
             requestAutomatedAnalysis,
-            automatedAnalysisEnabled);
+            automatedAnalysisEnabled,
+            clock.GetUtcNow());
         await dbContext.SaveChangesAsync(cancellationToken);
         return new CommentItem(
             comment.Id,
@@ -312,7 +313,8 @@ public sealed class RatingsCommentsRepository(ReelixDbContext dbContext)
         comment.CompleteModeration(
             workItem.Version,
             workItem.LeaseId,
-            classification.PossibleSpoiler);
+            classification.PossibleSpoiler,
+            clock.GetUtcNow());
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 

@@ -4,6 +4,7 @@ using Reelix.Application.Ratings;
 using Reelix.Application.Tracking;
 using Reelix.Domain.Ratings;
 using Reelix.Domain.Users;
+using Reelix.UnitTests.Common;
 
 namespace Reelix.UnitTests.Ratings;
 
@@ -168,7 +169,7 @@ public sealed class RatingsCommentsServiceTests
         bool analysisEnabled = false,
         bool episodeIsTracked = true) =>
         new(accounts, repository, new FakeEpisodeTrackingLookup(episodeIsTracked),
-            new FakeModerationConfiguration(analysisEnabled));
+            new FakeModerationConfiguration(analysisEnabled), FixedTimeProvider.AtDefault());
 
     private sealed class FakeEpisodeTrackingLookup(bool isTracked) : IEpisodeTrackingLookup
     {
@@ -181,9 +182,14 @@ public sealed class RatingsCommentsServiceTests
 
     private sealed class FakeAccounts(Guid subject) : IUserAccountRepository
     {
-        public UserAccount Account { get; } = UserAccount.Create(subject);
+        public UserAccount Account { get; } = UserAccount.Create(subject, FixedTimeProvider.DefaultNow);
 
-        public Task<UserAccount> GetOrCreateAsync(Guid supabaseUserId, CancellationToken cancellationToken) =>
+        public async Task<UserAccount?> FindAsync(
+            Guid supabaseUserId,
+            CancellationToken cancellationToken) =>
+            await EnsureAsync(supabaseUserId, cancellationToken);
+
+        public Task<UserAccount> EnsureAsync(Guid supabaseUserId, CancellationToken cancellationToken) =>
             Task.FromResult(supabaseUserId == subject
                 ? Account
                 : throw new InvalidOperationException("Unexpected authenticated subject."));

@@ -17,8 +17,11 @@ public sealed class OmdbCatalogOptions
 public sealed class OmdbCatalogProvider(
     HttpClient httpClient,
     IOptions<OmdbCatalogOptions> options,
-    ILogger<OmdbCatalogProvider> logger) : ICatalogProvider
+    ILogger<OmdbCatalogProvider> logger,
+    TimeProvider? clock = null) : ICatalogProvider
 {
+    private readonly TimeProvider _clock = clock ?? TimeProvider.System;
+
     public CatalogProvider Provider => CatalogProvider.Omdb;
 
     public async Task<ProviderCatalogPage> SearchAsync(
@@ -40,7 +43,7 @@ public sealed class OmdbCatalogProvider(
         }
 
         using var response = await SendAsync(parameters, cancellationToken);
-        response.EnsureSuccessStatusCodeOrThrow(Provider, logger);
+        response.EnsureSuccessStatusCodeOrThrow(Provider, logger, _clock);
         var result = await CatalogProviderHttp.ReadJsonAsync<OmdbResponse>(
             response,
             Provider,
@@ -96,7 +99,7 @@ public sealed class OmdbCatalogProvider(
                 ["plot"] = "full",
             },
             cancellationToken);
-        response.EnsureSuccessStatusCodeOrThrow(Provider, logger);
+        response.EnsureSuccessStatusCodeOrThrow(Provider, logger, _clock);
         var result = await CatalogProviderHttp.ReadJsonAsync<OmdbResponse>(
             response,
             Provider,
@@ -143,7 +146,7 @@ public sealed class OmdbCatalogProvider(
                 ["Season"] = seasonNumber.ToString(CultureInfo.InvariantCulture),
             },
             cancellationToken);
-        response.EnsureSuccessStatusCodeOrThrow(Provider, logger);
+        response.EnsureSuccessStatusCodeOrThrow(Provider, logger, _clock);
         var result = await CatalogProviderHttp.ReadJsonAsync<OmdbResponse>(
             response,
             Provider,
@@ -185,7 +188,7 @@ public sealed class OmdbCatalogProvider(
                 ["plot"] = "short",
             },
             cancellationToken);
-        response.EnsureSuccessStatusCodeOrThrow(Provider, logger);
+        response.EnsureSuccessStatusCodeOrThrow(Provider, logger, _clock);
         var result = await CatalogProviderHttp.ReadJsonAsync<OmdbResponse>(
             response,
             Provider,

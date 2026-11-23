@@ -1,5 +1,7 @@
 using Reelix.Application.Authentication;
 using Reelix.Application.Catalog;
+using Reelix.Application.Common;
+using Reelix.Application.Errors;
 using Reelix.Application.Tracking;
 using Reelix.Domain.Ratings;
 
@@ -9,12 +11,13 @@ public sealed class RatingsCommentsService(
     IUserAccountRepository accounts,
     IRatingsCommentsRepository repository,
     IEpisodeTrackingLookup episodeTracking,
-    ICommentModerationConfiguration moderationConfiguration)
+    ICommentModerationConfiguration moderationConfiguration,
+    TimeProvider clock)
 {
     public async Task<OwnRatingsPage> GetOwnRatingsAsync(
         Guid supabaseUserId, int page, int pageSize, CancellationToken cancellationToken)
     {
-        ValidatePage(page, pageSize);
+        PageRequest.Validate(page, pageSize, PagePolicy.Ratings);
         var account = await accounts.GetOrCreateAsync(supabaseUserId, cancellationToken);
         return await repository.GetOwnRatingsAsync(account.Id, page, pageSize, cancellationToken);
     }
@@ -59,7 +62,8 @@ public sealed class RatingsCommentsService(
             targetType,
             input.SeriesId,
             input.Score,
-            input.Audience);
+            input.Audience,
+            clock.GetUtcNow());
         await repository.UpsertRatingAsync(rating, cancellationToken);
         return await repository.GetRatingSummaryAsync(
             account.Id,
@@ -92,7 +96,7 @@ public sealed class RatingsCommentsService(
         int pageSize,
         CancellationToken cancellationToken)
     {
-        ValidatePage(page, pageSize);
+        PageRequest.Validate(page, pageSize, PagePolicy.Ratings);
         await ValidateTargetAsync(targetId, targetType, seriesId, cancellationToken);
         var account = await accounts.GetOrCreateAsync(supabaseUserId, cancellationToken);
         return await repository.GetCommentsAsync(
@@ -123,7 +127,8 @@ public sealed class RatingsCommentsService(
             input.ContainsSpoiler,
             input.Audience,
             input.RequestAutomatedAnalysis,
-            moderationConfiguration.IsEnabled);
+            moderationConfiguration.IsEnabled,
+            clock.GetUtcNow());
         await repository.AddCommentAsync(comment, cancellationToken);
         return new CommentItem(
             comment.Id,
@@ -238,16 +243,7 @@ public sealed class RatingsCommentsService(
         }
     }
 
-    private static void ValidatePage(int page, int pageSize)
-    {
-        if (page is < 1 or > 100_000 || pageSize is < 1 or > 50)
-        {
-            throw new ArgumentException(
-                "A página deve ser positiva e o tamanho deve estar entre 1 e 50.");
-        }
-    }
-
 }
 
 public sealed class CatalogTargetNotFoundException()
-    : Exception("O conteúdo não está disponível no catálogo.");
+    : NotFoundError("O conteúdo não está disponível no catálogo.");

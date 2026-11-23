@@ -7,7 +7,7 @@ using Reelix.Domain.Tracking;
 
 namespace Reelix.Infrastructure.Persistence.Social;
 
-public sealed class SocialRepository(ReelixDbContext dbContext) : ISocialRepository
+public sealed class SocialRepository(ReelixDbContext dbContext, TimeProvider clock) : ISocialRepository
 {
     public async Task<IReadOnlyList<SocialUser>> SearchUsersAsync(
         Guid accountId,
@@ -71,24 +71,26 @@ public sealed class SocialRepository(ReelixDbContext dbContext) : ISocialReposit
             throw new KeyNotFoundException("Este perfil não está disponível para descoberta.");
         }
 
+        var now = clock.GetUtcNow();
         var (first, second) = Order(requesterAccountId, addresseeAccountId);
         var relationship = await dbContext.FriendRelationships.SingleOrDefaultAsync(
             item => item.FirstAccountId == first && item.SecondAccountId == second,
             cancellationToken);
         if (relationship is null)
         {
-            relationship = FriendRelationship.Create(requesterAccountId, addresseeAccountId);
+            relationship = FriendRelationship.Create(requesterAccountId, addresseeAccountId, now);
             dbContext.FriendRelationships.Add(relationship);
         }
         else
         {
-            relationship.StartRequest(requesterAccountId, addresseeAccountId);
+            relationship.StartRequest(requesterAccountId, addresseeAccountId, now);
         }
 
         dbContext.SocialEvents.Add(SocialEvent.Create(
             "friend.requested",
             requesterAccountId,
-            addresseeAccountId));
+            addresseeAccountId,
+            now));
         try
         {
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -126,7 +128,8 @@ public sealed class SocialRepository(ReelixDbContext dbContext) : ISocialReposit
             dbContext.SocialEvents.Add(SocialEvent.Create(
                 "friend.accepted",
                 actorAccountId,
-                relationship.OtherAccount(actorAccountId)));
+                relationship.OtherAccount(actorAccountId),
+                clock.GetUtcNow()));
         }
 
         try

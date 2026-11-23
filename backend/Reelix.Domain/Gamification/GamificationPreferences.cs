@@ -6,11 +6,11 @@ public sealed class GamificationPreferences
     {
     }
 
-    private GamificationPreferences(Guid accountId)
+    private GamificationPreferences(Guid accountId, DateTimeOffset now)
     {
         AccountId = accountId;
         BadgesPublic = true;
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = now;
     }
 
     public Guid AccountId { get; private set; }
@@ -21,20 +21,20 @@ public sealed class GamificationPreferences
 
     public DateTimeOffset UpdatedAt { get; private set; }
 
-    public static GamificationPreferences Create(Guid accountId)
+    public static GamificationPreferences Create(Guid accountId, DateTimeOffset now)
     {
         if (accountId == Guid.Empty)
         {
             throw new ArgumentException("Informe uma conta válida.", nameof(accountId));
         }
 
-        return new GamificationPreferences(accountId);
+        return new GamificationPreferences(accountId, now);
     }
 
-    public void Update(bool badgesPublic, bool rankingEnabled)
+    public void Update(bool badgesPublic, bool rankingEnabled, DateTimeOffset now)
     {
         BadgesPublic = badgesPublic;
         RankingEnabled = rankingEnabled;
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = now;
     }
 }

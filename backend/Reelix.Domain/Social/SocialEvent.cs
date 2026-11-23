@@ -36,7 +36,8 @@ public sealed class SocialEvent
     public static SocialEvent Create(
         string eventType,
         Guid actorAccountId,
-        Guid recipientAccountId)
+        Guid recipientAccountId,
+        DateTimeOffset now)
     {
         if (eventType is not ("friend.requested" or "friend.accepted"))
         {
@@ -54,6 +55,6 @@ public sealed class SocialEvent
             eventType,
             actorAccountId,
             recipientAccountId,
-            DateTimeOffset.UtcNow);
+            now);
     }
 }

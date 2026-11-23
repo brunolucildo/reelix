@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Reelix.Application.Tracking;
 
-public static class TrackingDependencyInjection
+public static class TrackingApplicationModule
 {
     public static IServiceCollection AddTrackingApplication(this IServiceCollection services)
     {

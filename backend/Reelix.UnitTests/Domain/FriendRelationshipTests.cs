@@ -1,17 +1,22 @@
 using Reelix.Domain.Social;
+using Reelix.UnitTests.Common;
 
 namespace Reelix.UnitTests.Domain;
 
 public sealed class FriendRelationshipTests
 {
+    private static readonly DateTimeOffset Now = FixedTimeProvider.DefaultNow;
+
     [Fact]
     public void Create_StoresCanonicalPairAndRequestDirection()
     {
         var requester = Guid.NewGuid();
         var addressee = Guid.NewGuid();
 
-        var relationship = FriendRelationship.Create(requester, addressee);
+        var relationship = FriendRelationship.Create(requester, addressee, Now);
 
+        Assert.Equal(Now, relationship.CreatedAt);
+        Assert.Equal(Now, relationship.UpdatedAt);
         Assert.Equal(FriendRelationshipStatus.Pending, relationship.Status);
         Assert.Equal(requester, relationship.RequesterAccountId);
         Assert.Equal(addressee, relationship.AddresseeAccountId);
@@ -24,16 +29,17 @@ public sealed class FriendRelationshipTests
     {
         var requester = Guid.NewGuid();
         var addressee = Guid.NewGuid();
-        var relationship = FriendRelationship.Create(requester, addressee);
+        var relationship = FriendRelationship.Create(requester, addressee, Now);
 
-        Assert.Throws<InvalidOperationException>(() => relationship.Accept(requester));
-        relationship.Accept(addressee);
+        Assert.Throws<InvalidOperationException>(() => relationship.Accept(requester, Now));
+        relationship.Accept(addressee, Now.AddMinutes(1));
+        Assert.Equal(Now.AddMinutes(1), relationship.UpdatedAt);
         Assert.Equal(FriendRelationshipStatus.Accepted, relationship.Status);
 
-        relationship.Remove(requester);
+        relationship.Remove(requester, Now.AddMinutes(2));
 
         Assert.Equal(FriendRelationshipStatus.Removed, relationship.Status);
-        Assert.Throws<InvalidOperationException>(() => relationship.Remove(addressee));
+        Assert.Throws<InvalidOperationException>(() => relationship.Remove(addressee, Now));
     }
 
     [Fact]
@@ -41,15 +47,15 @@ public sealed class FriendRelationshipTests
     {
         var requester = Guid.NewGuid();
         var addressee = Guid.NewGuid();
-        var relationship = FriendRelationship.Create(requester, addressee);
-        relationship.Decline(addressee);
+        var relationship = FriendRelationship.Create(requester, addressee, Now);
+        relationship.Decline(addressee, Now);
 
-        relationship.StartRequest(addressee, requester);
+        relationship.StartRequest(addressee, requester, Now.AddMinutes(1));
 
         Assert.Equal(FriendRelationshipStatus.Pending, relationship.Status);
         Assert.Equal(addressee, relationship.RequesterAccountId);
         Assert.Equal(requester, relationship.AddresseeAccountId);
-        Assert.Throws<ArgumentException>(() => relationship.StartRequest(requester, Guid.NewGuid()));
+        Assert.Throws<ArgumentException>(() => relationship.StartRequest(requester, Guid.NewGuid(), Now));
     }
 
     [Fact]
@@ -57,10 +63,10 @@ public sealed class FriendRelationshipTests
     {
         var requester = Guid.NewGuid();
         var addressee = Guid.NewGuid();
-        var relationship = FriendRelationship.Create(requester, addressee);
+        var relationship = FriendRelationship.Create(requester, addressee, Now);
 
-        Assert.Throws<InvalidOperationException>(() => relationship.Decline(requester));
-        relationship.Cancel(requester);
+        Assert.Throws<InvalidOperationException>(() => relationship.Decline(requester, Now));
+        relationship.Cancel(requester, Now);
 
         Assert.Equal(FriendRelationshipStatus.Cancelled, relationship.Status);
     }
@@ -70,6 +76,6 @@ public sealed class FriendRelationshipTests
     {
         var accountId = Guid.NewGuid();
 
-        Assert.Throws<ArgumentException>(() => FriendRelationship.Create(accountId, accountId));
+        Assert.Throws<ArgumentException>(() => FriendRelationship.Create(accountId, accountId, Now));
     }
 }

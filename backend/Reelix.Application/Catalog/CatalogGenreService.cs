@@ -1,12 +1,20 @@
-using System.Collections.Concurrent;
 using System.Net;
 
 namespace Reelix.Application.Catalog;
 
-public sealed class CatalogGenreService(
-    IEnumerable<ICatalogGenreProvider> providers)
+/// <summary>Short-lived cache of provider genre lists; the instance owns its state.</summary>
+public interface ICatalogGenreCache
 {
-    private static readonly ConcurrentDictionary<string, CachedGenres> Cache = new();
+    bool TryGet(string key, out IReadOnlyList<CatalogGenre> genres);
+
+    void Set(string key, IReadOnlyList<CatalogGenre> genres, TimeSpan timeToLive);
+}
+
+public sealed class CatalogGenreService(
+    IEnumerable<ICatalogGenreProvider> providers,
+    ICatalogGenreCache cache)
+{
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(6);
 
     public Task<IReadOnlyList<CatalogGenre>> GetGenresAsync(
         CatalogProvider provider,
@@ -25,9 +33,9 @@ public sealed class CatalogGenreService(
                 $"O provedor de catálogo {provider} não oferece lista de gêneros.",
                 (int)HttpStatusCode.BadRequest);
         var key = $"catalog-genres:{provider}:{contentType}:{language}";
-        if (Cache.TryGetValue(key, out var cached) && cached.ExpiresAt > DateTimeOffset.UtcNow)
+        if (cache.TryGet(key, out var cached))
         {
-            return Task.FromResult(cached.Items);
+            return Task.FromResult(cached);
         }
 
         return FetchAndCacheAsync(
@@ -38,7 +46,7 @@ public sealed class CatalogGenreService(
             cancellationToken);
     }
 
-    private static async Task<IReadOnlyList<CatalogGenre>> FetchAndCacheAsync(
+    private async Task<IReadOnlyList<CatalogGenre>> FetchAndCacheAsync(
         string key,
         ICatalogGenreProvider provider,
         CatalogContentType contentType,
@@ -46,9 +54,7 @@ public sealed class CatalogGenreService(
         CancellationToken cancellationToken)
     {
         var genres = await provider.GetGenresAsync(contentType, language, cancellationToken);
-        Cache[key] = new CachedGenres(genres, DateTimeOffset.UtcNow.AddHours(6));
+        cache.Set(key, genres, CacheDuration);
         return genres;
     }
-
-    private sealed record CachedGenres(IReadOnlyList<CatalogGenre> Items, DateTimeOffset ExpiresAt);
 }

@@ -38,38 +38,36 @@ public sealed class UserAchievement
 
     public DateTimeOffset UpdatedAt { get; private set; }
 
-    public static UserAchievement Create(Guid accountId, Guid definitionId)
+    public static UserAchievement Create(Guid accountId, Guid definitionId, DateTimeOffset now)
     {
         if (accountId == Guid.Empty || definitionId == Guid.Empty)
         {
             throw new ArgumentException("Informe conta e definição de conquista válidas.");
         }
 
-        return new UserAchievement(accountId, definitionId, DateTimeOffset.UtcNow);
+        return new UserAchievement(accountId, definitionId, now);
     }
 
-    public void Earn()
+    public void Earn(DateTimeOffset now)
     {
         if (Status == UserAchievementStatus.Earned)
         {
             return;
         }
 
-        var now = DateTimeOffset.UtcNow;
         Status = UserAchievementStatus.Earned;
         LastEarnedAt = now;
         ReactivatedAt = now;
         UpdatedAt = now;
     }
 
-    public void Revoke()
+    public void Revoke(DateTimeOffset now)
     {
         if (Status == UserAchievementStatus.Revoked)
         {
             return;
         }
 
-        var now = DateTimeOffset.UtcNow;
         Status = UserAchievementStatus.Revoked;
         LastRevokedAt = now;
         UpdatedAt = now;

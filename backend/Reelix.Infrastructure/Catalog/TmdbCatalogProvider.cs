@@ -21,8 +21,11 @@ public sealed class TmdbCatalogProvider(
     HttpClient httpClient,
     IOptions<TmdbCatalogOptions> options,
     ILogger<TmdbCatalogProvider> logger,
-    IMemoryCache? memoryCache = null) : ICatalogProvider, ICatalogGenreProvider, ICatalogDiscoveryProvider
+    IMemoryCache? memoryCache = null,
+    TimeProvider? clock = null) : ICatalogProvider, ICatalogGenreProvider, ICatalogDiscoveryProvider
 {
+    private readonly TimeProvider _clock = clock ?? TimeProvider.System;
+
     private static readonly TimeSpan DiscoveryCacheDuration = TimeSpan.FromMinutes(10);
 
     public CatalogProvider Provider => CatalogProvider.Tmdb;
@@ -36,7 +39,7 @@ public sealed class TmdbCatalogProvider(
         using var response = await SendAsync(
             $"3/genre/{kind}/list?language={Uri.EscapeDataString(language)}",
             cancellationToken);
-        response.EnsureSuccessStatusCodeOrThrow(Provider, logger);
+        response.EnsureSuccessStatusCodeOrThrow(Provider, logger, _clock);
         var result = await CatalogProviderHttp.ReadJsonAsync<TmdbGenreListResponse>(
             response,
             Provider,
@@ -65,7 +68,7 @@ public sealed class TmdbCatalogProvider(
         var uri = $"{path}?query={Uri.EscapeDataString(query)}" +
             $"&include_adult=false&page={page}&language={Uri.EscapeDataString(language)}";
         using var response = await SendAsync(uri, cancellationToken);
-        response.EnsureSuccessStatusCodeOrThrow(Provider, logger);
+        response.EnsureSuccessStatusCodeOrThrow(Provider, logger, _clock);
 
         var pageResult = await CatalogProviderHttp.ReadJsonAsync<TmdbPageResponse>(
             response,
@@ -125,7 +128,7 @@ public sealed class TmdbCatalogProvider(
         };
         if (category == CatalogDiscoveryCategory.Upcoming)
         {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var today = DateOnly.FromDateTime(_clock.GetUtcNow().UtcDateTime);
             query.Add($"{dateField}.gte={today:yyyy-MM-dd}");
             query.Add($"{dateField}.lte={today.AddMonths(12):yyyy-MM-dd}");
         }
@@ -138,7 +141,7 @@ public sealed class TmdbCatalogProvider(
         using var response = await SendAsync(
             $"3/discover/{path}?{string.Join('&', query)}",
             cancellationToken);
-        response.EnsureSuccessStatusCodeOrThrow(Provider, logger);
+        response.EnsureSuccessStatusCodeOrThrow(Provider, logger, _clock);
         var pageResult = await CatalogProviderHttp.ReadJsonAsync<TmdbPageResponse>(
             response,
             Provider,
@@ -183,7 +186,7 @@ public sealed class TmdbCatalogProvider(
             return null;
         }
 
-        response.EnsureSuccessStatusCodeOrThrow(Provider, logger);
+        response.EnsureSuccessStatusCodeOrThrow(Provider, logger, _clock);
         var details = await CatalogProviderHttp.ReadJsonAsync<TmdbTitleResponse>(
             response,
             Provider,
@@ -207,7 +210,7 @@ public sealed class TmdbCatalogProvider(
             return null;
         }
 
-        response.EnsureSuccessStatusCodeOrThrow(Provider, logger);
+        response.EnsureSuccessStatusCodeOrThrow(Provider, logger, _clock);
         var season = await CatalogProviderHttp.ReadJsonAsync<TmdbSeasonResponse>(
             response,
             Provider,
@@ -244,7 +247,7 @@ public sealed class TmdbCatalogProvider(
             return null;
         }
 
-        response.EnsureSuccessStatusCodeOrThrow(Provider, logger);
+        response.EnsureSuccessStatusCodeOrThrow(Provider, logger, _clock);
         var details = await CatalogProviderHttp.ReadJsonAsync<TmdbTitleResponse>(
             response,
             Provider,
@@ -373,11 +376,12 @@ internal static class HttpResponseMessageExtensions
     public static void EnsureSuccessStatusCodeOrThrow(
         this HttpResponseMessage response,
         CatalogProvider provider,
-        ILogger logger)
+        ILogger logger,
+        TimeProvider clock)
     {
         if (!response.IsSuccessStatusCode)
         {
-            throw CatalogProviderHttp.GetHttpError(response, provider, logger);
+            throw CatalogProviderHttp.GetHttpError(response, provider, logger, clock);
         }
     }
 }
