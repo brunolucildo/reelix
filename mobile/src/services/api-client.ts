@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-import { apiUrl } from '@/services/api-url';
-import { supabase } from '@/services/supabase';
+import { httpRequest } from '@/lib/http-client';
 
 const accountSchema = z.object({
   id: z.string().uuid(),
@@ -273,7 +272,7 @@ const ownRatingsPageSchema = z.object({
 export type OwnRatingEntry = z.infer<typeof ownRatingsPageSchema>['items'][number];
 
 export function fetchOwnRatings(page: number, signal?: AbortSignal) {
-  return apiRequest(`/api/v1/ratings/mine?page=${page}&pageSize=20`, ownRatingsPageSchema, { signal });
+  return httpRequest(`/api/v1/ratings/mine?page=${page}&pageSize=20`, ownRatingsPageSchema, { signal });
 }
 const commentItemSchema = z.object({
   id: z.string().uuid(),
@@ -364,75 +363,29 @@ export type OnboardingProgress = Omit<OnboardingPreferences, 'isComplete' | 'cur
   currentStep: Exclude<OnboardingPreferences['currentStep'], 'completed'>;
 };
 
-async function apiRequest<T>(
-  path: string,
-  schema: z.ZodType<T>,
-  init?: RequestInit,
-): Promise<T> {
-  const { data, error } = await supabase.auth.getSession();
-  if (error) {
-    throw error;
-  }
-
-  if (!data.session) {
-    throw new Error('Sua sessão expirou. Entre novamente para continuar.');
-  }
-
-  const response = await fetch(new URL(path, apiUrl), {
-    ...init,
-    headers: {
-      Accept: 'application/json',
-      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
-      Authorization: `Bearer ${data.session.access_token}`,
-      ...init?.headers,
-    },
-  });
-
-  if (!response.ok) {
-    let message = 'Não foi possível concluir a solicitação. Tente novamente.';
-    try {
-      const problem = await response.json() as { detail?: string; title?: string };
-      message = problem.detail ?? problem.title ?? message;
-    } catch {
-      message = response.status === 401
-        ? 'Sua sessão expirou. Entre novamente para continuar.'
-        : message;
-    }
-    throw Object.assign(new Error(message), { status: response.status });
-  }
-
-  const result = schema.safeParse(
-    response.status === 204 ? undefined : await response.json(),
-  );
-  if (!result.success) {
-    throw new Error('A API retornou dados em formato inesperado.');
-  }
-  return result.data;
-}
-
 export async function fetchAuthenticatedAccount(): Promise<AuthenticatedAccount> {
-  return apiRequest('/api/v1/auth/me', accountSchema);
+  return httpRequest('/api/v1/auth/me', accountSchema);
 }
 
 export async function fetchOnboarding(): Promise<OnboardingPreferences> {
-  return apiRequest('/api/v1/onboarding', onboardingSchema);
+  return httpRequest('/api/v1/onboarding', onboardingSchema);
 }
 
 export async function saveOnboardingProgress(
   progress: OnboardingProgress,
 ): Promise<OnboardingPreferences> {
-  return apiRequest('/api/v1/onboarding/progress', onboardingSchema, {
+  return httpRequest('/api/v1/onboarding/progress', onboardingSchema, {
     method: 'PUT',
-    body: JSON.stringify(progress),
+    body: progress,
   });
 }
 
 export async function completeOnboarding(): Promise<OnboardingPreferences> {
-  return apiRequest('/api/v1/onboarding/complete', onboardingSchema, { method: 'POST' });
+  return httpRequest('/api/v1/onboarding/complete', onboardingSchema, { method: 'POST' });
 }
 
 export async function fetchCatalogGenres(type: 'movie' | 'series'): Promise<CatalogGenre[]> {
-  return apiRequest(
+  return httpRequest(
     `/api/v1/catalog/genres?type=${type}&provider=tmdb&language=pt-BR`,
     z.array(genreSchema),
   );
@@ -444,7 +397,7 @@ export async function searchCatalog(
   signal?: AbortSignal,
 ): Promise<CatalogTitle[]> {
   const search = new URLSearchParams({ query, type, provider: 'tmdb', language: 'pt-BR' });
-  const result = await apiRequest(`/api/v1/catalog/search?${search}`, catalogSearchSchema, { signal });
+  const result = await httpRequest(`/api/v1/catalog/search?${search}`, catalogSearchSchema, { signal });
   return result.items;
 }
 
@@ -465,7 +418,7 @@ export async function fetchCatalogDiscovery(
   for (const genreId of genreIds) {
     search.append('genreIds', String(genreId));
   }
-  return apiRequest(`/api/v1/catalog/discover?${search}`, catalogDiscoverySchema, { signal });
+  return httpRequest(`/api/v1/catalog/discover?${search}`, catalogDiscoverySchema, { signal });
 }
 
 export async function fetchCatalogTitleDetails(
@@ -474,7 +427,7 @@ export async function fetchCatalogTitleDetails(
   externalId: string,
   signal?: AbortSignal,
 ): Promise<CatalogTitle> {
-  return apiRequest(
+  return httpRequest(
     `/api/v1/catalog/${provider}/${type}/${encodeURIComponent(externalId)}?language=pt-BR`,
     catalogTitleSchema,
     { signal },
@@ -482,15 +435,15 @@ export async function fetchCatalogTitleDetails(
 }
 
 export async function fetchProfile(): Promise<ProfileData> {
-  return apiRequest('/api/v1/profile', profileSchema);
+  return httpRequest('/api/v1/profile', profileSchema);
 }
 
 export async function saveProfile(
   profile: Omit<ProfileData, 'avatarUrl'>,
 ): Promise<ProfileData> {
-  return apiRequest('/api/v1/profile', profileSchema, {
+  return httpRequest('/api/v1/profile', profileSchema, {
     method: 'PUT',
-    body: JSON.stringify(profile),
+    body: profile,
   });
 }
 
@@ -499,16 +452,16 @@ export async function searchSocialUsers(
   signal?: AbortSignal,
 ): Promise<SocialUser[]> {
   const search = new URLSearchParams({ query, limit: '20' });
-  return apiRequest(`/api/v1/social/users?${search}`, z.array(socialUserSchema), { signal });
+  return httpRequest(`/api/v1/social/users?${search}`, z.array(socialUserSchema), { signal });
 }
 
 export async function sendFriendRequest(accountId: string): Promise<{ relationshipId: string }> {
-  return apiRequest('/api/v1/social/friend-requests', z.object({
+  return httpRequest('/api/v1/social/friend-requests', z.object({
     relationshipId: z.string().uuid(),
     status: friendRelationshipStatusSchema,
   }), {
     method: 'POST',
-    body: JSON.stringify({ accountId }),
+    body: { accountId },
   });
 }
 
@@ -517,7 +470,7 @@ export async function fetchFriends(
   signal?: AbortSignal,
 ): Promise<SocialPage<FriendItemData>> {
   const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
-  return apiRequest(`/api/v1/social/friends${query}`, socialListPageSchema(friendItemSchema), { signal });
+  return httpRequest(`/api/v1/social/friends${query}`, socialListPageSchema(friendItemSchema), { signal });
 }
 
 export async function fetchFriendRequests(
@@ -526,7 +479,7 @@ export async function fetchFriendRequests(
   signal?: AbortSignal,
 ): Promise<SocialPage<FriendRequestData>> {
   const query = new URLSearchParams({ direction, ...(cursor ? { cursor } : {}) });
-  return apiRequest(
+  return httpRequest(
     `/api/v1/social/friend-requests?${query.toString()}`,
     socialListPageSchema(friendRequestSchema),
     { signal },
@@ -537,7 +490,7 @@ export async function respondToFriendRequest(
   relationshipId: string,
   response: 'accept' | 'decline',
 ): Promise<void> {
-  await apiRequest(
+  await httpRequest(
     `/api/v1/social/friend-requests/${relationshipId}/${response}`,
     z.object({
       relationshipId: z.string().uuid(),
@@ -548,7 +501,7 @@ export async function respondToFriendRequest(
 }
 
 export async function cancelFriendRequest(relationshipId: string): Promise<void> {
-  await apiRequest(
+  await httpRequest(
     `/api/v1/social/friend-requests/${relationshipId}`,
     z.object({
       relationshipId: z.string().uuid(),
@@ -559,7 +512,7 @@ export async function cancelFriendRequest(relationshipId: string): Promise<void>
 }
 
 export async function removeFriend(relationshipId: string): Promise<void> {
-  await apiRequest(
+  await httpRequest(
     `/api/v1/social/friends/${relationshipId}`,
     z.object({
       relationshipId: z.string().uuid(),
@@ -573,7 +526,7 @@ export async function fetchFriendProfile(
   accountId: string,
   signal?: AbortSignal,
 ): Promise<FriendProfileData> {
-  return apiRequest(
+  return httpRequest(
     `/api/v1/social/friends/${accountId}/profile`,
     friendProfileSchema,
     { signal },
@@ -585,7 +538,7 @@ export async function fetchSocialFeed(
   signal?: AbortSignal,
 ): Promise<SocialActivityPage> {
   const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
-  return apiRequest(`/api/v1/social/feed${query}`, socialActivityPageSchema, { signal });
+  return httpRequest(`/api/v1/social/feed${query}`, socialActivityPageSchema, { signal });
 }
 
 export async function fetchFriendActivities(
@@ -594,19 +547,19 @@ export async function fetchFriendActivities(
   signal?: AbortSignal,
 ): Promise<SocialActivityPage> {
   const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
-  return apiRequest(`/api/v1/social/friends/${accountId}/activities${query}`, socialActivityPageSchema, { signal });
+  return httpRequest(`/api/v1/social/friends/${accountId}/activities${query}`, socialActivityPageSchema, { signal });
 }
 
 export async function fetchNotificationPreferences(): Promise<NotificationPreferences> {
-  return apiRequest('/api/v1/notifications/preferences', notificationPreferencesSchema);
+  return httpRequest('/api/v1/notifications/preferences', notificationPreferencesSchema);
 }
 
 export async function saveNotificationPreferences(
   preferences: NotificationPreferences,
 ): Promise<NotificationPreferences> {
-  return apiRequest('/api/v1/notifications/preferences', notificationPreferencesSchema, {
+  return httpRequest('/api/v1/notifications/preferences', notificationPreferencesSchema, {
     method: 'PUT',
-    body: JSON.stringify(preferences),
+    body: preferences,
   });
 }
 
@@ -616,14 +569,14 @@ export async function registerNotificationDevice(registration: {
   platform: 'ios' | 'android';
   projectId: string;
 }): Promise<z.infer<typeof notificationDeviceSchema>> {
-  return apiRequest('/api/v1/notifications/devices', notificationDeviceSchema, {
+  return httpRequest('/api/v1/notifications/devices', notificationDeviceSchema, {
     method: 'POST',
-    body: JSON.stringify(registration),
+    body: registration,
   });
 }
 
 export async function deactivateNotificationDevice(deviceId: string): Promise<void> {
-  await apiRequest(
+  await httpRequest(
     `/api/v1/notifications/devices/${deviceId}`,
     z.void(),
     { method: 'DELETE' },
@@ -635,13 +588,13 @@ export async function fetchNotificationInbox(
   signal?: AbortSignal,
 ): Promise<NotificationInboxPage> {
   const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
-  return apiRequest(`/api/v1/notifications/inbox${query}`, notificationInboxPageSchema, { signal });
+  return httpRequest(`/api/v1/notifications/inbox${query}`, notificationInboxPageSchema, { signal });
 }
 
 export async function fetchNotificationUnreadCount(
   signal?: AbortSignal,
 ): Promise<{ count: number }> {
-  return apiRequest(
+  return httpRequest(
     '/api/v1/notifications/inbox/unread-count',
     notificationUnreadCountSchema,
     { signal },
@@ -649,7 +602,7 @@ export async function fetchNotificationUnreadCount(
 }
 
 export async function markNotificationRead(notificationId: string): Promise<void> {
-  await apiRequest(
+  await httpRequest(
     `/api/v1/notifications/inbox/${notificationId}/read`,
     z.void(),
     { method: 'PUT' },
@@ -659,15 +612,15 @@ export async function markNotificationRead(notificationId: string): Promise<void
 export async function fetchGamificationDashboard(
   signal?: AbortSignal,
 ): Promise<GamificationDashboard> {
-  return apiRequest('/api/v1/gamification/dashboard', gamificationDashboardSchema, { signal });
+  return httpRequest('/api/v1/gamification/dashboard', gamificationDashboardSchema, { signal });
 }
 
 export async function saveGamificationPreferences(
   preferences: Pick<GamificationPreferences, 'badgesPublic' | 'rankingEnabled'>,
 ): Promise<GamificationPreferences> {
-  return apiRequest('/api/v1/gamification/preferences', gamificationPreferencesSchema, {
+  return httpRequest('/api/v1/gamification/preferences', gamificationPreferencesSchema, {
     method: 'PUT',
-    body: JSON.stringify(preferences),
+    body: preferences,
   });
 }
 
@@ -680,14 +633,14 @@ export async function fetchGamificationStatistics(
     start: start.toISOString(),
     end: end.toISOString(),
   });
-  return apiRequest(`/api/v1/gamification/statistics?${query}`, gamificationStatisticsSchema, { signal });
+  return httpRequest(`/api/v1/gamification/statistics?${query}`, gamificationStatisticsSchema, { signal });
 }
 
 export async function fetchPublicGamificationBadges(
   accountId: string,
   signal?: AbortSignal,
 ): Promise<PublicBadges> {
-  return apiRequest(
+  return httpRequest(
     `/api/v1/gamification/users/${accountId}/badges`,
     publicBadgesSchema,
     { signal },
@@ -706,7 +659,7 @@ export async function fetchMonthlyFriendsRanking(
     limit: '20',
     ...(cursor ? { cursor } : {}),
   });
-  return apiRequest(`/api/v1/gamification/friends/ranking?${query}`, gamificationRankingSchema, { signal });
+  return httpRequest(`/api/v1/gamification/friends/ranking?${query}`, gamificationRankingSchema, { signal });
 }
 
 export async function fetchRatingSummary(
@@ -716,7 +669,7 @@ export async function fetchRatingSummary(
   signal?: AbortSignal,
 ): Promise<RatingSummary> {
   const query = seriesId ? `?seriesId=${encodeURIComponent(seriesId)}` : '';
-  return apiRequest(
+  return httpRequest(
     `/api/v1/ratings/${targetType}/${targetId}${query}`,
     ratingSummarySchema,
     { signal },
@@ -730,12 +683,12 @@ export async function saveRating(
   audience: ReviewAudience,
   seriesId?: string,
 ): Promise<RatingSummary> {
-  return apiRequest(
+  return httpRequest(
     `/api/v1/ratings/${targetType}/${targetId}`,
     ratingSummarySchema,
     {
       method: 'PUT',
-      body: JSON.stringify({ score, audience, ...(seriesId ? { seriesId } : {}) }),
+      body: { score, audience, ...(seriesId ? { seriesId } : {}) },
     },
   );
 }
@@ -744,7 +697,7 @@ export async function deleteRating(
   targetType: ReviewTargetType,
   targetId: string,
 ): Promise<void> {
-  return apiRequest(
+  return httpRequest(
     `/api/v1/ratings/${targetType}/${targetId}`,
     z.void(),
     { method: 'DELETE' },
@@ -762,7 +715,7 @@ export async function fetchComments(
   if (seriesId) {
     query.set('seriesId', seriesId);
   }
-  return apiRequest(
+  return httpRequest(
     `/api/v1/comments/${targetType}/${targetId}?${query}`,
     pagedCommentsSchema,
     { signal },
@@ -780,12 +733,12 @@ export async function createComment(
     seriesId?: string;
   },
 ): Promise<CommentItem> {
-  return apiRequest(
+  return httpRequest(
     `/api/v1/comments/${targetType}/${targetId}`,
     commentItemSchema,
     {
       method: 'POST',
-      body: JSON.stringify(comment),
+      body: comment,
     },
   );
 }
@@ -799,22 +752,22 @@ export async function updateComment(
     requestAutomatedAnalysis: boolean;
   },
 ): Promise<CommentItem> {
-  return apiRequest(
+  return httpRequest(
     `/api/v1/comments/${commentId}`,
     commentItemSchema,
     {
       method: 'PUT',
-      body: JSON.stringify(comment),
+      body: comment,
     },
   );
 }
 
 export async function deleteComment(commentId: string): Promise<void> {
-  return apiRequest(`/api/v1/comments/${commentId}`, z.void(), { method: 'DELETE' });
+  return httpRequest(`/api/v1/comments/${commentId}`, z.void(), { method: 'DELETE' });
 }
 
 export async function revealComment(commentId: string): Promise<string> {
-  const result = await apiRequest(
+  const result = await httpRequest(
     `/api/v1/comments/${commentId}/reveal`,
     revealedCommentSchema,
     { method: 'POST' },
@@ -828,7 +781,7 @@ export async function fetchCatalogSeason(
   seasonNumber: number,
   signal?: AbortSignal,
 ): Promise<CatalogSeason> {
-  return apiRequest(
+  return httpRequest(
     `/api/v1/catalog/${provider}/series/${encodeURIComponent(externalSeriesId)}/seasons/${seasonNumber}?language=pt-BR`,
     catalogSeasonSchema,
     { signal },
@@ -840,7 +793,7 @@ export async function fetchCatalogSeasons(
   externalSeriesId: string,
   signal?: AbortSignal,
 ): Promise<CatalogSeasonSummary[]> {
-  return apiRequest(
+  return httpRequest(
     `/api/v1/catalog/${provider}/series/${encodeURIComponent(externalSeriesId)}/seasons?language=pt-BR`,
     z.array(catalogSeasonSummarySchema),
     { signal },
