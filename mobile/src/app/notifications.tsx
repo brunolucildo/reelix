@@ -23,6 +23,7 @@ import {
 } from '@/services/api-client';
 import { registerCurrentPushDevice } from '@/services/push-registration';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { notificationsQueryKeys } from '@/features/notifications/query-keys';
 
 export default function NotificationsScreen() {
   const router = useRouter();
@@ -31,11 +32,11 @@ export default function NotificationsScreen() {
   const { showError } = useToast();
   const [feedback, setFeedback] = useState<string | null>(null);
   const preferences = useQuery({
-    queryKey: ['notification-preferences'],
+    queryKey: notificationsQueryKeys.preferences,
     queryFn: fetchNotificationPreferences,
   });
   const inbox = useInfiniteQuery({
-    queryKey: ['notification-inbox'],
+    queryKey: notificationsQueryKeys.inbox,
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam, signal }) => fetchNotificationInbox(pageParam, signal),
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
@@ -46,7 +47,7 @@ export default function NotificationsScreen() {
   const preferencesMutation = useMutation({
     mutationFn: saveNotificationPreferences,
     onSuccess: (saved) => {
-      queryClient.setQueryData(['notification-preferences'], saved);
+      queryClient.setQueryData(notificationsQueryKeys.preferences, saved);
       setFeedback('Preferências atualizadas.');
     },
     onError: (error) => {
@@ -57,8 +58,8 @@ export default function NotificationsScreen() {
     mutationFn: markNotificationRead,
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['notification-inbox'] }),
-        queryClient.invalidateQueries({ queryKey: ['notification-unread-count'] }),
+        queryClient.invalidateQueries({ queryKey: notificationsQueryKeys.inbox }),
+        queryClient.invalidateQueries({ queryKey: notificationsQueryKeys.unreadCount }),
       ]);
     },
     onError: (error) => {

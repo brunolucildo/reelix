@@ -22,6 +22,7 @@ import { AuthProvider, useAuthSession } from '@/providers/auth-provider';
 import { ToastProvider, useToast } from '@/providers/toast-provider';
 import { colors, fontFamily, spacing, typography } from '@/theme/tokens';
 import { markNotificationRead } from '@/services/api-client';
+import { notificationsQueryKeys } from '@/features/notifications/query-keys';
 
 const queryClient = createQueryClient(notifyUnauthorized);
 
@@ -70,8 +71,8 @@ function RootNavigator() {
         void markNotificationRead(notificationId)
           .then(async () => {
             await Promise.all([
-              queryClient.invalidateQueries({ queryKey: ['notification-inbox'] }),
-              queryClient.invalidateQueries({ queryKey: ['notification-unread-count'] }),
+              queryClient.invalidateQueries({ queryKey: notificationsQueryKeys.inbox }),
+              queryClient.invalidateQueries({ queryKey: notificationsQueryKeys.unreadCount }),
             ]);
           })
           .catch((error: unknown) => {
