@@ -11,6 +11,7 @@ import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogSeason, isCatalogProvider } from '@/services/api-client';
 import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
 
 export default function CatalogEpisodeScreen() {
   const { session } = useAuthSession();
@@ -42,7 +43,7 @@ export default function CatalogEpisodeScreen() {
       return fetchCatalogSeason(provider, externalSeriesId, seasonNumber, signal);
     },
     enabled: isValid,
-    staleTime: 300_000,
+    staleTime: staleTime.catalog,
   });
   useErrorToast(season.error, 'Não foi possível carregar os detalhes do episódio.');
   const pendingEpisodes = usePendingEpisodes(

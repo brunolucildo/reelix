@@ -27,6 +27,8 @@ import {
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { gamificationQueryKeys } from '@/features/gamification/query-keys';
+import { getNextCursor } from '@/lib/pagination';
+import { staleTime } from '@/lib/query/stale-time';
 
 export default function GamificationScreen() {
   const queryClient = useQueryClient();
@@ -58,7 +60,7 @@ export default function GamificationScreen() {
           return fetchCatalogTitleDetails(activity.provider, contentType, externalId, signal);
         },
         enabled: Boolean(activity.provider && externalId),
-        staleTime: 300_000,
+        staleTime: staleTime.catalog,
       };
     }),
   });
@@ -77,7 +79,7 @@ export default function GamificationScreen() {
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam, signal }) =>
       fetchMonthlyFriendsRanking(year, month, pageParam, signal),
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    getNextPageParam: getNextCursor,
     enabled: dashboard.data?.preferences.rankingEnabled === true,
   });
   const preferencesMutation = useMutation({

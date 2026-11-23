@@ -5,6 +5,8 @@ import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogDiscovery, type CatalogDiscoveryCategory } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { getNextPageByTotal } from '@/lib/pagination';
+import { staleTime } from '@/lib/query/stale-time';
 import { TitlePosterCard } from './title-poster-card';
 
 type Props = {
@@ -21,9 +23,8 @@ export function DiscoveryFeedSection({ title, type, category, genreIds = [] }: P
     queryFn: ({ pageParam, signal }) =>
       fetchCatalogDiscovery(type, category, normalizedGenreIds, pageParam, signal),
     initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
-    staleTime: 300_000,
+    getNextPageParam: getNextPageByTotal,
+    staleTime: staleTime.catalog,
   });
   useErrorToast(feed.error, `Não foi possível carregar "${title}". Tente novamente.`);
 

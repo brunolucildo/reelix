@@ -11,6 +11,7 @@ import { fetchCatalogTitleDetails, fetchOwnRatings, type OwnRatingEntry } from '
 import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { ratingsQueryKeys } from '@/features/ratings/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
 
 export default function MyRatingsScreen() {
   const [page, setPage] = useState(1);
@@ -69,7 +70,7 @@ function RatingCard({ rating }: { rating: OwnRatingEntry }) {
     queryKey: catalogQueryKeys.title(rating.provider, type, externalId),
     queryFn: ({ signal }) => fetchCatalogTitleDetails(rating.provider, type, externalId!, signal),
     enabled: Boolean(externalId),
-    staleTime: 300_000,
+    staleTime: staleTime.catalog,
   });
   useErrorToast(title.error, 'Não foi possível carregar os detalhes de um título avaliado.');
   const details = (

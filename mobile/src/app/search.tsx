@@ -18,6 +18,7 @@ import { useErrorToast } from '@/providers/toast-provider';
 import { searchCatalog } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
 
 type ContentType = 'movie' | 'series';
 
@@ -32,7 +33,7 @@ export default function CatalogSearchScreen() {
     queryKey: catalogQueryKeys.search(type, submittedQuery),
     queryFn: ({ signal }) => searchCatalog(submittedQuery, type, signal),
     enabled: submittedQuery.length > 0,
-    staleTime: 60_000,
+    staleTime: staleTime.short,
   });
   useErrorToast(results.error, 'Não foi possível pesquisar no catálogo. Tente novamente.');
 

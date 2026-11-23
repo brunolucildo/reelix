@@ -10,6 +10,7 @@ import type { TrackedSeriesPage } from '@/features/tracking/api/tracking-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { trackingQueryKeys } from '@/features/tracking/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
 
 type Props = {
   onOpenTracking: () => void;
@@ -75,7 +76,7 @@ function TrackedSeriesCard({ item }: { item: TrackedSeriesPage['items'][number] 
     queryKey: catalogQueryKeys.title(item.provider, 'series', item.externalId),
     queryFn: ({ signal }) => fetchCatalogTitleDetails(item.provider!, 'series', item.externalId!, signal),
     enabled: Boolean(item.provider && item.externalId),
-    staleTime: 300_000,
+    staleTime: staleTime.catalog,
   });
   const season = useQuery({
     queryKey: trackingQueryKeys.homeSeason(item.seriesId, item.latestEpisodeId, item.knownSeasonNumbers),

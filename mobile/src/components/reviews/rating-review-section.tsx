@@ -33,6 +33,7 @@ import {
 } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { ratingsQueryKeys } from '@/features/ratings/query-keys';
+import { getNextPageByCount } from '@/lib/pagination';
 
 type RatingReviewSectionProps = {
   targetId: string;
@@ -72,10 +73,7 @@ export function RatingReviewSection({
     queryFn: ({ pageParam, signal }) =>
       fetchComments(targetType, targetId, pageParam, seriesId, signal),
     initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.page * lastPage.pageSize < lastPage.totalCount
-        ? lastPage.page + 1
-        : undefined,
+    getNextPageParam: getNextPageByCount,
   });
 
   useErrorToast(rating.error, 'Não foi possível carregar as avaliações deste conteúdo.');

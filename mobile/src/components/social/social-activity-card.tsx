@@ -11,6 +11,7 @@ import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogTitleDetails, type SocialActivityData } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
 
 export function SocialActivityCard({ activity, compact = false }: { activity: SocialActivityData; compact?: boolean }) {
   const router = useRouter();
@@ -19,7 +20,7 @@ export function SocialActivityCard({ activity, compact = false }: { activity: So
     queryKey: catalogQueryKeys.title(activity.provider, contentType, activity.externalId),
     queryFn: ({ signal }) => fetchCatalogTitleDetails(activity.provider, contentType, activity.externalId, signal),
     enabled: !compact && activity.targetType !== 'episode',
-    staleTime: 300_000,
+    staleTime: staleTime.catalog,
   });
   useErrorToast(title.error, 'Não foi possível carregar os detalhes do título.');
   const typeLabel = activity.targetType === 'movie' ? 'Filme' : activity.targetType === 'series' ? 'Série' : 'Episódio';

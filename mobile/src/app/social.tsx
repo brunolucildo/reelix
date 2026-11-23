@@ -35,6 +35,7 @@ import {
 } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { socialQueryKeys } from '@/features/social/query-keys';
+import { getNextCursor } from '@/lib/pagination';
 
 const socialTabs = [
   { key: 'feed', label: 'Feed', Icon: FeedIcon },
@@ -73,27 +74,27 @@ export default function SocialScreen() {
     queryKey: socialQueryKeys.friends,
     queryFn: ({ pageParam, signal }) => fetchFriends(pageParam ?? undefined, signal),
     initialPageParam: null as string | null,
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    getNextPageParam: getNextCursor,
     enabled: activeTab === 'friends',
   });
   const incoming = useInfiniteQuery({
     queryKey: socialQueryKeys.requests('incoming'),
     queryFn: ({ pageParam, signal }) => fetchFriendRequests('incoming', pageParam ?? undefined, signal),
     initialPageParam: null as string | null,
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    getNextPageParam: getNextCursor,
   });
   const outgoing = useInfiniteQuery({
     queryKey: socialQueryKeys.requests('outgoing'),
     queryFn: ({ pageParam, signal }) => fetchFriendRequests('outgoing', pageParam ?? undefined, signal),
     initialPageParam: null as string | null,
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    getNextPageParam: getNextCursor,
     enabled: activeTab === 'requests' && requestDirection === 'outgoing',
   });
   const feed = useInfiniteQuery({
     queryKey: socialQueryKeys.feed,
     queryFn: ({ pageParam, signal }) => fetchSocialFeed(pageParam ?? undefined, signal),
     initialPageParam: null as string | null,
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    getNextPageParam: getNextCursor,
   });
 
   useErrorToast(search.error, 'Não foi possível pesquisar pessoas.');

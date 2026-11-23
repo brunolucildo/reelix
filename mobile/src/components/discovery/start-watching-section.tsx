@@ -13,18 +13,19 @@ import {
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { listsQueryKeys } from '@/features/lists/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
 import { TitlePosterCard } from './title-poster-card';
 
 export function StartWatchingSection() {
   const favorites = useQuery({
     queryKey: listsQueryKeys.startWatchingFavorites,
     queryFn: () => fetchFavorites(1, 100),
-    staleTime: 60_000,
+    staleTime: staleTime.short,
   });
   const watchlist = useQuery({
     queryKey: listsQueryKeys.startWatchingWatchlist,
     queryFn: () => fetchWatchlist(1, false),
-    staleTime: 60_000,
+    staleTime: staleTime.short,
   });
   const tracked = useTrackedSeries(1, 100);
   const trackedKeys = new Set((tracked.data?.items ?? [])
@@ -39,7 +40,7 @@ export function StartWatchingSection() {
     queries: references.map((reference) => ({
       queryKey: catalogQueryKeys.title(reference.provider, 'series', reference.externalId),
       queryFn: ({ signal }: { signal: AbortSignal }) => fetchTitleDetails(reference, signal),
-      staleTime: 300_000,
+      staleTime: staleTime.catalog,
     })),
   });
   const items = details.flatMap((result) => result.data ? [result.data] : []);
@@ -64,7 +65,7 @@ export function StartWatchingSection() {
           ? { seasonNumber: season.seasonNumber, episode: firstEpisode }
           : null;
       },
-      staleTime: 300_000,
+      staleTime: staleTime.catalog,
     })),
   });
 

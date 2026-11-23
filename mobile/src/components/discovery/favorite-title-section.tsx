@@ -9,6 +9,7 @@ import { fetchFavorites, fetchTitleDetails, fetchWatchlist } from '@/features/li
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { listsQueryKeys } from '@/features/lists/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
 import { TitlePosterCard } from './title-poster-card';
 
 type Props = {
@@ -34,7 +35,7 @@ export function FavoriteTitleSection({ type, title, collection = 'favorites' }: 
       }
       return { ...firstPage, items };
     },
-    staleTime: 60_000,
+    staleTime: staleTime.short,
   });
   const references = (favorites.data?.items ?? [])
     .filter((reference) => reference.contentType === type)
@@ -43,7 +44,7 @@ export function FavoriteTitleSection({ type, title, collection = 'favorites' }: 
     queries: references.map((reference) => ({
       queryKey: catalogQueryKeys.title(reference.provider, reference.contentType, reference.externalId),
       queryFn: ({ signal }: { signal: AbortSignal }) => fetchTitleDetails(reference, signal),
-      staleTime: 300_000,
+      staleTime: staleTime.catalog,
     })),
   });
   const detailError = titleDetails.find((result) => result.error)?.error ?? null;

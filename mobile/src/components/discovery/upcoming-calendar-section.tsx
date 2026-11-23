@@ -11,6 +11,7 @@ import type { TrackedSeriesPage } from '@/features/tracking/api/tracking-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { trackingQueryKeys } from '@/features/tracking/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
 
 type CalendarFilter = 'all' | 'premiere' | 'final';
 
@@ -24,7 +25,7 @@ export function UpcomingCalendarSection() {
       queryFn: ({ signal }: { signal: AbortSignal }) =>
         fetchCatalogTitleDetails(item.provider!, 'series', item.externalId!, signal),
       enabled: Boolean(item.provider && item.externalId),
-      staleTime: 300_000,
+      staleTime: staleTime.catalog,
     })),
   });
   const seasonListQueries = useQueries({
@@ -33,7 +34,7 @@ export function UpcomingCalendarSection() {
       queryFn: ({ signal }: { signal: AbortSignal }) =>
         fetchCatalogSeasons(item.provider!, item.externalId!, signal),
       enabled: Boolean(item.provider && item.externalId),
-      staleTime: 300_000,
+      staleTime: staleTime.catalog,
     })),
   });
   const today = localDateKey(new Date());
@@ -57,7 +58,7 @@ export function UpcomingCalendarSection() {
       queryKey: trackingQueryKeys.calendarSeason(item.seriesId, seasonNumber),
       queryFn: ({ signal }: { signal: AbortSignal }) =>
         fetchCatalogSeason(item.provider!, item.externalId!, seasonNumber, signal),
-      staleTime: 300_000,
+      staleTime: staleTime.catalog,
     })),
   });
   const titleBySeries = new Map(

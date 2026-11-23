@@ -17,6 +17,8 @@ import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/th
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { socialQueryKeys } from '@/features/social/query-keys';
 import { gamificationQueryKeys } from '@/features/gamification/query-keys';
+import { getNextCursor } from '@/lib/pagination';
+import { staleTime } from '@/lib/query/stale-time';
 import OverviewIcon from '../../../assets/brand/navigation-icons/profile.svg';
 import ActivityIcon from '../../../assets/brand/navigation-icons/clock.svg';
 import FavoritesIcon from '../../../assets/brand/navigation-icons/favorites.svg';
@@ -59,7 +61,7 @@ export default function SocialProfileScreen() {
     queryKey: socialQueryKeys.friendActivities(accountId),
     queryFn: ({ pageParam, signal }) => fetchFriendActivities(accountId, pageParam ?? undefined, signal),
     initialPageParam: null as string | null,
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    getNextPageParam: getNextCursor,
     enabled: canSeeActivities && (tab === 'overview' || tab === 'activities'),
   });
   const relationshipAction = useMutation({
@@ -225,7 +227,7 @@ function FavoritePoster({ favorite }: { favorite: FriendProfileData['favorites']
   const title = useQuery({
     queryKey: catalogQueryKeys.title(favorite.provider, favorite.contentType, favorite.externalId),
     queryFn: ({ signal }) => fetchCatalogTitleDetails(favorite.provider, favorite.contentType, favorite.externalId, signal),
-    staleTime: 300_000,
+    staleTime: staleTime.catalog,
   });
   useErrorToast(title.error, 'Não foi possível carregar um favorito compartilhado.');
   return <View style={styles.favorite}>

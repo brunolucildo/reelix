@@ -23,6 +23,7 @@ import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogTitleDetails, searchCatalog } from '@/services/api-client';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
 
 const HISTORY_PREVIEW_SIZE = 5;
 const HISTORY_PAGE_SIZE = 20;
@@ -82,7 +83,7 @@ function AuthenticatedTracking() {
           return fetchCatalogTitleDetails(entry.provider, contentType, externalId, signal);
         },
         enabled: Boolean(entry.provider && externalId),
-        staleTime: 300_000,
+        staleTime: staleTime.catalog,
       };
     }),
   });
@@ -96,7 +97,7 @@ function AuthenticatedTracking() {
         return fetchCatalogTitleDetails(item.provider, 'series', item.externalId, signal);
       },
       enabled: Boolean(item.provider && item.externalId),
-      staleTime: 300_000,
+      staleTime: staleTime.catalog,
     })),
   });
   const markMovie = useMarkMovieWatched();

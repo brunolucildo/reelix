@@ -44,6 +44,7 @@ import type { CatalogTitle } from '@/features/catalog/api/catalog-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { listsQueryKeys } from '@/features/lists/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
 import AddListIcon from '../../assets/brand/navigation-icons/list-add.svg';
 import FavoritesIcon from '../../assets/brand/navigation-icons/favorites.svg';
 import ClockIcon from '../../assets/brand/navigation-icons/clock.svg';
@@ -138,7 +139,7 @@ export default function ListsScreen() {
     queries: currentReferences.map((reference) => ({
       queryKey: catalogQueryKeys.title(reference.provider, reference.contentType, reference.externalId),
       queryFn: () => fetchTitleDetails(reference),
-      staleTime: 300_000,
+      staleTime: staleTime.catalog,
     })),
   });
   const detailsFailed = titleDetails.some((result) => result.isError);

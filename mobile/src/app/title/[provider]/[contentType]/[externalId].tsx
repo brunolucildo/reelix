@@ -41,6 +41,7 @@ import {
 } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
 
 export default function CatalogTitleScreen() {
   const router = useRouter();
@@ -76,7 +77,7 @@ export default function CatalogTitleScreen() {
       );
     },
     enabled: validParams !== null,
-    staleTime: 300_000,
+    staleTime: staleTime.catalog,
   });
   useErrorToast(details.error, 'Não foi possível carregar os detalhes deste título. Tente novamente.');
   const seasons = useQuery({
@@ -89,7 +90,7 @@ export default function CatalogTitleScreen() {
       return fetchCatalogSeasons(provider, externalId, signal);
     },
     enabled: provider !== null && contentType === 'series' && externalId !== null && details.isSuccess,
-    staleTime: 300_000,
+    staleTime: staleTime.catalog,
   });
   useErrorToast(seasons.error, 'Não foi possível carregar as temporadas disponíveis.');
   const availableSeasons = seasons.data ?? [];
@@ -113,7 +114,7 @@ export default function CatalogTitleScreen() {
       return fetchCatalogSeason(provider, externalId, seasonNumber, signal);
     },
     enabled: provider !== null && contentType === 'series' && externalId !== null && seasonNumber !== null,
-    staleTime: 300_000,
+    staleTime: staleTime.catalog,
   });
   useErrorToast(season.error, 'Não foi possível carregar os episódios desta temporada.');
   const pendingEpisodes = usePendingEpisodes(

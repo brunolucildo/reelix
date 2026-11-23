@@ -24,6 +24,7 @@ import {
 import { registerCurrentPushDevice } from '@/services/push-registration';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { notificationsQueryKeys } from '@/features/notifications/query-keys';
+import { getNextCursor } from '@/lib/pagination';
 
 export default function NotificationsScreen() {
   const router = useRouter();
@@ -39,7 +40,7 @@ export default function NotificationsScreen() {
     queryKey: notificationsQueryKeys.inbox,
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam, signal }) => fetchNotificationInbox(pageParam, signal),
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    getNextPageParam: getNextCursor,
   });
   useErrorToast(preferences.error, 'Não foi possível carregar as preferências de notificações.');
   useErrorToast(inbox.error, 'Não foi possível carregar a caixa de entrada.');
