@@ -12,16 +12,17 @@ import {
 } from '@/features/lists/api/lists-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { listsQueryKeys } from '@/features/lists/query-keys';
 import { TitlePosterCard } from './title-poster-card';
 
 export function StartWatchingSection() {
   const favorites = useQuery({
-    queryKey: ['lists', 'favorites', 'start-watching'],
+    queryKey: listsQueryKeys.startWatchingFavorites,
     queryFn: () => fetchFavorites(1, 100),
     staleTime: 60_000,
   });
   const watchlist = useQuery({
-    queryKey: ['lists', 'watchlist', 'start-watching'],
+    queryKey: listsQueryKeys.startWatchingWatchlist,
     queryFn: () => fetchWatchlist(1, false),
     staleTime: 60_000,
   });

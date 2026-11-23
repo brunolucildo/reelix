@@ -43,6 +43,7 @@ import {
 import type { CatalogTitle } from '@/features/catalog/api/catalog-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { listsQueryKeys } from '@/features/lists/query-keys';
 import AddListIcon from '../../assets/brand/navigation-icons/list-add.svg';
 import FavoritesIcon from '../../assets/brand/navigation-icons/favorites.svg';
 import ClockIcon from '../../assets/brand/navigation-icons/clock.svg';
@@ -79,34 +80,34 @@ export default function ListsScreen() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const favorites = useQuery({
-    queryKey: ['lists', 'favorites', page],
+    queryKey: listsQueryKeys.favorites(page),
     queryFn: () => fetchFavorites(page),
     enabled: section === 'favorites',
   });
   const watchlist = useQuery({
-    queryKey: ['lists', 'watchlist', page, watchlistOldestFirst],
+    queryKey: listsQueryKeys.watchlist(page, watchlistOldestFirst),
     queryFn: () => fetchWatchlist(page, watchlistOldestFirst),
     enabled: section === 'watchlist',
   });
   const customLists = useQuery({
-    queryKey: ['lists', 'custom', listPage],
+    queryKey: listsQueryKeys.customLists(listPage),
     queryFn: () => fetchCustomLists(listPage),
     enabled: section === 'lists',
   });
   const activeListId = selectedListId ?? customLists.data?.items[0]?.id ?? null;
   const selectedList = useQuery({
-    queryKey: ['lists', 'custom', activeListId, page],
+    queryKey: listsQueryKeys.customList(activeListId, page),
     queryFn: () => fetchCustomList(activeListId!, page),
     enabled: section === 'lists' && activeListId !== null,
   });
   const search = useQuery({
-    queryKey: ['lists', 'catalog-search', searchText.trim()],
+    queryKey: listsQueryKeys.catalogSearch(searchText.trim()),
     queryFn: () => searchCatalogTitles(searchText.trim()),
     enabled: searchText.trim().length >= 2,
   });
   const searchTitleIds = search.data?.map((title) => title.id) ?? [];
   const searchStatuses = useQuery({
-    queryKey: ['lists', 'title-status', searchTitleIds],
+    queryKey: listsQueryKeys.titleStatus(searchTitleIds),
     queryFn: () => fetchTitleStatuses(searchTitleIds),
     enabled: searchTitleIds.length > 0,
   });
@@ -153,10 +154,10 @@ export default function ListsScreen() {
 
   const invalidateLists = async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['lists', 'favorites'] }),
-      queryClient.invalidateQueries({ queryKey: ['lists', 'watchlist'] }),
-      queryClient.invalidateQueries({ queryKey: ['lists', 'custom'] }),
-      queryClient.invalidateQueries({ queryKey: ['lists', 'title-status'] }),
+      queryClient.invalidateQueries({ queryKey: listsQueryKeys.favoritesAll }),
+      queryClient.invalidateQueries({ queryKey: listsQueryKeys.watchlistAll }),
+      queryClient.invalidateQueries({ queryKey: listsQueryKeys.customAll }),
+      queryClient.invalidateQueries({ queryKey: listsQueryKeys.titleStatusAll }),
     ]);
   };
 

@@ -16,6 +16,8 @@ import {
 } from '@/features/lists/api/lists-api';
 import type { CatalogTitle } from '@/features/catalog/api/catalog-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { listsQueryKeys } from '@/features/lists/query-keys';
+import { socialQueryKeys } from '@/features/social/query-keys';
 
 export function TitleCollectionActions({ title }: { title: CatalogTitle }) {
   const queryClient = useQueryClient();
@@ -25,11 +27,11 @@ export function TitleCollectionActions({ title }: { title: CatalogTitle }) {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [addedLists, setAddedLists] = useState<string[]>([]);
   const status = useQuery({
-    queryKey: ['lists', 'title-status', [title.id]],
+    queryKey: listsQueryKeys.titleStatus([title.id]),
     queryFn: () => fetchTitleStatuses([title.id]),
   });
   const lists = useInfiniteQuery({
-    queryKey: ['lists', 'custom', 'title-picker'],
+    queryKey: listsQueryKeys.titlePicker,
     queryFn: ({ pageParam }) => fetchCustomLists(pageParam),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => lastPage.page * lastPage.pageSize < lastPage.totalCount ? lastPage.page + 1 : undefined,
@@ -37,8 +39,8 @@ export function TitleCollectionActions({ title }: { title: CatalogTitle }) {
   });
   const refresh = async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['lists'] }),
-      queryClient.invalidateQueries({ queryKey: ['social', 'friend-profile'] }),
+      queryClient.invalidateQueries({ queryKey: listsQueryKeys.all }),
+      queryClient.invalidateQueries({ queryKey: socialQueryKeys.friendProfileAll }),
     ]);
   };
   const relation = status.data?.find((item) => item.titleId === title.id);
@@ -70,7 +72,7 @@ export function TitleCollectionActions({ title }: { title: CatalogTitle }) {
       setFeedback('Lista criada e título adicionado.');
       await refresh();
     },
-    onError: () => { void queryClient.invalidateQueries({ queryKey: ['lists', 'custom'] }); },
+    onError: () => { void queryClient.invalidateQueries({ queryKey: listsQueryKeys.customAll }); },
   });
   useErrorToast(status.error, 'Não foi possível verificar seus títulos salvos.');
   useErrorToast(lists.error, 'Não foi possível carregar suas listas.');

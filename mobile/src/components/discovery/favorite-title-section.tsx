@@ -8,6 +8,7 @@ import ClockIcon from '../../../assets/brand/navigation-icons/clock.svg';
 import { fetchFavorites, fetchTitleDetails, fetchWatchlist } from '@/features/lists/api/lists-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { listsQueryKeys } from '@/features/lists/query-keys';
 import { TitlePosterCard } from './title-poster-card';
 
 type Props = {
@@ -20,7 +21,7 @@ export function FavoriteTitleSection({ type, title, collection = 'favorites' }: 
   const router = useRouter();
   const isWatchlist = collection === 'watchlist';
   const favorites = useQuery({
-    queryKey: ['lists', collection, 'home', type],
+    queryKey: listsQueryKeys.home(collection, type),
     queryFn: async () => {
       if (!isWatchlist) return fetchFavorites(1, 100);
       const firstPage = await fetchWatchlist(1, false);
