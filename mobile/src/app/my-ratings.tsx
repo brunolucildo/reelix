@@ -10,10 +10,11 @@ import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogTitleDetails, fetchOwnRatings, type OwnRatingEntry } from '@/services/api-client';
 import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { ratingsQueryKeys } from '@/features/ratings/query-keys';
 
 export default function MyRatingsScreen() {
   const [page, setPage] = useState(1);
-  const ratings = useQuery({ queryKey: ['reviews', 'mine', page], queryFn: ({ signal }) => fetchOwnRatings(page, signal) });
+  const ratings = useQuery({ queryKey: ratingsQueryKeys.ownRatings(page), queryFn: ({ signal }) => fetchOwnRatings(page, signal) });
   useErrorToast(ratings.error, 'Não foi possível carregar suas avaliações. Tente novamente.');
   return (
     <SafeAreaView style={styles.screen}>

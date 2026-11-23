@@ -32,6 +32,7 @@ import {
   type ReviewTargetType,
 } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { ratingsQueryKeys } from '@/features/ratings/query-keys';
 
 type RatingReviewSectionProps = {
   targetId: string;
@@ -58,8 +59,8 @@ export function RatingReviewSection({
   const [editingComment, setEditingComment] = useState<CommentItem | null>(null);
   const [revealedComments, setRevealedComments] = useState<Record<string, string>>({});
   const viewerId = session?.user.id ?? 'signed-out';
-  const ratingKey = ['reviews', viewerId, 'rating', targetType, targetId, seriesId];
-  const commentsKey = ['reviews', viewerId, 'comments', targetType, targetId, seriesId];
+  const ratingKey = ratingsQueryKeys.rating(viewerId, targetType, targetId, seriesId);
+  const commentsKey = ratingsQueryKeys.comments(viewerId, targetType, targetId, seriesId);
 
   const rating = useQuery({
     queryKey: ratingKey,
@@ -89,7 +90,7 @@ export function RatingReviewSection({
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ratingKey }),
       queryClient.invalidateQueries({ queryKey: commentsKey }),
-      queryClient.invalidateQueries({ queryKey: ['reviews', 'mine'] }),
+      queryClient.invalidateQueries({ queryKey: ratingsQueryKeys.ownRatingsAll }),
     ]);
   };
 
