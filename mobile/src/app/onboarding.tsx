@@ -20,6 +20,7 @@ import {
 } from '@/services/api-client';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { onboardingQueryKeys } from '@/features/onboarding/query-keys';
 
 const steps: Exclude<OnboardingPreferences['currentStep'], 'completed'>[] = [
   'welcome',
@@ -32,7 +33,7 @@ const steps: Exclude<OnboardingPreferences['currentStep'], 'completed'>[] = [
 export default function OnboardingScreen() {
   const params = useLocalSearchParams<{ edit?: string }>();
   const isEditing = params.edit === '1';
-  const preferences = useQuery({ queryKey: ['onboarding'], queryFn: fetchOnboarding });
+  const preferences = useQuery({ queryKey: onboardingQueryKeys.preferences, queryFn: fetchOnboarding });
   useErrorToast(preferences.error, 'Não foi possível carregar suas preferências. Verifique sua conexão e tente novamente.');
 
   if (preferences.isError) {
@@ -109,7 +110,7 @@ function OnboardingFlow({
   const saveMutation = useMutation({
     mutationFn: saveOnboardingProgress,
     onSuccess: (saved) => {
-      queryClient.setQueryData(['onboarding'], saved);
+      queryClient.setQueryData(onboardingQueryKeys.preferences, saved);
       const { isComplete: _isComplete, ...progress } = saved;
       setDraft({
         ...progress,
@@ -124,7 +125,7 @@ function OnboardingFlow({
   const completeMutation = useMutation({
     mutationFn: completeOnboarding,
     onSuccess: (saved) => {
-      queryClient.setQueryData(['onboarding'], saved);
+      queryClient.setQueryData(onboardingQueryKeys.preferences, saved);
       router.replace(isEditing ? '/profile' : '/home');
     },
     onError: (error) => {

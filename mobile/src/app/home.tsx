@@ -23,6 +23,7 @@ import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchOnboarding } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { onboardingQueryKeys } from '@/features/onboarding/query-keys';
 
 type ContentType = 'movie' | 'series';
 
@@ -31,7 +32,7 @@ export default function HomeScreen() {
   const { session } = useAuthSession();
   const [contentType, setContentType] = useState<ContentType>('series');
   const onboarding = useQuery({
-    queryKey: ['onboarding'],
+    queryKey: onboardingQueryKeys.preferences,
     queryFn: fetchOnboarding,
   });
 

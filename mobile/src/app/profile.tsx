@@ -18,6 +18,7 @@ import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/th
 import { gamificationQueryKeys } from '@/features/gamification/query-keys';
 import { ratingsQueryKeys } from '@/features/ratings/query-keys';
 import { socialQueryKeys } from '@/features/social/query-keys';
+import { profileQueryKeys } from '@/features/profile/query-keys';
 import TmdbLogo from '../../assets/brand/logos/tmdb-logo-blue.svg';
 import CheckIcon from '../../assets/brand/navigation-icons/check.svg';
 
@@ -28,7 +29,7 @@ type ProfileDraft = Omit<ProfileData, 'avatarUrl' | 'avatarKey' | 'displayName' 
 };
 
 export default function ProfileScreen() {
-  const profile = useQuery({ queryKey: ['profile'], queryFn: fetchProfile });
+  const profile = useQuery({ queryKey: profileQueryKeys.profile, queryFn: fetchProfile });
   useErrorToast(profile.error, 'Não foi possível carregar o perfil. Verifique sua conexão e tente novamente.');
 
   if (profile.isError) {
@@ -79,7 +80,7 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
   const saveMutation = useMutation({
     mutationFn: saveProfile,
     onSuccess: (saved) => {
-      queryClient.setQueryData(['profile'], saved);
+      queryClient.setQueryData(profileQueryKeys.profile, saved);
       setDraft({
         displayName: saved.displayName ?? '',
         biography: saved.biography ?? '',
