@@ -34,6 +34,7 @@ import {
   sendFriendRequest,
 } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { socialQueryKeys } from '@/features/social/query-keys';
 
 const socialTabs = [
   { key: 'feed', label: 'Feed', Icon: FeedIcon },
@@ -60,36 +61,36 @@ export default function SocialScreen() {
   }, [searchText]);
 
   const refreshSocial = async () => {
-    queryClient.removeQueries({ queryKey: ['social', 'friend-profile'] });
-    await queryClient.invalidateQueries({ queryKey: ['social'] });
+    queryClient.removeQueries({ queryKey: socialQueryKeys.friendProfileAll });
+    await queryClient.invalidateQueries({ queryKey: socialQueryKeys.all });
   };
   const search = useQuery({
-    queryKey: ['social', 'search', searchQuery],
+    queryKey: socialQueryKeys.search(searchQuery),
     queryFn: ({ signal }) => searchSocialUsers(searchQuery, signal),
     enabled: activeTab === 'discover' && searchQuery.length >= 2,
   });
   const friends = useInfiniteQuery({
-    queryKey: ['social', 'friends'],
+    queryKey: socialQueryKeys.friends,
     queryFn: ({ pageParam, signal }) => fetchFriends(pageParam ?? undefined, signal),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled: activeTab === 'friends',
   });
   const incoming = useInfiniteQuery({
-    queryKey: ['social', 'requests', 'incoming'],
+    queryKey: socialQueryKeys.requests('incoming'),
     queryFn: ({ pageParam, signal }) => fetchFriendRequests('incoming', pageParam ?? undefined, signal),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
   const outgoing = useInfiniteQuery({
-    queryKey: ['social', 'requests', 'outgoing'],
+    queryKey: socialQueryKeys.requests('outgoing'),
     queryFn: ({ pageParam, signal }) => fetchFriendRequests('outgoing', pageParam ?? undefined, signal),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled: activeTab === 'requests' && requestDirection === 'outgoing',
   });
   const feed = useInfiniteQuery({
-    queryKey: ['social', 'feed'],
+    queryKey: socialQueryKeys.feed,
     queryFn: ({ pageParam, signal }) => fetchSocialFeed(pageParam ?? undefined, signal),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,

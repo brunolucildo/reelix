@@ -15,6 +15,8 @@ import { useErrorToast } from '@/providers/toast-provider';
 import { cancelFriendRequest, fetchCatalogTitleDetails, fetchFriendActivities, fetchFriendProfile, fetchPublicGamificationBadges, removeFriend, respondToFriendRequest, sendFriendRequest, type FriendProfileData, type PublicBadges } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { socialQueryKeys } from '@/features/social/query-keys';
+import { gamificationQueryKeys } from '@/features/gamification/query-keys';
 import OverviewIcon from '../../../assets/brand/navigation-icons/profile.svg';
 import ActivityIcon from '../../../assets/brand/navigation-icons/clock.svg';
 import FavoritesIcon from '../../../assets/brand/navigation-icons/favorites.svg';
@@ -43,18 +45,18 @@ export default function SocialProfileScreen() {
   };
   const { accountId } = useLocalSearchParams<{ accountId: string }>();
   const profile = useQuery({
-    queryKey: ['social', 'friend-profile', accountId],
+    queryKey: socialQueryKeys.friendProfile(accountId),
     queryFn: ({ signal }) => fetchFriendProfile(accountId, signal),
     enabled: Boolean(accountId),
   });
   const badges = useQuery({
-    queryKey: ['gamification', 'public-badges', accountId],
+    queryKey: gamificationQueryKeys.publicBadges(accountId),
     queryFn: ({ signal }) => fetchPublicGamificationBadges(accountId, signal),
     enabled: Boolean(profile.data),
   });
   const canSeeActivities = Boolean(profile.data?.watchHistoryShared || profile.data?.ratingsShared);
   const activities = useInfiniteQuery({
-    queryKey: ['social', 'friend-activities', accountId],
+    queryKey: socialQueryKeys.friendActivities(accountId),
     queryFn: ({ pageParam, signal }) => fetchFriendActivities(accountId, pageParam ?? undefined, signal),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
@@ -72,13 +74,13 @@ export default function SocialProfileScreen() {
     onSuccess: async (_, action) => {
       setManageFriendship(false);
       if (action === 'remove') {
-        queryClient.setQueryData<FriendProfileData>(['social', 'friend-profile', accountId], (current) => current ? { ...current, relationshipStatus: 'removed', favorites: [], favoritesShared: false, watchHistoryShared: false, ratingsShared: false } : current);
+        queryClient.setQueryData<FriendProfileData>(socialQueryKeys.friendProfile(accountId), (current) => current ? { ...current, relationshipStatus: 'removed', favorites: [], favoritesShared: false, watchHistoryShared: false, ratingsShared: false } : current);
       }
-      await queryClient.cancelQueries({ queryKey: ['social', 'friend-activities'] });
-      await queryClient.cancelQueries({ queryKey: ['social', 'feed'] });
-      queryClient.removeQueries({ queryKey: ['social', 'friend-activities'] });
-      queryClient.removeQueries({ queryKey: ['social', 'feed'] });
-      await queryClient.invalidateQueries({ queryKey: ['social'] });
+      await queryClient.cancelQueries({ queryKey: socialQueryKeys.friendActivitiesAll });
+      await queryClient.cancelQueries({ queryKey: socialQueryKeys.feed });
+      queryClient.removeQueries({ queryKey: socialQueryKeys.friendActivitiesAll });
+      queryClient.removeQueries({ queryKey: socialQueryKeys.feed });
+      await queryClient.invalidateQueries({ queryKey: socialQueryKeys.all });
     },
     onError: () => { void profile.refetch(); },
   });
