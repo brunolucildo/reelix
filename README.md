@@ -1,171 +1,87 @@
 # Reelix
 
-Aplicativo para descobrir e acompanhar filmes e séries, registrar o que você assistiu e compartilhar atividades autorizadas com amigos.
+Aplicativo para descobrir e acompanhar filmes e séries, registrar o que você assistiu, organizar títulos em listas e compartilhar atividades autorizadas com amigos.
 
-O repositório reúne o aplicativo mobile em React Native/Expo e uma API ASP.NET Core. A autenticação usa Supabase Auth; os dados da conta Reelix são armazenados em PostgreSQL.
+O repositório reúne o app mobile (React Native + Expo, em `mobile/`) e uma API ASP.NET Core (.NET 10, em `backend/`). A autenticação usa Supabase Auth; os dados da conta Reelix ficam em PostgreSQL.
 
-## Estado atual do projeto
+> **Fonte de verdade:** a documentação canônica está em [`.docs/`](.docs/) — comece por [`.docs/AGENTS.md`](.docs/AGENTS.md). Este README é só um resumo de entrada.
 
-**Fotografia do código em 04/11/2026.** O status completo, as limitações de validação
-e os próximos passos estão em [PROJECT_STATUS.md](PROJECT_STATUS.md). A tabela descreve
-implementação no repositório, não confirma implantação em produção. Migrations e
-credenciais precisam ser verificadas separadamente em cada ambiente.
+## Estado atual
 
-| Módulo | Estado no código | Limites operacionais conhecidos |
+Fotografia em 2026-11-19. Implementação no código **não** comprova implantação: migrations e credenciais são verificadas por ambiente (hoje só existe `Development`). Detalhes e limites em [`.docs/QA.md`](.docs/QA.md) e [`.docs/ARCHITECTURE.md`](.docs/ARCHITECTURE.md).
+
+| Módulo | Estado no código | Limites conhecidos |
 |---|---|---|
-| Autenticação, onboarding, perfil e catálogo | Implementados no mobile e na API. | Supabase, credenciais dos provedores e migrations devem estar configurados no ambiente. Upload de avatar não está implementado. |
-| Home, descoberta e busca | Implementadas com dados reais, paginação automática, tracking e cache definidos por seção. | Datas e metadados dependem do catálogo; não há recomendação por IA. |
-| Tracking e listas | Implementados, incluindo progresso da série inteira, listas privadas, edição e exclusão contextual. | O progresso total depende do inventário de temporadas do catálogo; consulte [tracking](docs/specs/05-tracking.md). |
-| Avaliações e comentários | Implementados, com notas de meia estrela, audiência privada e proteção contra spoilers. | Classificação automática de spoilers está temporariamente desativada; denúncias e moderação administrativa não estão disponíveis. |
-| Social | API e mobile implementados para amizades e compartilhamento autorizado. | A migration deve ser aplicada ao banco de cada ambiente antes do uso. |
-| Notificações | Preferências, inbox, dispositivos e processamento de eventos sociais implementados. | Migration ainda precisa ser aplicada; push remoto está desativado e alertas de catálogo dependem de sincronização confiável. |
-| Gamificação | API e mobile implementados para conquistas, estatísticas e ranking. | A migration precisa ser aplicada antes do uso em cada banco; reconciliação ocorre ao consultar o dashboard. |
-| Widgets mobile | Preparação de build Android/EAS em andamento; widget ainda não implementado. | Instalar e validar o APK de development no Samsung; iOS está adiado. |
-
-As especificações por módulo, incluindo decisões e limitações, estão em
-[docs/specs](docs/specs/). As páginas de desenvolvimento são planos históricos;
-use este quadro e as especificações como estado atual.
-
-Para continuidade técnica, consulte o [backlog da auditoria](DEVELOPMENT_BACKLOG.md) e
-o [roadmap recomendado](ROADMAP.md). O resultado dos testes não equivale a uma
-validação funcional em produção ou em dispositivos nativos.
-
-O workflow [.github/workflows/ci.yml](.github/workflows/ci.yml) roda testes backend,
-lint/type-check mobile e auditoria de dependências em pull requests e pushes. Ele também
-gera um script idempotente de migrations como artefato para revisão; não aplica schema.
-O audit atual reporta 21 advisories npm (3 low, 18 moderate), sem high ou critical; a
-correção forçada sugere downgrades incompatíveis e está rastreada no backlog.
-
-## Funcionalidades implementadas
-
-O projeto já inclui autenticação, catálogo, onboarding, perfil, Home de descoberta,
-acompanhamento e favoritos/listas:
-
-- Cadastro, login, confirmação de e-mail, recuperação de senha e logout pelo Supabase Auth.
-- Callback de autenticação por deep link, compatível com Expo.
-- API .NET que valida tokens JWT do Supabase e expõe `GET /api/v1/auth/me` e endpoints autenticados de pesquisa e detalhes de catálogo.
-- Integração com TMDB e OMDb, com referências externas persistidas no PostgreSQL.
-- Onboarding retomável com preferências de gêneros e títulos favoritos validados pelo catálogo.
-- Perfil próprio com nome, biografia e privacidade, consulta contextual de perfil e medalhas de conquistas. Upload de avatar não está implementado.
-- Home autenticada com áreas separadas para filmes e séries, destaques e lançamentos do catálogo, favoritos, sugestões por gênero, pesquisa e detalhes de títulos.
-- Acompanhamento de filmes/séries assistidos e gerenciamento de favoritos, watchlist e listas privadas.
-- Avaliações de 0 a 5 em passos de meia estrela e comentários privados ou públicos, com sinalização e revelação explícita de spoilers para filmes, séries e episódios.
-- Análise opcional de possíveis spoilers, desativada por padrão e executada no backend somente com consentimento explícito por comentário.
-- Amizades, solicitações, busca protegida e feed paginado, com consentimentos separados para histórico, avaliações e favoritos.
-- Caixa de entrada de notificações sociais com preferências, registro privado de dispositivos e processamento persistente de tickets/receipts Expo.
-- Conquistas determinísticas, estatísticas com estimativa de runtime e ranking mensal entre amigos com opt-in e paginação.
-- API autenticada para onboarding e perfil; veja [configuração e contratos](docs/onboarding-profile-setup.md).
-- Regras e contratos da Home de descoberta estão em [docs/home-discovery-setup.md](docs/home-discovery-setup.md).
-- Swagger para testar a API localmente e uma página exclusiva de desenvolvimento para obter um token de usuário diretamente pelo Supabase Auth.
-- Migrations e testes automatizados para autenticação, catálogo, onboarding, perfil, notificações, gamificação e configuração CORS de desenvolvimento web.
-
-Notificações sociais e gamificação estão implementadas no código, mas dependem de migrations aplicadas no banco de cada ambiente. Push remoto permanece desativado até configurar projeto EAS, credenciais APNs/FCM, segredo Expo e hosting continuamente ativo. Alertas de episódios/estreias ainda dependem de uma fonte confiável de atualização do catálogo. A análise automática de spoilers está temporariamente desativada; sinalização manual continua disponível. Widgets Android estão aprovados, mas ainda não implementados; iOS está adiado. Consulte as especificações de [avaliações](docs/specs/07-ratings-comments.md), [Social](docs/specs/09-social.md), [Notificações](docs/specs/10-notifications.md), [Gamificação](docs/specs/11-gamification.md) e [Widgets](docs/specs/12-mobile-widgets.md).
+| Autenticação, onboarding, perfil, catálogo | Implementados no mobile e na API | Upload de avatar e exclusão/exportação de conta não existem |
+| Home, descoberta, busca | Implementadas com dados reais | Sem recomendação por IA |
+| Tracking, favoritos, watchlist, listas | Implementados | Progresso depende do inventário do provedor |
+| Avaliações e comentários | Implementados, com proteção contra spoilers | Análise automática desativada; sem denúncias/moderação |
+| Social, notificações, gamificação | Implementados (inbox; ranking opt-in) | Push remoto desativado; sem alertas de catálogo |
+| Widgets Android | Escopo aprovado; **não implementado** | iOS adiado |
+| Testes | Backend: 202 testes xUnit | **Sem testes do mobile e sem E2E** |
 
 ## Tecnologias
 
-- Mobile: React Native, Expo, TypeScript e Expo Router.
-- API: ASP.NET Core / .NET 10.
-- Persistência: PostgreSQL com Entity Framework Core.
-- Identidade: Supabase Auth.
+- Mobile: React Native, Expo SDK 58, TypeScript, Expo Router, TanStack Query, zod.
+- API: ASP.NET Core / .NET 10, EF Core + Npgsql, PostgreSQL.
+- Identidade: Supabase Auth (a API valida o JWT).
+- Catálogo: TMDB (principal) e OMDb (opcional), chamados pelo backend.
 
 ## Requisitos
 
-- .NET 10 SDK.
-- Node.js e npm.
-- Um projeto Supabase com autenticação por e-mail habilitada e acesso ao PostgreSQL.
+- .NET 10 SDK, Node.js e npm.
+- Docker (apenas para os testes que usam Testcontainers).
+- Um projeto Supabase de **desenvolvimento** com e-mail e senha habilitados.
 
-## Configuração local
+## Começando
 
-### 1. Configure o Supabase
-
-Siga [docs/authentication-setup.md](docs/authentication-setup.md) para configurar as chaves públicas do app, o callback de autenticação, as credenciais do backend e o PostgreSQL. Não coloque senhas, tokens ou chaves secretas em arquivos versionados.
-
-Configure os segredos do backend com User Secrets:
+Configure os segredos da API (nunca versione valores reais; veja [`.docs/QA.md`](.docs/QA.md) §2 e §4 e [`.specs/0001-authentication.md`](.specs/0001-authentication.md)):
 
 ```powershell
 dotnet user-secrets set "Supabase:Url" "https://SEU-PROJETO.supabase.co" --project backend\Reelix.Api\Reelix.Api.csproj
-dotnet user-secrets set "ConnectionStrings:Reelix" "Host=SEU_HOST;Port=5432;Database=postgres;Username=SEU_USUARIO;Password=SUA_SENHA;SSL Mode=Require" --project backend\Reelix.Api\Reelix.Api.csproj
+dotnet user-secrets set "ConnectionStrings:Reelix" "Host=...;Port=5432;Database=...;Username=...;Password=...;SSL Mode=Require" --project backend\Reelix.Api\Reelix.Api.csproj
+dotnet user-secrets set "Catalog:Tmdb:AccessToken" "<TMDB Read Access Token>" --project backend\Reelix.Api\Reelix.Api.csproj
 ```
 
-Use os valores de conexão PostgreSQL exibidos no painel do seu projeto Supabase. A connection string precisa estar no formato `Host=...;Database=...;Username=...;Password=...`.
-
-### 2. Configure e inicie a API
-
-A análise automática de spoilers está temporariamente desativada. Para reativá-la futuramente, configure `OpenAI:SpoilerAnalysis:Enabled=true`, `OpenAI:SpoilerAnalysis:TemporarilyDisabled=false` e `OpenAI:SpoilerAnalysis:ApiKey` no servidor, usando User Secrets ou um gerenciador de segredos do ambiente de hospedagem. `Model` e `TimeoutSeconds` são opcionais. A sinalização manual e os controles de spoiler continuam disponíveis; comentários não dependem da integração. Nunca configure a chave OpenAI no app mobile.
+Suba a API (`http://localhost:5035`, Swagger em `/swagger`):
 
 ```powershell
 dotnet restore Reelix.sln
 dotnet run --project backend\Reelix.Api\Reelix.Api.csproj --launch-profile http
 ```
 
-No perfil local, a API fica disponível em `http://localhost:5035`. O Swagger UI e a especificação OpenAPI, habilitados apenas em `Development`, ficam em:
-
-- Swagger UI: <http://localhost:5035/swagger>
-- OpenAPI JSON: <http://localhost:5035/openapi/v1.json>
-
-Os endpoints protegidos exigem um access token válido do mesmo projeto Supabase configurado na API. Para testar com sua conta, abra <http://localhost:5035/dev-auth.html>, informe a chave publishable (ou a chave `anon` legada), e-mail e senha, e cole o access token retornado no botão **Authorize** do Swagger, sem o prefixo `Bearer`. O navegador envia as credenciais diretamente ao Supabase; a API local não recebe nem armazena sua senha. Nunca use uma chave `service_role` ou secret nesse fluxo. Veja [as instruções detalhadas de teste do catálogo](docs/catalog-setup.md#iniciar-e-abrir-swagger).
-
-### 3. Configure e inicie o app
+Suba o app:
 
 ```powershell
 Copy-Item mobile\.env.example mobile\.env
-```
-
-Preencha `mobile/.env` com a URL do projeto e a chave **publishable** do Supabase. Para uso no navegador local, a URL da API deve ser `http://localhost:5035`. Depois:
-
-```powershell
 Set-Location mobile
 npm ci
 npx expo start
 ```
 
-Nunca use `service_role`, chaves secretas ou a chave privada JWT no app mobile.
-
-## Banco de dados
-
-Para criar ou atualizar as tabelas no banco configurado, aplique as migrations:
-
-```powershell
-dotnet ef database update --project backend\Reelix.Infrastructure\Reelix.Infrastructure.csproj --startup-project backend\Reelix.Api\Reelix.Api.csproj
-```
-
-A tabela `public.user_accounts` e as tabelas de preferências/perfil têm RLS habilitado e não concedem acesso direto aos papéis da API Data; o backend acessa o PostgreSQL com sua própria connection string. Veja a [documentação de onboarding e perfil](docs/onboarding-profile-setup.md#banco-de-dados) antes de aplicar a nova migration.
-
-Push remoto é opcional e vem desativado por padrão. Para habilitá-lo, configure `extra.eas.projectId` no app e as credenciais APNs/FCM em EAS; no backend, defina `ExpoPush__Enabled=true`, `ExpoPush__ProjectId`, `ExpoPush__AccessToken` e, opcionalmente, `ExpoPush__MaxAttempts` (1–10). `ExpoPush__AccessToken` é segredo de servidor e nunca deve ser colocado no app. A API e o worker de entrega precisam ficar continuamente ativos; sem essa configuração, a inbox social continua funcionando, mas o registro push responde indisponível.
+Preencha `mobile/.env` com `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` e `EXPO_PUBLIC_API_URL`. Nunca use `service_role` nem chaves secretas no app.
 
 ## Verificações
 
-Na raiz do repositório:
-
 ```powershell
-dotnet test Reelix.sln
-```
-
-No diretório `mobile`:
-
-```powershell
+dotnet test Reelix.sln --configuration Release
+Set-Location mobile
+npm run lint
 npx tsc --noEmit
-npx expo lint
 ```
+
+O CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) roda os testes do backend, lint e type-check do mobile e auditorias de dependências em pull requests; ele gera o script idempotente de migrations como artefato e **não** aplica schema.
 
 ## Documentação
 
-- [Status atual e limites da auditoria](PROJECT_STATUS.md)
-- [Backlog técnico rastreável](DEVELOPMENT_BACKLOG.md)
-- [Roadmap recomendado](ROADMAP.md)
-- [Configuração de autenticação e ambiente local](docs/authentication-setup.md)
-- [Configuração do catálogo, provedores e teste no Swagger](docs/catalog-setup.md)
-- [Avaliação de tecnologias adicionais](docs/technology-stack-evaluation.md)
-- [Configuração e contratos de onboarding e perfil](docs/onboarding-profile-setup.md)
-- [Regras e contratos da Home de descoberta](docs/home-discovery-setup.md)
-- [Plano de Home e descoberta (histórico)](docs/plans/05-home-discovery-development-plan.html)
-- [Especificação implementada de avaliações e comentários](docs/specs/07-ratings-comments.md)
-- [Plano de avaliações, comentários e spoilers (histórico)](docs/plans/06-ratings-comments-development-plan.html)
-- [Especificação implementada de amizades e compartilhamento](docs/specs/09-social.md)
-- [Plano de notificações e integração de eventos (histórico)](docs/plans/08-notifications-development-plan.html)
-- [Relatório dos cinco ajustes adicionais de UX](docs/implementation-report-additional-ux.md)
-- [Relatório do redesign do perfil social de amigos](docs/implementation-report-social-profile.md)
-- Próxima validação técnica: aplicação de migrations pendentes nos ambientes e validação de builds nativos para widgets.
-- [Arquitetura](docs/architecture.md)
-- [Especificações do produto](docs/specs/)
-- [Identidade visual e Brand Assets](mobile/assets/brand/README.md)
+| Documento | Conteúdo |
+|---|---|
+| [`.docs/AGENTS.md`](.docs/AGENTS.md) | Guia operacional: comandos, regras, skills |
+| [`.docs/BUSINESS.md`](.docs/BUSINESS.md) | Produto, conceitos, escopo e roadmap |
+| [`.docs/ARCHITECTURE.md`](.docs/ARCHITECTURE.md) | Estrutura, contratos, decisões e dívidas |
+| [`.docs/DEVELOPMENT.md`](.docs/DEVELOPMENT.md) | Padrões de código e convenções de API |
+| [`.docs/DESIGN.md`](.docs/DESIGN.md), [`.docs/DESIGN_SYSTEM.md`](.docs/DESIGN_SYSTEM.md) | Identidade visual e design system do mobile |
+| [`.docs/TESTING.md`](.docs/TESTING.md), [`.docs/QA.md`](.docs/QA.md) | Estratégia de testes, gates e evidências |
+| [`.docs/RULES.md`](.docs/RULES.md) | Fluxo de trabalho, templates e limites de atuação |
+| [`.specs/`](.specs/), [`.plans/`](.plans/), [`.adrs/`](.adrs/) | Specs, planos e decisões arquiteturais |
+| [`mobile/assets/brand/README.md`](mobile/assets/brand/README.md) | Brand kit |

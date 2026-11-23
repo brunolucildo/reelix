@@ -1,6 +1,6 @@
 # Reelix brand assets
 
-The identity follows the Reelix visual reference in [`docs/visual_identity.png`](../../../docs/visual_identity.png): a film-strip ribbon forming an `R`, a clean lowercase wordmark, and a dark cinematic palette. All illustrations are individual, editable SVG vectors; no SVG embeds raster images.
+The identity follows the Reelix visual reference in [`.docs/design/visual_identity.png`](../../../.docs/design/visual_identity.png): a film-strip ribbon forming an `R`, a clean lowercase wordmark, and a dark cinematic palette. All illustrations are individual, editable SVG vectors; no SVG embeds raster images.
 
 ## Brand system
 
