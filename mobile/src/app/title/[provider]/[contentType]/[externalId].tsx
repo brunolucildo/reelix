@@ -33,7 +33,12 @@ import {
 } from '@/hooks/use-tracking';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
-import { fetchCatalogSeason, fetchCatalogSeasons, fetchCatalogTitleDetails } from '@/services/api-client';
+import {
+  fetchCatalogSeason,
+  fetchCatalogSeasons,
+  fetchCatalogTitleDetails,
+  isCatalogProvider,
+} from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 
 export default function CatalogTitleScreen() {
@@ -544,10 +549,6 @@ const styles = StyleSheet.create({
     lineHeight: typography.body * 1.6,
   },
 });
-
-function isCatalogProvider(value: unknown): value is 'tmdb' | 'omdb' {
-  return value === 'tmdb' || value === 'omdb';
-}
 
 function isCatalogContentType(value: unknown): value is 'movie' | 'series' {
   return value === 'movie' || value === 'series';

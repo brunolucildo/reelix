@@ -8,7 +8,7 @@ import { RatingReviewSection } from '@/components/reviews/rating-review-section'
 import { usePendingEpisodes } from '@/hooks/use-tracking';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
-import { fetchCatalogSeason, type CatalogTitle } from '@/services/api-client';
+import { fetchCatalogSeason, isCatalogProvider } from '@/services/api-client';
 import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';
 
 export default function CatalogEpisodeScreen() {
@@ -123,10 +123,6 @@ export default function CatalogEpisodeScreen() {
       />
     </ScrollView>
   );
-}
-
-function isCatalogProvider(value: unknown): value is CatalogTitle['provider'] {
-  return value === 'tmdb' || value === 'omdb';
 }
 
 const styles = StyleSheet.create({

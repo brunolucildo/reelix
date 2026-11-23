@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { httpRequest } from '@/lib/http-client';
+import type { CatalogProvider } from '@/features/catalog/api/catalog-api';
 
 const trackingTypeSchema = z.enum(['movie', 'episode']);
 const trackingHistoryEntrySchema = z.object({
@@ -61,7 +62,6 @@ export type TrackedSeriesPage = z.infer<typeof trackedSeriesPageSchema>;
 export type SeriesProgress = z.infer<typeof seriesProgressSchema>;
 export type SeasonProgress = z.infer<typeof seasonProgressSchema>;
 export type PendingEpisode = z.infer<typeof pendingEpisodeSchema>;
-export type CatalogProvider = 'tmdb' | 'omdb';
 
 export async function fetchTrackingHistory(
   page = 1,
