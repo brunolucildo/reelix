@@ -23,6 +23,9 @@ import {
 } from '@/services/api-client';
 import { registerCurrentPushDevice } from '@/services/push-registration';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { notificationsQueryKeys } from '@/features/notifications/query-keys';
+import { getNextCursor } from '@/lib/pagination';
+import { formatDateTime } from '@/lib/format';
 
 export default function NotificationsScreen() {
   const router = useRouter();
@@ -31,14 +34,14 @@ export default function NotificationsScreen() {
   const { showError } = useToast();
   const [feedback, setFeedback] = useState<string | null>(null);
   const preferences = useQuery({
-    queryKey: ['notification-preferences'],
+    queryKey: notificationsQueryKeys.preferences,
     queryFn: fetchNotificationPreferences,
   });
   const inbox = useInfiniteQuery({
-    queryKey: ['notification-inbox'],
+    queryKey: notificationsQueryKeys.inbox,
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam, signal }) => fetchNotificationInbox(pageParam, signal),
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    getNextPageParam: getNextCursor,
   });
   useErrorToast(preferences.error, 'Não foi possível carregar as preferências de notificações.');
   useErrorToast(inbox.error, 'Não foi possível carregar a caixa de entrada.');
@@ -46,7 +49,7 @@ export default function NotificationsScreen() {
   const preferencesMutation = useMutation({
     mutationFn: saveNotificationPreferences,
     onSuccess: (saved) => {
-      queryClient.setQueryData(['notification-preferences'], saved);
+      queryClient.setQueryData(notificationsQueryKeys.preferences, saved);
       setFeedback('Preferências atualizadas.');
     },
     onError: (error) => {
@@ -57,8 +60,8 @@ export default function NotificationsScreen() {
     mutationFn: markNotificationRead,
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['notification-inbox'] }),
-        queryClient.invalidateQueries({ queryKey: ['notification-unread-count'] }),
+        queryClient.invalidateQueries({ queryKey: notificationsQueryKeys.inbox }),
+        queryClient.invalidateQueries({ queryKey: notificationsQueryKeys.unreadCount }),
       ]);
     },
     onError: (error) => {
@@ -178,7 +181,7 @@ export default function NotificationsScreen() {
                 <Text style={styles.notificationTitle}>{item.title}</Text>
                 <Text style={styles.preferenceDescription}>{item.body}</Text>
                 <Text style={styles.timestamp}>
-                  {new Date(item.createdAt).toLocaleString('pt-BR')}
+                  {formatDateTime(item.createdAt)}
                 </Text>
               </View>
               {!item.readAt ? <View accessibilityLabel="Não lida" style={styles.unreadDot} /> : null}

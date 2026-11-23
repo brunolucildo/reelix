@@ -15,6 +15,10 @@ import {
   type ProfileData,
 } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { gamificationQueryKeys } from '@/features/gamification/query-keys';
+import { ratingsQueryKeys } from '@/features/ratings/query-keys';
+import { socialQueryKeys } from '@/features/social/query-keys';
+import { profileQueryKeys } from '@/features/profile/query-keys';
 import TmdbLogo from '../../assets/brand/logos/tmdb-logo-blue.svg';
 import CheckIcon from '../../assets/brand/navigation-icons/check.svg';
 
@@ -25,7 +29,7 @@ type ProfileDraft = Omit<ProfileData, 'avatarUrl' | 'avatarKey' | 'displayName' 
 };
 
 export default function ProfileScreen() {
-  const profile = useQuery({ queryKey: ['profile'], queryFn: fetchProfile });
+  const profile = useQuery({ queryKey: profileQueryKeys.profile, queryFn: fetchProfile });
   useErrorToast(profile.error, 'Não foi possível carregar o perfil. Verifique sua conexão e tente novamente.');
 
   if (profile.isError) {
@@ -54,7 +58,7 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
   const queryClient = useQueryClient();
   const { showError } = useToast();
   const gamification = useQuery({
-    queryKey: ['gamification', 'dashboard'],
+    queryKey: gamificationQueryKeys.dashboard,
     queryFn: ({ signal }) => fetchGamificationDashboard(signal),
   });
   useErrorToast(gamification.error, 'Não foi possível carregar suas conquistas.');
@@ -76,7 +80,7 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
   const saveMutation = useMutation({
     mutationFn: saveProfile,
     onSuccess: (saved) => {
-      queryClient.setQueryData(['profile'], saved);
+      queryClient.setQueryData(profileQueryKeys.profile, saved);
       setDraft({
         displayName: saved.displayName ?? '',
         biography: saved.biography ?? '',
@@ -90,8 +94,8 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
         ratingsSharedWithFriends: saved.ratingsSharedWithFriends,
       });
       setFeedback('Perfil atualizado.');
-      void queryClient.invalidateQueries({ queryKey: ['social'] });
-      void queryClient.invalidateQueries({ queryKey: ['reviews'] });
+      void queryClient.invalidateQueries({ queryKey: socialQueryKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ratingsQueryKeys.all });
     },
     onError: (error) => {
       showError(error instanceof Error ? error.message : 'Não foi possível salvar o perfil.');

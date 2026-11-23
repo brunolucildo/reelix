@@ -9,20 +9,23 @@ import {
   fetchTitleDetails,
   fetchWatchlist,
   type TitleReference,
-} from '@/services/lists-api';
+} from '@/features/lists/api/lists-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { listsQueryKeys } from '@/features/lists/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
 import { TitlePosterCard } from './title-poster-card';
 
 export function StartWatchingSection() {
   const favorites = useQuery({
-    queryKey: ['lists', 'favorites', 'start-watching'],
+    queryKey: listsQueryKeys.startWatchingFavorites,
     queryFn: () => fetchFavorites(1, 100),
-    staleTime: 60_000,
+    staleTime: staleTime.short,
   });
   const watchlist = useQuery({
-    queryKey: ['lists', 'watchlist', 'start-watching'],
+    queryKey: listsQueryKeys.startWatchingWatchlist,
     queryFn: () => fetchWatchlist(1, false),
-    staleTime: 60_000,
+    staleTime: staleTime.short,
   });
   const tracked = useTrackedSeries(1, 100);
   const trackedKeys = new Set((tracked.data?.items ?? [])
@@ -35,15 +38,15 @@ export function StartWatchingSection() {
     .slice(0, 8);
   const details = useQueries({
     queries: references.map((reference) => ({
-      queryKey: ['catalog', 'title', reference.provider, 'series', reference.externalId],
+      queryKey: catalogQueryKeys.title(reference.provider, 'series', reference.externalId),
       queryFn: ({ signal }: { signal: AbortSignal }) => fetchTitleDetails(reference, signal),
-      staleTime: 300_000,
+      staleTime: staleTime.catalog,
     })),
   });
   const items = details.flatMap((result) => result.data ? [result.data] : []);
   const episodeSuggestions = useQueries({
     queries: items.map((item) => ({
-      queryKey: ['catalog', 'first-episode', item.provider, item.externalId],
+      queryKey: catalogQueryKeys.firstEpisode(item.provider, item.externalId),
       queryFn: async ({ signal }: { signal: AbortSignal }) => {
         const seasons = await fetchCatalogSeasons(item.provider, item.externalId, signal);
         const firstSeason = seasons.find((season) => season.seasonNumber > 0) ?? seasons[0];
@@ -62,7 +65,7 @@ export function StartWatchingSection() {
           ? { seasonNumber: season.seasonNumber, episode: firstEpisode }
           : null;
       },
-      staleTime: 300_000,
+      staleTime: staleTime.catalog,
     })),
   });
 

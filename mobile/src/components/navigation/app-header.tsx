@@ -6,6 +6,7 @@ import { UserDrawer } from '@/components/navigation/user-drawer';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchNotificationUnreadCount } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { notificationsQueryKeys } from '@/features/notifications/query-keys';
 import Logo from '../../../assets/brand/logos/logo-white.svg';
 import NotificationsIcon from '../../../assets/brand/navigation-icons/notifications.svg';
 import SearchIcon from '../../../assets/brand/navigation-icons/search.svg';
@@ -13,7 +14,7 @@ import SearchIcon from '../../../assets/brand/navigation-icons/search.svg';
 export function AppHeader() {
   const router = useRouter();
   const unreadCount = useQuery({
-    queryKey: ['notification-unread-count'],
+    queryKey: notificationsQueryKeys.unreadCount,
     queryFn: ({ signal }) => fetchNotificationUnreadCount(signal),
     refetchInterval: 60_000,
   });

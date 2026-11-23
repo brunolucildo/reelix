@@ -15,30 +15,14 @@ import {
   markMovieWatched,
   removeWatchedEpisode,
   removeWatchedMovie,
-  type CatalogProvider,
-} from '@/services/tracking-api';
+} from '@/features/tracking/api/tracking-api';
+import type { CatalogProvider } from '@/features/catalog/api/catalog-api';
+import { toUserMessage } from '@/lib/api-error';
 import { useErrorToast, useToast } from '@/providers/toast-provider';
+import { trackingQueryKeys } from '@/features/tracking/query-keys';
+import { gamificationQueryKeys } from '@/features/gamification/query-keys';
 
-export const trackingQueryKeys = {
-  all: ['tracking'] as const,
-  history: (page: number, pageSize: number, type?: 'movie' | 'episode') =>
-    ['tracking', 'history', page, pageSize, type] as const,
-  movieStatus: (titleId: string) => ['tracking', 'movie-status', titleId] as const,
-  series: (page: number, pageSize: number) =>
-    ['tracking', 'series', page, pageSize] as const,
-  seriesProgress: (seriesId: string, provider: CatalogProvider = 'tmdb') =>
-    ['tracking', 'series-progress', seriesId, provider] as const,
-  seasonProgress: (seriesId: string, seasonNumber: number, provider: CatalogProvider) =>
-    ['tracking', 'season-progress', seriesId, seasonNumber, provider] as const,
-  pendingEpisodes: (seriesId: string, seasonNumber: number, provider: CatalogProvider) =>
-    ['tracking', 'pending-episodes', seriesId, seasonNumber, provider] as const,
-};
-
-function queryErrorMessage(error: unknown, fallback: string) {
-  return error instanceof Error && 'status' in error && error.status === 401
-    ? 'Sua sessão expirou. Entre novamente para continuar.'
-    : fallback;
-}
+export { trackingQueryKeys };
 
 export function useTrackingHistory(
   page = 1,
@@ -49,10 +33,7 @@ export function useTrackingHistory(
     queryKey: trackingQueryKeys.history(page, pageSize, type),
     queryFn: ({ signal }) => fetchTrackingHistory(page, pageSize, type, 'newest', signal),
   });
-  useErrorToast(query.error, queryErrorMessage(
-    query.error,
-    'Não foi possível carregar seu histórico. Tente novamente.',
-  ));
+  useErrorToast(query.error, 'Não foi possível carregar seu histórico. Tente novamente.');
   return query;
 }
 
@@ -62,10 +43,7 @@ export function useMovieTrackingStatus(titleId: string) {
     queryFn: ({ signal }) => fetchMovieTrackingStatus(titleId, signal),
     enabled: Boolean(titleId),
   });
-  useErrorToast(query.error, queryErrorMessage(
-    query.error,
-    'Não foi possível verificar o acompanhamento deste filme.',
-  ));
+  useErrorToast(query.error, 'Não foi possível verificar o acompanhamento deste filme.');
   return query;
 }
 
@@ -74,10 +52,7 @@ export function useTrackedSeries(page = 1, pageSize = 20) {
     queryKey: trackingQueryKeys.series(page, pageSize),
     queryFn: ({ signal }) => fetchTrackedSeries(page, pageSize, signal),
   });
-  useErrorToast(query.error, queryErrorMessage(
-    query.error,
-    'Não foi possível carregar suas séries acompanhadas. Tente novamente.',
-  ));
+  useErrorToast(query.error, 'Não foi possível carregar suas séries acompanhadas. Tente novamente.');
   return query;
 }
 
@@ -115,10 +90,7 @@ export function usePendingEpisodes(
     queryFn: ({ signal }) => fetchPendingEpisodes(seriesId, seasonNumber, provider, signal),
     enabled: Boolean(seriesId) && seasonNumber >= 0,
   });
-  useErrorToast(query.error, queryErrorMessage(
-    query.error,
-    'Não foi possível carregar os episódios pendentes. Tente novamente.',
-  ));
+  useErrorToast(query.error, 'Não foi possível carregar os episódios pendentes. Tente novamente.');
   return query;
 }
 
@@ -133,10 +105,10 @@ function useTrackingMutation<TVariables, TData>(
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: trackingQueryKeys.all }),
-        queryClient.invalidateQueries({ queryKey: ['gamification'] }),
+        queryClient.invalidateQueries({ queryKey: gamificationQueryKeys.all }),
       ]);
     },
-    onError: (error) => showError(queryErrorMessage(
+    onError: (error) => showError(toUserMessage(
       error,
       'Não foi possível salvar seu acompanhamento. Tente novamente.',
     )),

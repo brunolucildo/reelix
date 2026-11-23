@@ -5,8 +5,11 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { useErrorToast } from '@/providers/toast-provider';
 import { IconAction } from '@/components/icon-action';
 import ClockIcon from '../../../assets/brand/navigation-icons/clock.svg';
-import { fetchFavorites, fetchTitleDetails, fetchWatchlist } from '@/services/lists-api';
+import { fetchFavorites, fetchTitleDetails, fetchWatchlist } from '@/features/lists/api/lists-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { listsQueryKeys } from '@/features/lists/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
 import { TitlePosterCard } from './title-poster-card';
 
 type Props = {
@@ -19,7 +22,7 @@ export function FavoriteTitleSection({ type, title, collection = 'favorites' }: 
   const router = useRouter();
   const isWatchlist = collection === 'watchlist';
   const favorites = useQuery({
-    queryKey: ['lists', collection, 'home', type],
+    queryKey: listsQueryKeys.home(collection, type),
     queryFn: async () => {
       if (!isWatchlist) return fetchFavorites(1, 100);
       const firstPage = await fetchWatchlist(1, false);
@@ -32,16 +35,16 @@ export function FavoriteTitleSection({ type, title, collection = 'favorites' }: 
       }
       return { ...firstPage, items };
     },
-    staleTime: 60_000,
+    staleTime: staleTime.short,
   });
   const references = (favorites.data?.items ?? [])
     .filter((reference) => reference.contentType === type)
     .slice(0, 8);
   const titleDetails = useQueries({
     queries: references.map((reference) => ({
-      queryKey: ['catalog', 'title', reference.provider, reference.contentType, reference.externalId],
+      queryKey: catalogQueryKeys.title(reference.provider, reference.contentType, reference.externalId),
       queryFn: ({ signal }: { signal: AbortSignal }) => fetchTitleDetails(reference, signal),
-      staleTime: 300_000,
+      staleTime: staleTime.catalog,
     })),
   });
   const detailError = titleDetails.find((result) => result.error)?.error ?? null;

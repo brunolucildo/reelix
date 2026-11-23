@@ -7,8 +7,12 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { useTrackedSeries } from '@/hooks/use-tracking';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogSeason, fetchCatalogSeasons, fetchCatalogTitleDetails } from '@/services/api-client';
-import type { TrackedSeriesPage } from '@/services/tracking-api';
+import type { TrackedSeriesPage } from '@/features/tracking/api/tracking-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { trackingQueryKeys } from '@/features/tracking/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
+import { formatDateMedium, localDateKey } from '@/lib/format';
 
 type CalendarFilter = 'all' | 'premiere' | 'final';
 
@@ -18,20 +22,20 @@ export function UpcomingCalendarSection() {
   const series = tracked.data?.items ?? [];
   const titleQueries = useQueries({
     queries: series.map((item) => ({
-      queryKey: ['catalog', 'title', item.provider, 'series', item.externalId],
+      queryKey: catalogQueryKeys.title(item.provider, 'series', item.externalId),
       queryFn: ({ signal }: { signal: AbortSignal }) =>
         fetchCatalogTitleDetails(item.provider!, 'series', item.externalId!, signal),
       enabled: Boolean(item.provider && item.externalId),
-      staleTime: 300_000,
+      staleTime: staleTime.catalog,
     })),
   });
   const seasonListQueries = useQueries({
     queries: series.map((item) => ({
-      queryKey: ['calendar', 'seasons', item.seriesId],
+      queryKey: trackingQueryKeys.calendarSeasons(item.seriesId),
       queryFn: ({ signal }: { signal: AbortSignal }) =>
         fetchCatalogSeasons(item.provider!, item.externalId!, signal),
       enabled: Boolean(item.provider && item.externalId),
-      staleTime: 300_000,
+      staleTime: staleTime.catalog,
     })),
   });
   const today = localDateKey(new Date());
@@ -52,10 +56,10 @@ export function UpcomingCalendarSection() {
   });
   const seasonQueries = useQueries({
     queries: seasonEntries.map(({ item, seasonNumber }) => ({
-      queryKey: ['calendar', 'season', item.seriesId, seasonNumber],
+      queryKey: trackingQueryKeys.calendarSeason(item.seriesId, seasonNumber),
       queryFn: ({ signal }: { signal: AbortSignal }) =>
         fetchCatalogSeason(item.provider!, item.externalId!, seasonNumber, signal),
-      staleTime: 300_000,
+      staleTime: staleTime.catalog,
     })),
   });
   const titleBySeries = new Map(
@@ -215,7 +219,7 @@ function CalendarEpisodeCard({
 }) {
   const router = useRouter();
   const date = new Date(`${episode.releaseDate}T12:00:00`);
-  const formattedDate = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' }).format(date);
+  const formattedDate = formatDateMedium(date);
   const daysUntil = Math.max(0, Math.ceil(
     (new Date(`${episode.releaseDate}T00:00:00`).getTime() -
       new Date(`${localDateKey(new Date())}T00:00:00`).getTime()) / 86_400_000,
@@ -249,13 +253,6 @@ function CalendarEpisodeCard({
       </View>
     </Pressable>
   );
-}
-
-function localDateKey(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
 }
 
 const styles = StyleSheet.create({

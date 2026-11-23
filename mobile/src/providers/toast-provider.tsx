@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { isUnauthorizedError } from '@/lib/api-error';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 
 type ToastTone = 'error' | 'success';
@@ -104,7 +105,8 @@ export function useErrorToast(error: unknown, message: string) {
   const { showError } = useToast();
 
   useEffect(() => {
-    if (error) {
+    // A 401 is handled once, globally, by the QueryClient (session expired toast + logout).
+    if (error && !isUnauthorizedError(error)) {
       showError(message);
     }
   }, [error, message, showError]);

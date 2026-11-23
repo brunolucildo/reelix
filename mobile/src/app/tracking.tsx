@@ -22,14 +22,13 @@ import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogTitleDetails, searchCatalog } from '@/services/api-client';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
+import { formatDateTimeMedium } from '@/lib/format';
 
 const HISTORY_PREVIEW_SIZE = 5;
 const HISTORY_PAGE_SIZE = 20;
 const SERIES_PAGE_SIZE = 10;
-const watchDateFormatter = new Intl.DateTimeFormat('pt-BR', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-});
 
 export default function TrackingScreen() {
   const { session, isLoading } = useAuthSession();
@@ -73,7 +72,7 @@ function AuthenticatedTracking() {
       const contentType = entry.type === 'movie' ? 'movie' : 'series';
       const externalId = entry.type === 'movie' ? entry.externalId : entry.seriesExternalId;
       return {
-        queryKey: ['tracking', 'history-title', entry.id, entry.provider, externalId],
+        queryKey: catalogQueryKeys.title(entry.provider, contentType, externalId),
         queryFn: ({ signal }: { signal: AbortSignal }) => {
           if (!entry.provider || !externalId) {
             throw new Error('Os detalhes deste conteúdo não estão disponíveis.');
@@ -81,13 +80,13 @@ function AuthenticatedTracking() {
           return fetchCatalogTitleDetails(entry.provider, contentType, externalId, signal);
         },
         enabled: Boolean(entry.provider && externalId),
-        staleTime: 300_000,
+        staleTime: staleTime.catalog,
       };
     }),
   });
   const seriesTitleQueries = useQueries({
     queries: (series.data?.items ?? []).map((item) => ({
-      queryKey: ['tracking', 'series-title', item.seriesId, item.provider, item.externalId],
+      queryKey: catalogQueryKeys.title(item.provider, 'series', item.externalId),
       queryFn: ({ signal }: { signal: AbortSignal }) => {
         if (!item.provider || !item.externalId) {
           throw new Error('Os detalhes desta série não estão disponíveis.');
@@ -95,7 +94,7 @@ function AuthenticatedTracking() {
         return fetchCatalogTitleDetails(item.provider, 'series', item.externalId, signal);
       },
       enabled: Boolean(item.provider && item.externalId),
-      staleTime: 300_000,
+      staleTime: staleTime.catalog,
     })),
   });
   const markMovie = useMarkMovieWatched();
@@ -104,31 +103,17 @@ function AuthenticatedTracking() {
   const removeEpisode = useRemoveWatchedEpisode();
   const pendingEpisodes = usePendingEpisodes(selectedSeries?.id ?? '', seasonNumber);
   const seriesResults = useQuery({
-    queryKey: ['catalog', 'tracking-series-search', submittedSeriesSearch],
+    queryKey: catalogQueryKeys.trackingSeriesSearch(submittedSeriesSearch),
     queryFn: () => searchCatalog(submittedSeriesSearch, 'series'),
     enabled: submittedSeriesSearch.length > 0,
   });
-  useErrorToast(
-    seriesResults.error,
-    seriesResults.error instanceof Error &&
-      'status' in seriesResults.error &&
-      seriesResults.error.status === 401
-      ? 'Sua sessão expirou. Entre novamente para continuar.'
-      : 'Não foi possível buscar séries. Tente novamente.',
-  );
+  useErrorToast(seriesResults.error, 'Não foi possível buscar séries. Tente novamente.');
   const movieResults = useQuery({
-    queryKey: ['catalog', 'tracking-movie-search', submittedSearch],
+    queryKey: catalogQueryKeys.trackingMovieSearch(submittedSearch),
     queryFn: () => searchCatalog(submittedSearch, 'movie'),
     enabled: submittedSearch.length > 0,
   });
-  useErrorToast(
-    movieResults.error,
-    movieResults.error instanceof Error &&
-      'status' in movieResults.error &&
-      movieResults.error.status === 401
-      ? 'Sua sessão expirou. Entre novamente para continuar.'
-      : 'Não foi possível buscar filmes. Tente novamente.',
-  );
+  useErrorToast(movieResults.error, 'Não foi possível buscar filmes. Tente novamente.');
   const isSaving = markMovie.isPending || removeMovie.isPending ||
     markEpisode.isPending || removeEpisode.isPending;
   const historyTitleError = historyTitleQueries.find((result) => result.error)?.error;
@@ -542,7 +527,7 @@ function AuthenticatedTracking() {
                       </Text>
                     )}
                     <Text style={styles.description}>
-                      {watchDateFormatter.format(new Date(entry.watchedAt))}
+                      {formatDateTimeMedium(new Date(entry.watchedAt))}
                     </Text>
                     {editingEntryId === entry.id ? (
                       <View style={styles.editWatchedAt}>
@@ -590,7 +575,7 @@ function AuthenticatedTracking() {
                         {entry.type === 'movie' || entry.seriesId ? (
                           <Pressable
                             accessibilityRole="button"
-                            accessibilityLabel={`Desmarcar ${entry.type === 'movie' ? 'filme' : 'episódio'} assistido em ${watchDateFormatter.format(new Date(entry.watchedAt))}`}
+                            accessibilityLabel={`Desmarcar ${entry.type === 'movie' ? 'filme' : 'episódio'} assistido em ${formatDateTimeMedium(new Date(entry.watchedAt))}`}
                             disabled={isSaving}
                             onPress={() => confirmRemoveHistoryEntry(entry)}
                             style={styles.historyIconButton}

@@ -3,10 +3,10 @@
 > Spec executável. Preencha todas as seções; `TODO` é lacuna, não requisito.
 > Use `create-spec` para criar, `refine-spec` para auditar e `implement-me` para executar.
 
-- **Status:** pronta
+- **Status:** implementada (roteiro manual da seção 10 pendente)
 - **Slug:** mobile-fundacao-http-e-dados
 - **Data:** 2026-11-19
-- **Atualizado em:** 2026-11-19
+- **Atualizado em:** 2026-11-23
 - **Owner:** Tech lead (a confirmar)
 - **Relacionados:** mapa `.plans/arquitetura-design-testes-breakdown.md` (decisões D1, D6, D8, D10, D11; perguntas Q2 e Q6); ADR 0008 (`.adrs/0008-tanstack-query-e-zod-para-estado-de-servidor-no-mobile.md`, será atualizado); `.docs/ARCHITECTURE.md` §4.3 e §6.2; `.docs/DEVELOPMENT.md` §2.3 e §12; specs vizinhas: `0018` (features e telas finas, depende desta), `0019`/`0020` (design), `0022` (testes Jest/RNTL), `0023` (E2E)
 
@@ -167,3 +167,4 @@ Como validar que a spec foi atendida:
 | Data       | O que mudou | Motivo |
 | ---------- | ----------- | ------ |
 | 2026-11-19 | Criação da spec em modo lote (breakdown arquitetura/design/testes); linha de base medida no código. | Fundação de dados do mobile antes da `0018`. |
+| 2026-11-23 | Implementada em fatias por domínio (plano `.plans/mobile-fundacao-http-e-dados-plan.md`, ADR `XXXX-0017`). Premissas registradas: cliente chamado `httpRequest`; fallback genérico único para erro HTTP/contrato; 204 validado com `safeParse(undefined)`; chaves órfãs de temporada normalizadas sob `catalog`. Roteiro manual (Expo web e Android) não executado por agente. | Execução da spec via implement-me (modo orquestrado). |

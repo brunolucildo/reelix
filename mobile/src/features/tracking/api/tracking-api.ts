@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { apiUrl } from '@/services/api-url';
-import { supabase } from '@/services/supabase';
+import { httpRequest } from '@/lib/http-client';
+import type { CatalogProvider } from '@/features/catalog/api/catalog-api';
 
 const trackingTypeSchema = z.enum(['movie', 'episode']);
 const trackingHistoryEntrySchema = z.object({
@@ -62,60 +62,6 @@ export type TrackedSeriesPage = z.infer<typeof trackedSeriesPageSchema>;
 export type SeriesProgress = z.infer<typeof seriesProgressSchema>;
 export type SeasonProgress = z.infer<typeof seasonProgressSchema>;
 export type PendingEpisode = z.infer<typeof pendingEpisodeSchema>;
-export type CatalogProvider = 'tmdb' | 'omdb';
-
-type RequestOptions = {
-  method?: 'GET' | 'PUT' | 'DELETE';
-  body?: unknown;
-  signal?: AbortSignal;
-};
-
-async function trackingRequest<T>(
-  path: string,
-  schema: z.ZodType<T>,
-  options: RequestOptions = {},
-): Promise<T> {
-  const { data, error } = await supabase.auth.getSession();
-  if (error) {
-    throw error;
-  }
-  if (!data.session) {
-    throw new Error('Sua sessão expirou. Entre novamente para continuar.');
-  }
-
-  const response = await fetch(new URL(path, apiUrl), {
-    method: options.method ?? 'GET',
-    signal: options.signal,
-    headers: {
-      Accept: 'application/json',
-      ...(options.body === undefined ? {} : { 'Content-Type': 'application/json' }),
-      Authorization: `Bearer ${data.session.access_token}`,
-    },
-    ...(options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
-  });
-
-  if (response.status === 204) {
-    return undefined as T;
-  }
-  if (!response.ok) {
-    let message = response.status === 401
-      ? 'Sua sessão expirou. Entre novamente para continuar.'
-      : 'Não foi possível atualizar seu acompanhamento. Tente novamente.';
-    try {
-      const problem = await response.json() as { detail?: string; title?: string };
-      message = problem.detail ?? problem.title ?? message;
-    } catch {
-      // The response can be empty or non-JSON; retain the safe fallback.
-    }
-    throw Object.assign(new Error(message), { status: response.status });
-  }
-
-  const result = schema.safeParse(await response.json());
-  if (!result.success) {
-    throw new Error('A API retornou dados de acompanhamento em formato inesperado.');
-  }
-  return result.data;
-}
 
 export async function fetchTrackingHistory(
   page = 1,
@@ -132,14 +78,14 @@ export async function fetchTrackingHistory(
   if (type) {
     query.set('type', type);
   }
-  return trackingRequest(`/api/v1/tracking/history?${query}`, trackingHistoryPageSchema, { signal });
+  return httpRequest(`/api/v1/tracking/history?${query}`, trackingHistoryPageSchema, { signal });
 }
 
 export async function markMovieWatched(
   titleId: string,
   watchedAt?: string,
 ): Promise<TrackingHistoryEntry> {
-  return trackingRequest(
+  return httpRequest(
     `/api/v1/tracking/movies/${titleId}`,
     trackingHistoryEntrySchema,
     { method: 'PUT', body: { watchedAt: watchedAt ?? null } },
@@ -150,7 +96,7 @@ export async function fetchMovieTrackingStatus(
   titleId: string,
   signal?: AbortSignal,
 ): Promise<boolean> {
-  return trackingRequest(
+  return httpRequest(
     `/api/v1/tracking/movies/${titleId}`,
     z.boolean(),
     { signal },
@@ -158,7 +104,7 @@ export async function fetchMovieTrackingStatus(
 }
 
 export async function removeWatchedMovie(titleId: string): Promise<void> {
-  await trackingRequest(
+  await httpRequest(
     `/api/v1/tracking/movies/${titleId}`,
     z.undefined(),
     { method: 'DELETE' },
@@ -170,7 +116,7 @@ export async function markEpisodeWatched(
   episodeId: string,
   watchedAt?: string,
 ): Promise<TrackingHistoryEntry> {
-  return trackingRequest(
+  return httpRequest(
     `/api/v1/tracking/series/${seriesId}/episodes/${episodeId}`,
     trackingHistoryEntrySchema,
     { method: 'PUT', body: { watchedAt: watchedAt ?? null } },
@@ -178,7 +124,7 @@ export async function markEpisodeWatched(
 }
 
 export async function removeWatchedEpisode(seriesId: string, episodeId: string): Promise<void> {
-  await trackingRequest(
+  await httpRequest(
     `/api/v1/tracking/series/${seriesId}/episodes/${episodeId}`,
     z.undefined(),
     { method: 'DELETE' },
@@ -191,7 +137,7 @@ export async function fetchTrackedSeries(
   signal?: AbortSignal,
 ): Promise<TrackedSeriesPage> {
   const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-  return trackingRequest(
+  return httpRequest(
     `/api/v1/tracking/series?${query}`,
     trackedSeriesPageSchema,
     { signal },
@@ -204,7 +150,7 @@ export async function fetchSeriesProgress(
   provider: CatalogProvider = 'tmdb',
 ): Promise<SeriesProgress> {
   const query = new URLSearchParams({ provider });
-  return trackingRequest(
+  return httpRequest(
     `/api/v1/tracking/series/${seriesId}/progress?${query}`,
     seriesProgressSchema,
     { signal },
@@ -218,7 +164,7 @@ export async function fetchSeasonProgress(
   signal?: AbortSignal,
 ): Promise<SeasonProgress> {
   const query = new URLSearchParams({ provider });
-  return trackingRequest(
+  return httpRequest(
     `/api/v1/tracking/series/${seriesId}/seasons/${seasonNumber}/progress?${query}`,
     seasonProgressSchema,
     { signal },
@@ -232,7 +178,7 @@ export async function fetchPendingEpisodes(
   signal?: AbortSignal,
 ): Promise<PendingEpisode[]> {
   const query = new URLSearchParams({ provider });
-  return trackingRequest(
+  return httpRequest(
     `/api/v1/tracking/series/${seriesId}/seasons/${seasonNumber}/episodes/pending?${query}`,
     z.array(pendingEpisodeSchema),
     { signal },

@@ -32,6 +32,9 @@ import {
   type ReviewTargetType,
 } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { ratingsQueryKeys } from '@/features/ratings/query-keys';
+import { getNextPageByCount } from '@/lib/pagination';
+import { formatDateMedium, formatNumber } from '@/lib/format';
 
 type RatingReviewSectionProps = {
   targetId: string;
@@ -58,8 +61,8 @@ export function RatingReviewSection({
   const [editingComment, setEditingComment] = useState<CommentItem | null>(null);
   const [revealedComments, setRevealedComments] = useState<Record<string, string>>({});
   const viewerId = session?.user.id ?? 'signed-out';
-  const ratingKey = ['reviews', viewerId, 'rating', targetType, targetId, seriesId];
-  const commentsKey = ['reviews', viewerId, 'comments', targetType, targetId, seriesId];
+  const ratingKey = ratingsQueryKeys.rating(viewerId, targetType, targetId, seriesId);
+  const commentsKey = ratingsQueryKeys.comments(viewerId, targetType, targetId, seriesId);
 
   const rating = useQuery({
     queryKey: ratingKey,
@@ -71,10 +74,7 @@ export function RatingReviewSection({
     queryFn: ({ pageParam, signal }) =>
       fetchComments(targetType, targetId, pageParam, seriesId, signal),
     initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.page * lastPage.pageSize < lastPage.totalCount
-        ? lastPage.page + 1
-        : undefined,
+    getNextPageParam: getNextPageByCount,
   });
 
   useErrorToast(rating.error, 'Não foi possível carregar as avaliações deste conteúdo.');
@@ -89,7 +89,7 @@ export function RatingReviewSection({
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ratingKey }),
       queryClient.invalidateQueries({ queryKey: commentsKey }),
-      queryClient.invalidateQueries({ queryKey: ['reviews', 'mine'] }),
+      queryClient.invalidateQueries({ queryKey: ratingsQueryKeys.ownRatingsAll }),
     ]);
   };
 
@@ -312,7 +312,7 @@ export function RatingReviewSection({
               </View>
               {selectedScore !== null ? (
                 <Text style={styles.secondaryText}>
-                  Sua nota: {selectedScore.toLocaleString('pt-BR')} de 5
+                  Sua nota: {formatNumber(selectedScore)} de 5
                 </Text>
               ) : null}
             </View>
@@ -499,8 +499,7 @@ function CommentCard({
           {comment.audience === 'private' ? <LockIcon width={dimensions.iconSize} height={dimensions.iconSize} /> : <GlobeIcon width={dimensions.iconSize} height={dimensions.iconSize} />}
         </View>
         <Text style={styles.commentDate}>
-          {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' })
-            .format(new Date(comment.createdAt))}
+          {formatDateMedium(new Date(comment.createdAt))}
         </Text>
       </View>
       {comment.moderationStatus === 'pending' ? (

@@ -9,12 +9,15 @@ import { formatRatingStars } from '@/components/reviews/rating-stars';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogTitleDetails, fetchOwnRatings, type OwnRatingEntry } from '@/services/api-client';
 import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';
+import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { ratingsQueryKeys } from '@/features/ratings/query-keys';
+import { staleTime } from '@/lib/query/stale-time';
+import { formatDate } from '@/lib/format';
 
 export default function MyRatingsScreen() {
   const [page, setPage] = useState(1);
-  const ratings = useQuery({ queryKey: ['reviews', 'mine', page], queryFn: ({ signal }) => fetchOwnRatings(page, signal) });
-  useErrorToast(ratings.error, ratings.error && 'status' in ratings.error && ratings.error.status === 401
-    ? 'Sua sessão expirou. Entre novamente para continuar.' : 'Não foi possível carregar suas avaliações. Tente novamente.');
+  const ratings = useQuery({ queryKey: ratingsQueryKeys.ownRatings(page), queryFn: ({ signal }) => fetchOwnRatings(page, signal) });
+  useErrorToast(ratings.error, 'Não foi possível carregar suas avaliações. Tente novamente.');
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -65,10 +68,10 @@ function RatingCard({ rating }: { rating: OwnRatingEntry }) {
   const type = rating.targetType === 'episode' ? 'series' : rating.targetType;
   const externalId = rating.targetType === 'episode' ? rating.seriesExternalId : rating.externalId;
   const title = useQuery({
-    queryKey: ['catalog', 'title', rating.provider, type, externalId],
+    queryKey: catalogQueryKeys.title(rating.provider, type, externalId),
     queryFn: ({ signal }) => fetchCatalogTitleDetails(rating.provider, type, externalId!, signal),
     enabled: Boolean(externalId),
-    staleTime: 300_000,
+    staleTime: staleTime.catalog,
   });
   useErrorToast(title.error, 'Não foi possível carregar os detalhes de um título avaliado.');
   const details = (
@@ -77,7 +80,7 @@ function RatingCard({ rating }: { rating: OwnRatingEntry }) {
         {formatRatingStars(rating.score)}
       </Text>
       <Text style={styles.body}>{rating.audience === 'private' ? 'Privada' : 'Pública'}{rating.targetType === 'episode' ? ' · Episódio' : ''}</Text>
-      <Text style={styles.body}>{new Date(rating.updatedAt).toLocaleDateString('pt-BR')}</Text>
+      <Text style={styles.body}>{formatDate(rating.updatedAt)}</Text>
     </>
   );
   return (
