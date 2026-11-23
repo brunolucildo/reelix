@@ -19,21 +19,10 @@ import {
 import type { CatalogProvider } from '@/features/catalog/api/catalog-api';
 import { toUserMessage } from '@/lib/api-error';
 import { useErrorToast, useToast } from '@/providers/toast-provider';
+import { trackingQueryKeys } from '@/features/tracking/query-keys';
+import { gamificationQueryKeys } from '@/features/gamification/query-keys';
 
-export const trackingQueryKeys = {
-  all: ['tracking'] as const,
-  history: (page: number, pageSize: number, type?: 'movie' | 'episode') =>
-    ['tracking', 'history', page, pageSize, type] as const,
-  movieStatus: (titleId: string) => ['tracking', 'movie-status', titleId] as const,
-  series: (page: number, pageSize: number) =>
-    ['tracking', 'series', page, pageSize] as const,
-  seriesProgress: (seriesId: string, provider: CatalogProvider = 'tmdb') =>
-    ['tracking', 'series-progress', seriesId, provider] as const,
-  seasonProgress: (seriesId: string, seasonNumber: number, provider: CatalogProvider) =>
-    ['tracking', 'season-progress', seriesId, seasonNumber, provider] as const,
-  pendingEpisodes: (seriesId: string, seasonNumber: number, provider: CatalogProvider) =>
-    ['tracking', 'pending-episodes', seriesId, seasonNumber, provider] as const,
-};
+export { trackingQueryKeys };
 
 export function useTrackingHistory(
   page = 1,
@@ -116,7 +105,7 @@ function useTrackingMutation<TVariables, TData>(
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: trackingQueryKeys.all }),
-        queryClient.invalidateQueries({ queryKey: ['gamification'] }),
+        queryClient.invalidateQueries({ queryKey: gamificationQueryKeys.all }),
       ]);
     },
     onError: (error) => showError(toUserMessage(

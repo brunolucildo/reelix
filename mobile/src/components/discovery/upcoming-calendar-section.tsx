@@ -10,6 +10,7 @@ import { fetchCatalogSeason, fetchCatalogSeasons, fetchCatalogTitleDetails } fro
 import type { TrackedSeriesPage } from '@/features/tracking/api/tracking-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { trackingQueryKeys } from '@/features/tracking/query-keys';
 
 type CalendarFilter = 'all' | 'premiere' | 'final';
 
@@ -28,7 +29,7 @@ export function UpcomingCalendarSection() {
   });
   const seasonListQueries = useQueries({
     queries: series.map((item) => ({
-      queryKey: ['calendar', 'seasons', item.seriesId],
+      queryKey: trackingQueryKeys.calendarSeasons(item.seriesId),
       queryFn: ({ signal }: { signal: AbortSignal }) =>
         fetchCatalogSeasons(item.provider!, item.externalId!, signal),
       enabled: Boolean(item.provider && item.externalId),
@@ -53,7 +54,7 @@ export function UpcomingCalendarSection() {
   });
   const seasonQueries = useQueries({
     queries: seasonEntries.map(({ item, seasonNumber }) => ({
-      queryKey: ['calendar', 'season', item.seriesId, seasonNumber],
+      queryKey: trackingQueryKeys.calendarSeason(item.seriesId, seasonNumber),
       queryFn: ({ signal }: { signal: AbortSignal }) =>
         fetchCatalogSeason(item.provider!, item.externalId!, seasonNumber, signal),
       staleTime: 300_000,
