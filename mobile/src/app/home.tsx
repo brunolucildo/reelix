@@ -18,6 +18,7 @@ import { TrackedSeriesSection } from '@/components/discovery/tracked-series-sect
 import { UpcomingCalendarSection } from '@/components/discovery/upcoming-calendar-section';
 import { AppHeader } from '@/components/navigation/app-header';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { toUserMessage } from '@/lib/api-error';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchOnboarding } from '@/services/api-client';
@@ -34,17 +35,9 @@ export default function HomeScreen() {
     queryFn: fetchOnboarding,
   });
 
-  const onboardingErrorMessage = onboarding.error instanceof TypeError
-    ? 'Não foi possível conectar à API. Verifique a rede e tente novamente.'
-    : onboarding.error instanceof Error &&
-        'status' in onboarding.error &&
-        typeof onboarding.error.status === 'number'
-      ? `A API recusou a solicitação (HTTP ${onboarding.error.status}).`
-      : 'Não foi possível carregar suas preferências. Tente novamente.';
-
   useErrorToast(
     onboarding.error,
-    onboardingErrorMessage,
+    toUserMessage(onboarding.error, 'Não foi possível carregar suas preferências. Tente novamente.'),
   );
 
   if (!session) {

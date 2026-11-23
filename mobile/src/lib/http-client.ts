@@ -35,7 +35,7 @@ async function readProblem(response: Response): Promise<ApiError> {
  * The only function that talks to the Reelix API: attaches the Supabase bearer token,
  * parses ProblemDetails into ApiError and validates every successful body with zod.
  */
-export async function apiRequest<T>(
+export async function httpRequest<T>(
   path: string,
   schema: z.ZodType<T>,
   options: ApiRequestOptions = {},

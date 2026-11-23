@@ -108,27 +108,13 @@ function AuthenticatedTracking() {
     queryFn: () => searchCatalog(submittedSeriesSearch, 'series'),
     enabled: submittedSeriesSearch.length > 0,
   });
-  useErrorToast(
-    seriesResults.error,
-    seriesResults.error instanceof Error &&
-      'status' in seriesResults.error &&
-      seriesResults.error.status === 401
-      ? 'Sua sessão expirou. Entre novamente para continuar.'
-      : 'Não foi possível buscar séries. Tente novamente.',
-  );
+  useErrorToast(seriesResults.error, 'Não foi possível buscar séries. Tente novamente.');
   const movieResults = useQuery({
     queryKey: ['catalog', 'tracking-movie-search', submittedSearch],
     queryFn: () => searchCatalog(submittedSearch, 'movie'),
     enabled: submittedSearch.length > 0,
   });
-  useErrorToast(
-    movieResults.error,
-    movieResults.error instanceof Error &&
-      'status' in movieResults.error &&
-      movieResults.error.status === 401
-      ? 'Sua sessão expirou. Entre novamente para continuar.'
-      : 'Não foi possível buscar filmes. Tente novamente.',
-  );
+  useErrorToast(movieResults.error, 'Não foi possível buscar filmes. Tente novamente.');
   const isSaving = markMovie.isPending || removeMovie.isPending ||
     markEpisode.isPending || removeEpisode.isPending;
   const historyTitleError = historyTitleQueries.find((result) => result.error)?.error;

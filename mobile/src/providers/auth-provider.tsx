@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -19,6 +20,8 @@ type AuthContextValue = {
   initializationError: string | null;
   retryInitialization: () => void;
   signOut: () => Promise<void>;
+  /** Ends the local session after a 401. Returns false when it was already ended. */
+  expireSession: () => boolean;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -29,6 +32,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [isLoading, setIsLoading] = useState(true);
   const [initializationError, setInitializationError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const sessionRef = useRef<Session | null>(null);
+
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
 
   useEffect(() => {
     let active = true;
@@ -110,6 +118,19 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
   }, [queryClient, session?.user.id]);
 
+  const expireSession = useCallback(() => {
+    if (sessionRef.current === null) {
+      return false;
+    }
+
+    // Local only: revoking the push device would call the API again and answer 401 again.
+    sessionRef.current = null;
+    setSession(null);
+    queryClient.clear();
+    void supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
+    return true;
+  }, [queryClient]);
+
   const value = useMemo(
     () => ({
       session,
@@ -117,8 +138,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
       initializationError,
       retryInitialization,
       signOut,
+      expireSession,
     }),
-    [initializationError, isLoading, retryInitialization, session, signOut],
+    [expireSession, initializationError, isLoading, retryInitialization, session, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

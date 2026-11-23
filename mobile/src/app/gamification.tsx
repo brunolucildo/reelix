@@ -95,9 +95,7 @@ export default function GamificationScreen() {
     },
   });
 
-  useErrorToast(dashboard.error, dashboard.error && 'status' in dashboard.error && dashboard.error.status === 401
-    ? 'Sua sessão expirou. Entre novamente para continuar.'
-    : 'Não foi possível carregar suas conquistas.');
+  useErrorToast(dashboard.error, 'Não foi possível carregar suas conquistas.');
   useErrorToast(periodStatistics.error, 'Não foi possível carregar as estatísticas do período.');
   useErrorToast(activityHistory.error, 'Não foi possível carregar o histórico de atividades.');
   useErrorToast(

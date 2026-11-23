@@ -13,8 +13,7 @@ import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tok
 export default function MyRatingsScreen() {
   const [page, setPage] = useState(1);
   const ratings = useQuery({ queryKey: ['reviews', 'mine', page], queryFn: ({ signal }) => fetchOwnRatings(page, signal) });
-  useErrorToast(ratings.error, ratings.error && 'status' in ratings.error && ratings.error.status === 401
-    ? 'Sua sessão expirou. Entre novamente para continuar.' : 'Não foi possível carregar suas avaliações. Tente novamente.');
+  useErrorToast(ratings.error, 'Não foi possível carregar suas avaliações. Tente novamente.');
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
