@@ -26,12 +26,13 @@ import {
 } from '@/services/api-client';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
+import { gamificationQueryKeys } from '@/features/gamification/query-keys';
 
 export default function GamificationScreen() {
   const queryClient = useQueryClient();
   const { showError } = useToast();
   const dashboard = useQuery({
-    queryKey: ['gamification', 'dashboard'],
+    queryKey: gamificationQueryKeys.dashboard,
     queryFn: ({ signal }) => fetchGamificationDashboard(signal),
   });
   const now = new Date();
@@ -40,7 +41,7 @@ export default function GamificationScreen() {
   const periodStart = new Date(Date.UTC(year, month - 1, 1));
   const periodEnd = new Date(Date.UTC(year, month, 1));
   const periodStatistics = useQuery({
-    queryKey: ['gamification', 'statistics', periodStart.toISOString(), periodEnd.toISOString()],
+    queryKey: gamificationQueryKeys.statistics(periodStart.toISOString(), periodEnd.toISOString()),
     queryFn: ({ signal }) => fetchGamificationStatistics(periodStart, periodEnd, signal),
   });
   const activityHistory = useTrackingHistory(1, 20);
@@ -72,7 +73,7 @@ export default function GamificationScreen() {
     [activityHistory.data?.items],
   );
   const ranking = useInfiniteQuery({
-    queryKey: ['gamification', 'ranking', year, month],
+    queryKey: gamificationQueryKeys.ranking(year, month),
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam, signal }) =>
       fetchMonthlyFriendsRanking(year, month, pageParam, signal),
@@ -83,16 +84,16 @@ export default function GamificationScreen() {
     mutationFn: saveGamificationPreferences,
     onSuccess: (preferences) => {
       queryClient.setQueryData(
-        ['gamification', 'dashboard'],
+        gamificationQueryKeys.dashboard,
         (current: typeof dashboard.data) => current
           ? { ...current, preferences }
           : current,
       );
-      void queryClient.invalidateQueries({ queryKey: ['gamification', 'ranking'] });
+      void queryClient.invalidateQueries({ queryKey: gamificationQueryKeys.rankingAll });
     },
     onError: (error) => {
       showError(error instanceof Error ? error.message : 'Não foi possível salvar as preferências.');
-      void queryClient.invalidateQueries({ queryKey: ['gamification', 'dashboard'] });
+      void queryClient.invalidateQueries({ queryKey: gamificationQueryKeys.dashboard });
     },
   });
 

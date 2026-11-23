@@ -15,6 +15,7 @@ import {
   type ProfileData,
 } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
+import { gamificationQueryKeys } from '@/features/gamification/query-keys';
 import TmdbLogo from '../../assets/brand/logos/tmdb-logo-blue.svg';
 import CheckIcon from '../../assets/brand/navigation-icons/check.svg';
 
@@ -54,7 +55,7 @@ function ProfileEditor({ initialProfile }: { initialProfile: ProfileData }) {
   const queryClient = useQueryClient();
   const { showError } = useToast();
   const gamification = useQuery({
-    queryKey: ['gamification', 'dashboard'],
+    queryKey: gamificationQueryKeys.dashboard,
     queryFn: ({ signal }) => fetchGamificationDashboard(signal),
   });
   useErrorToast(gamification.error, 'Não foi possível carregar suas conquistas.');
