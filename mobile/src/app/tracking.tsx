@@ -24,14 +24,11 @@ import { fetchCatalogTitleDetails, searchCatalog } from '@/services/api-client';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { staleTime } from '@/lib/query/stale-time';
+import { formatDateTimeMedium } from '@/lib/format';
 
 const HISTORY_PREVIEW_SIZE = 5;
 const HISTORY_PAGE_SIZE = 20;
 const SERIES_PAGE_SIZE = 10;
-const watchDateFormatter = new Intl.DateTimeFormat('pt-BR', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-});
 
 export default function TrackingScreen() {
   const { session, isLoading } = useAuthSession();
@@ -530,7 +527,7 @@ function AuthenticatedTracking() {
                       </Text>
                     )}
                     <Text style={styles.description}>
-                      {watchDateFormatter.format(new Date(entry.watchedAt))}
+                      {formatDateTimeMedium(new Date(entry.watchedAt))}
                     </Text>
                     {editingEntryId === entry.id ? (
                       <View style={styles.editWatchedAt}>
@@ -578,7 +575,7 @@ function AuthenticatedTracking() {
                         {entry.type === 'movie' || entry.seriesId ? (
                           <Pressable
                             accessibilityRole="button"
-                            accessibilityLabel={`Desmarcar ${entry.type === 'movie' ? 'filme' : 'episódio'} assistido em ${watchDateFormatter.format(new Date(entry.watchedAt))}`}
+                            accessibilityLabel={`Desmarcar ${entry.type === 'movie' ? 'filme' : 'episódio'} assistido em ${formatDateTimeMedium(new Date(entry.watchedAt))}`}
                             disabled={isSaving}
                             onPress={() => confirmRemoveHistoryEntry(entry)}
                             style={styles.historyIconButton}

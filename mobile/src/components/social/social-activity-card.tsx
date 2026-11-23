@@ -12,6 +12,7 @@ import { fetchCatalogTitleDetails, type SocialActivityData } from '@/services/ap
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { staleTime } from '@/lib/query/stale-time';
+import { formatActivityTime } from '@/lib/format';
 
 export function SocialActivityCard({ activity, compact = false }: { activity: SocialActivityData; compact?: boolean }) {
   const router = useRouter();
@@ -59,15 +60,6 @@ export function SocialActivityCard({ activity, compact = false }: { activity: So
     </Pressable>
     {title.isError ? <PrimaryButton label="Tentar novamente" onPress={() => void title.refetch()} variant="quiet" /> : null}
   </View>;
-}
-
-function formatActivityTime(value: string) {
-  const date = new Date(value);
-  const minutes = Math.max(0, Math.floor((Date.now() - date.getTime()) / 60_000));
-  if (minutes < 1) return 'Agora';
-  if (minutes < 60) return `Há ${minutes} min`;
-  if (minutes < 1440) return `Há ${Math.floor(minutes / 60)} h`;
-  return date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 const styles = StyleSheet.create({

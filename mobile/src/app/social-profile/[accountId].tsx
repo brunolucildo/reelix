@@ -19,6 +19,7 @@ import { socialQueryKeys } from '@/features/social/query-keys';
 import { gamificationQueryKeys } from '@/features/gamification/query-keys';
 import { getNextCursor } from '@/lib/pagination';
 import { staleTime } from '@/lib/query/stale-time';
+import { formatDate } from '@/lib/format';
 import OverviewIcon from '../../../assets/brand/navigation-icons/profile.svg';
 import ActivityIcon from '../../../assets/brand/navigation-icons/clock.svg';
 import FavoritesIcon from '../../../assets/brand/navigation-icons/favorites.svg';
@@ -210,7 +211,7 @@ export default function SocialProfileScreen() {
           <AchievementMedal code={selectedBadge.code} title={selectedBadge.title} earned size={dimensions.avatarSize * 2} />
           <Text style={styles.sectionTitle}>Critério de desbloqueio</Text>
           <Text style={styles.body}>{selectedBadge.description}</Text>
-          <Text style={styles.badgeDate}>Conquistada em {new Date(selectedBadge.firstEarnedAt).toLocaleDateString('pt-BR')}</Text>
+          <Text style={styles.badgeDate}>Conquistada em {formatDate(selectedBadge.firstEarnedAt)}</Text>
         </> : null}
       </ModalDialog>
       <ModalDialog visible={manageFriendship} title="Gerenciar amizade" onClose={() => setManageFriendship(false)} busy={relationshipAction.isPending}>

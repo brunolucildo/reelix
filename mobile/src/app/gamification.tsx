@@ -29,6 +29,7 @@ import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { gamificationQueryKeys } from '@/features/gamification/query-keys';
 import { getNextCursor } from '@/lib/pagination';
 import { staleTime } from '@/lib/query/stale-time';
+import { formatDate, formatDateTimeMedium, formatMonthYear, formatNumber } from '@/lib/format';
 
 export default function GamificationScreen() {
   const queryClient = useQueryClient();
@@ -148,7 +149,7 @@ export default function GamificationScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
-            Este mês · {new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(now)}
+            Este mês · {formatMonthYear(now)}
           </Text>
           {periodStatistics.isPending ? (
             <ActivityIndicator color={colors.brand} />
@@ -190,8 +191,7 @@ export default function GamificationScreen() {
                       <Text style={styles.caption}>
                         {item.type === 'movie' ? 'Filme assistido' : 'Episódio assistido'}
                         {' · '}
-                        {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeStyle: 'short' })
-                          .format(new Date(item.watchedAt))}
+                        {formatDateTimeMedium(new Date(item.watchedAt))}
                       </Text>
                     </View>
                     {activityTitleById.get(item.id)?.posterUrl ? (
@@ -301,9 +301,7 @@ function StatisticsSummary({ statistics }: { statistics: GamificationStatistics 
       <Text style={styles.body}>
         {statistics.estimatedWatchHours === null
           ? 'Tempo estimado indisponível: ainda não há durações conhecidas.'
-          : `Tempo estimado: ${statistics.estimatedWatchHours.toLocaleString('pt-BR', {
-            maximumFractionDigits: 2,
-          })} h`}
+          : `Tempo estimado: ${formatNumber(statistics.estimatedWatchHours, { maximumFractionDigits: 2 })} h`}
       </Text>
       <Text style={styles.body}>
         Cobertura de duração: {statistics.itemsWithRuntime}/{statistics.itemsWithRuntime + statistics.itemsWithoutRuntime} itens
@@ -347,7 +345,7 @@ function groupActivitiesByMonth<T extends { id: string; type: 'movie' | 'episode
     if (!group) {
       group = {
         key,
-        label: new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(date),
+        label: formatMonthYear(date),
         items: [],
       };
       groups.set(key, group);
@@ -385,7 +383,7 @@ function AchievementCard({ achievement }: { achievement: AchievementProgress }) 
       ) : null}
       {achievement.firstEarnedAt ? (
         <Text style={styles.caption}>
-          Primeira conquista em {new Date(achievement.firstEarnedAt).toLocaleDateString('pt-BR')}.
+          Primeira conquista em {formatDate(achievement.firstEarnedAt)}.
         </Text>
       ) : null}
     </View>

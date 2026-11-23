@@ -12,6 +12,7 @@ import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/th
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { trackingQueryKeys } from '@/features/tracking/query-keys';
 import { staleTime } from '@/lib/query/stale-time';
+import { formatDateMedium, localDateKey } from '@/lib/format';
 
 type CalendarFilter = 'all' | 'premiere' | 'final';
 
@@ -218,7 +219,7 @@ function CalendarEpisodeCard({
 }) {
   const router = useRouter();
   const date = new Date(`${episode.releaseDate}T12:00:00`);
-  const formattedDate = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' }).format(date);
+  const formattedDate = formatDateMedium(date);
   const daysUntil = Math.max(0, Math.ceil(
     (new Date(`${episode.releaseDate}T00:00:00`).getTime() -
       new Date(`${localDateKey(new Date())}T00:00:00`).getTime()) / 86_400_000,
@@ -252,13 +253,6 @@ function CalendarEpisodeCard({
       </View>
     </Pressable>
   );
-}
-
-function localDateKey(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
 }
 
 const styles = StyleSheet.create({

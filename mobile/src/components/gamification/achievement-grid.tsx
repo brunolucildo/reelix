@@ -5,6 +5,7 @@ import { AchievementMedal } from '@/components/gamification/achievement-medal';
 import { ModalDialog } from '@/components/modal-dialog';
 import type { AchievementProgress } from '@/services/api-client';
 import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';
+import { formatDate } from '@/lib/format';
 
 type Props = {
   achievements: AchievementProgress[];
@@ -46,12 +47,12 @@ export function AchievementGrid({ achievements, compact = false }: Props) {
             </Text>
             {selected.firstEarnedAt ? (
               <Text style={styles.text}>
-                Desbloqueada em {new Date(selected.firstEarnedAt).toLocaleDateString('pt-BR')}
+                Desbloqueada em {formatDate(selected.firstEarnedAt)}
               </Text>
             ) : null}
             {selected.reactivatedAt ? (
               <Text style={styles.text}>
-                Reativada em {new Date(selected.reactivatedAt).toLocaleDateString('pt-BR')}
+                Reativada em {formatDate(selected.reactivatedAt)}
               </Text>
             ) : null}
             {selected.isMetadataIncomplete ? (

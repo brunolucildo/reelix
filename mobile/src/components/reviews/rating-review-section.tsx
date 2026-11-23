@@ -34,6 +34,7 @@ import {
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { ratingsQueryKeys } from '@/features/ratings/query-keys';
 import { getNextPageByCount } from '@/lib/pagination';
+import { formatDateMedium, formatNumber } from '@/lib/format';
 
 type RatingReviewSectionProps = {
   targetId: string;
@@ -311,7 +312,7 @@ export function RatingReviewSection({
               </View>
               {selectedScore !== null ? (
                 <Text style={styles.secondaryText}>
-                  Sua nota: {selectedScore.toLocaleString('pt-BR')} de 5
+                  Sua nota: {formatNumber(selectedScore)} de 5
                 </Text>
               ) : null}
             </View>
@@ -498,8 +499,7 @@ function CommentCard({
           {comment.audience === 'private' ? <LockIcon width={dimensions.iconSize} height={dimensions.iconSize} /> : <GlobeIcon width={dimensions.iconSize} height={dimensions.iconSize} />}
         </View>
         <Text style={styles.commentDate}>
-          {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' })
-            .format(new Date(comment.createdAt))}
+          {formatDateMedium(new Date(comment.createdAt))}
         </Text>
       </View>
       {comment.moderationStatus === 'pending' ? (

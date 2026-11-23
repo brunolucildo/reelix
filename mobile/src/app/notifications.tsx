@@ -25,6 +25,7 @@ import { registerCurrentPushDevice } from '@/services/push-registration';
 import { colors, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { notificationsQueryKeys } from '@/features/notifications/query-keys';
 import { getNextCursor } from '@/lib/pagination';
+import { formatDateTime } from '@/lib/format';
 
 export default function NotificationsScreen() {
   const router = useRouter();
@@ -180,7 +181,7 @@ export default function NotificationsScreen() {
                 <Text style={styles.notificationTitle}>{item.title}</Text>
                 <Text style={styles.preferenceDescription}>{item.body}</Text>
                 <Text style={styles.timestamp}>
-                  {new Date(item.createdAt).toLocaleString('pt-BR')}
+                  {formatDateTime(item.createdAt)}
                 </Text>
               </View>
               {!item.readAt ? <View accessibilityLabel="Não lida" style={styles.unreadDot} /> : null}

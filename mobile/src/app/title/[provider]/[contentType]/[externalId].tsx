@@ -42,6 +42,7 @@ import {
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { staleTime } from '@/lib/query/stale-time';
+import { formatCatalogDate, formatDateLong } from '@/lib/format';
 
 export default function CatalogTitleScreen() {
   const router = useRouter();
@@ -169,8 +170,7 @@ export default function CatalogTitleScreen() {
   const title = details.data;
   const todayUtc = new Date().toISOString().slice(0, 10);
   const releaseDate = title.releaseDate
-    ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' })
-      .format(new Date(`${title.releaseDate}T00:00:00`))
+    ? formatDateLong(new Date(`${title.releaseDate}T00:00:00`))
     : null;
 
   return (
@@ -556,7 +556,3 @@ function isCatalogContentType(value: unknown): value is 'movie' | 'series' {
   return value === 'movie' || value === 'series';
 }
 
-function formatCatalogDate(date: string) {
-  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' })
-    .format(new Date(`${date}T12:00:00`));
-}

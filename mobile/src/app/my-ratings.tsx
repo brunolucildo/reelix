@@ -12,6 +12,7 @@ import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tok
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { ratingsQueryKeys } from '@/features/ratings/query-keys';
 import { staleTime } from '@/lib/query/stale-time';
+import { formatDate } from '@/lib/format';
 
 export default function MyRatingsScreen() {
   const [page, setPage] = useState(1);
@@ -79,7 +80,7 @@ function RatingCard({ rating }: { rating: OwnRatingEntry }) {
         {formatRatingStars(rating.score)}
       </Text>
       <Text style={styles.body}>{rating.audience === 'private' ? 'Privada' : 'Pública'}{rating.targetType === 'episode' ? ' · Episódio' : ''}</Text>
-      <Text style={styles.body}>{new Date(rating.updatedAt).toLocaleDateString('pt-BR')}</Text>
+      <Text style={styles.body}>{formatDate(rating.updatedAt)}</Text>
     </>
   );
   return (
