@@ -31,3 +31,13 @@ O app consome uma API REST própria (ADR 0001) com dezenas de endpoints e precis
 - Positivas: resposta fora do contrato falha de forma previsível e traduzida em vez de quebrar a renderização; cache e invalidação centralizados; tipos sempre iguais ao schema validado; UX de erro uniforme.
 - Negativas: os schemas são mantidos à mão e podem divergir da API (risco de contrato, sem teste de contrato automatizado); `api-client.ts` tem 848 linhas e há três cópias do helper de requisição (`apiRequest`, `trackingRequest` e o de `lists-api.ts`); a validação roda a cada resposta; não há testes automatizados no mobile (`.docs/QA.md`); campos novos na API exigem atualizar o app junto (`09-social.md`, perfil contextual).
 - Impacto em código, operação e time: toda função de serviço nova precisa de schema Zod, chave de query e invalidação; erros usam `useErrorToast`. Reavaliar geração por OpenAPI quando o contrato estabilizar e houver CI para isso (novo ADR).
+
+## Atualização (2026-11-23, spec `0017`)
+
+Atualizado pelo ADR `XXXX-0017` (`.adrs/XXXX-0017-cliente-http-unico-401-global-e-fabricas-de-chave.md`; número provisório até a integração). O que muda em relação ao texto acima, sem revogar a decisão original:
+
+- O cliente HTTP deixa de ter três cópias: passa a ser `mobile/src/lib/http-client.ts` (`httpRequest`), com `ApiError` tipado (`status`, `title`, `detail`) em vez de `Object.assign(new Error(...), { status })`.
+- O `QueryClient` é criado por `createQueryClient` (`lib/query/create-query-client.ts`) e trata 401 globalmente (sessão local encerrada, cache limpo, um toast, sem retry de 401); `retry: 1` e `staleTime` de 30 s seguem para os demais erros.
+- As funções de serviço vivem em `mobile/src/features/<modulo>/api/` (`services/api-client.ts` é um barrel temporário) e as chaves de query são fábricas em `features/<modulo>/query-keys.ts`.
+- As consequências negativas citadas ("`api-client.ts` tem 848 linhas" e "três cópias do helper") deixam de valer. Continuam valendo: schemas à mão sem teste de contrato e ausência de testes automatizados no mobile.
+
