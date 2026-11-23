@@ -7,7 +7,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { useTrackedSeries } from '@/hooks/use-tracking';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogSeason, fetchCatalogSeasons, fetchCatalogTitleDetails } from '@/services/api-client';
-import type { TrackedSeriesPage } from '@/services/tracking-api';
+import type { TrackedSeriesPage } from '@/features/tracking/api/tracking-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 
 type CalendarFilter = 'all' | 'premiere' | 'final';

@@ -15,7 +15,7 @@ import {
   markMovieWatched,
   removeWatchedEpisode,
   removeWatchedMovie,
-} from '@/services/tracking-api';
+} from '@/features/tracking/api/tracking-api';
 import type { CatalogProvider } from '@/features/catalog/api/catalog-api';
 import { toUserMessage } from '@/lib/api-error';
 import { useErrorToast, useToast } from '@/providers/toast-provider';
