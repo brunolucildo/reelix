@@ -34,15 +34,15 @@ public sealed class ErrorContractCharacterizationTests(ErrorContractApiFactory f
     }
 
     [Fact]
-    public async Task Row2_RawArgumentExceptionMessage_StillLeaksTheParameterSuffixInNotifications()
+    public async Task Row2_NotificationsInbox_UsesTheUserMessageWithoutTheParameterSuffix()
     {
-        // Deliberate gap owned by spec 0014: Notifications returns Message as is.
+        // Spec 0014 closed the gap: Notifications now goes through the shared mapper (ToUserMessage).
         using var response = await GetAsync("/api/v1/notifications/inbox?cursor=abc");
 
         var problem = await ReadProblemAsync(response, HttpStatusCode.BadRequest);
         Assert.Equal("Cursor inválido.", problem.GetProperty("title").GetString());
         Assert.Equal(
-            "O cursor da caixa de entrada é inválido. (Parameter 'encodedCursor')",
+            "O cursor da caixa de entrada é inválido.",
             problem.GetProperty("detail").GetString());
     }
 

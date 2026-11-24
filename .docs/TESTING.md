@@ -6,13 +6,13 @@
 
 `QA.md` diz **o que rodar** e **o que já foi verificado**. Este documento mostra **como** os testes funcionam: que peças da arquitetura cada camada usa de verdade e quais substitui, como o ambiente é montado, que convenções seguir e o que ainda não existe (mobile, E2E, arquitetura, cobertura), com a estratégia-alvo para cada lacuna.
 
-**Em uma frase:** hoje o Reelix tem uma suíte backend sólida (xUnit, 339 testes, todos aprovados em 2026-11-23 (eram 202 em 2026-11-19, antes da spec `0013`)) e **nenhum teste automatizado do app mobile**; o mobile só passa por `lint` e `tsc`, e a verificação funcional é manual (`QA.md` §5).
+**Em uma frase:** hoje o Reelix tem uma suíte backend sólida (xUnit, 607 testes, todos aprovados em 2026-11-24 (eram 339 em 2026-11-23 e 202 em 2026-11-19)) e **nenhum teste automatizado do app mobile**; o mobile só passa por `lint` e `tsc`, e a verificação funcional é manual (`QA.md` §5).
 
 ## 1. O princípio: quanto mais alto o teste, mais componentes reais
 
 ```mermaid
 flowchart TB
-  subgraph PG["HTTP + Postgres (10 testes, exige Docker)"]
+  subgraph PG["HTTP + Postgres (118 testes, exige Docker)"]
     direction LR
     H2["Host real (Program)<br/>pipeline completo"] --> DB[("PostgreSQL 17 real<br/>Testcontainers + migrations")]
   end
@@ -60,7 +60,7 @@ A regra que a suíte segue: **código nosso roda de verdade**; só o que é de t
 | HTTP in-memory | `Api/AuthenticationEndpointTests` | 401 sem token (32 rotas em `[Theory]`), JWT inválido (emissor, audiência, assinatura, expirado), Swagger expõe as rotas, CORS de origem web configurada, `dev-auth.html` em Development, perfil/onboarding/catálogo com fakes |
 | HTTP + Postgres | `Api/PostgresAuthorizationIntegrationTests` | Isolamento entre contas em perfil, listas, avaliações, tracking, preferências e inbox de notificações, gamificação, pedido de amizade e feed social; escrita concorrente idempotente |
 
-Contagem: em 2026-11-19 eram 202 testes (10 com Postgres); em 2026-11-23, após a spec `0013`, são 339 (13 com Postgres: `PostgresAuthorizationIntegrationTests` 10 e `UserAccountRepositoryPostgresTests` 3); os 47 casos de `AuthenticationEndpointTests` vêm da leitura do código (11 `[Fact]` + 32 rotas + 4 cenários de JWT inválido). Os 145 restantes (202 menos 57) são domínio, serviço, adaptador e modelo/migration EF; a divisão entre eles não é publicada porque `[Theory]` expande casos.
+Contagem (atualizada em 2026-11-24: 607 testes, 118 com Postgres, 489 sem Docker, após a spec `0014`): em 2026-11-19 eram 202 testes (10 com Postgres); em 2026-11-23, após a spec `0013`, são 339 (13 com Postgres: `PostgresAuthorizationIntegrationTests` 10 e `UserAccountRepositoryPostgresTests` 3); os 47 casos de `AuthenticationEndpointTests` vêm da leitura do código (11 `[Fact]` + 32 rotas + 4 cenários de JWT inválido). Os 145 restantes (202 menos 57) são domínio, serviço, adaptador e modelo/migration EF; a divisão entre eles não é publicada porque `[Theory]` expande casos.
 
 ## 2. Como o ambiente de teste é montado
 
@@ -76,7 +76,7 @@ Não existe um interruptor global do tipo `NODE_ENV=test`. Cada classe de integr
 
 Consequências práticas:
 
-- **Docker só é necessário para `PostgresAuthorizationIntegrationTests` (10 testes).** O restante roda sem Docker. Sem o daemon, só esses 10 dependem do contêiner.
+- **Docker só é necessário para `PostgresAuthorizationIntegrationTests` (10 testes).** O restante roda sem Docker. Sem o daemon, só esses 118 dependem do contêiner.
 - **Credenciais externas não são necessárias.** Nenhum teste usa User Secrets, projeto Supabase, TMDB, OMDb, Expo ou OpenAI; em 2026-11-04 a suíte passou com as configurações Supabase/PostgreSQL externas vazias, e em 2026-11-19 passou localmente (202/202).
 - **O banco do Supabase nunca é tocado.** A connection string de produção/desenvolvimento dos User Secrets é sobrescrita por variável de ambiente ou configuração em memória antes de o host subir. Se você criar uma fixture nova, repita esse cuidado: **nunca** deixe um teste herdar a connection string dos User Secrets.
 
@@ -158,11 +158,11 @@ Para concorrência, `ConcurrentMovieTrackingMarks_KeepOneRecordPerAccountAndTitl
 | **Sem testes mobile** | `mobile/package.json` não tem script de teste nem jest, jest-expo, Testing Library, Playwright, Detox ou Vitest | Auth, navegação, mutações, privacidade e estados de erro podem regredir sem aviso (`REELIX-003` no backlog) |
 | **Sem E2E** | Nenhum Playwright/Detox/Maestro no repositório; a skill `playwright` existe em `.claude/skills`, mas o pacote não está instalado | A jornada completa (app + API + banco) só é exercitada à mão |
 | **Sem testes de arquitetura** | Nenhum NetArchTest/ArchUnitNET; `.docs/ARCHITECTURE.md` §3.2 prevê testes de arquitetura | A regra de dependência entre `Domain`, `Application`, `Infrastructure` e `Api` não é verificada por máquina |
-| **Cobertura não medida** | `coverlet.collector` está referenciado, mas nenhum comando, relatório ou etapa de CI o usa | Não há número nem piso; "339 testes" não diz quanto código é exercitado |
+| **Cobertura não medida** | `coverlet.collector` está referenciado, mas nenhum comando, relatório ou etapa de CI o usa | Não há número nem piso; "607 testes" não diz quanto código é exercitado |
 | **Workers sem teste** | Três `AddHostedService` em `Program.cs`; nenhum teste os referencia | Moderação, notificações sociais e entrega push dependem de verificação manual |
 | **Sem teste de contrato OpenAPI** | Só se verifica que o Swagger lista rotas | Mudança de contrato não quebra nada automaticamente; o mobile valida payloads com Zod apenas em runtime |
 | **CI não falha por vulnerabilidade NuGet** | `dotnet package list --vulnerable` não falha o job; só NU1903/NU1904 no restore | Ver `QA.md` §6 |
-| **Integração Postgres depende de Docker no runner** | O job `backend` roda `ubuntu-latest` (com Docker); localmente depende do daemon | Sem Docker, 10 testes falham |
+| **Integração Postgres depende de Docker no runner** | O job `backend` roda `ubuntu-latest` (com Docker); localmente depende do daemon | Sem Docker, 118 testes falham |
 
 ### 7.2 Pirâmide-alvo
 

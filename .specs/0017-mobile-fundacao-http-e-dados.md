@@ -3,7 +3,7 @@
 > Spec executável. Preencha todas as seções; `TODO` é lacuna, não requisito.
 > Use `create-spec` para criar, `refine-spec` para auditar e `implement-me` para executar.
 
-- **Status:** implementada (roteiro manual da seção 10 pendente)
+- **Status:** concluída (roteiro manual executado em Expo web em 2026-11-23; Android não relatado)
 - **Slug:** mobile-fundacao-http-e-dados
 - **Data:** 2026-11-19
 - **Atualizado em:** 2026-11-23
@@ -89,9 +89,9 @@ Decisões compartilhadas copiadas do mapa: D1 (sem mudar comportamento), D6 (est
 
 - [ ] Given `cd mobile`, When `npm run lint` e `npx tsc --noEmit`, Then ambos passam ao final de **cada** passo de migração.
 - [ ] Given o código final, When rodo os greps das linhas R1, R4–R6, R8, R10–R12, Then todos retornam os valores-alvo da seção 10.
-- [ ] Given a API em `Development` reiniciada com `Supabase__Audience` inválida, When abro `home` logado, Then o app volta ao login com um único toast de sessão expirada e sem laço de requisições (conferir a aba Network).
-- [ ] Given a API desligada, When abro `home` e `search`, Then aparece o toast de conexão e o estado "Tentar novamente" funciona após religar a API.
-- [ ] Given o roteiro manual da seção 10, When executo em Expo web e no Android, Then o comportamento visual e as strings são idênticos aos de antes da spec.
+- [x] Given a API em `Development` reiniciada com `Supabase__Audience` inválida, When abro `home` logado, Then o app volta ao login com um único toast de sessão expirada e sem laço de requisições (conferir a aba Network). _(passo 8 do roteiro, ok em 2026-11-23)_
+- [x] Given a API desligada, When abro `home` e `search`, Then aparece o toast de conexão e o estado "Tentar novamente" funciona após religar a API. _(passo 8 do roteiro, ok em 2026-11-23)_
+- [x] Given o roteiro manual da seção 10, When executo em Expo web e no Android, Then o comportamento visual e as strings são idênticos aos de antes da spec. _(passos 1 a 9 ok em Expo web, relato da pessoa responsável em 2026-11-23; Android não relatado)_
 - [ ] Given `git diff --stat mobile/src/app mobile/src/components`, When reviso, Then só há mudança de import, chave/`staleTime`/paginação/formatação por helper e remoção de tratamento de 401 local; nenhuma mudança de JSX ou estilo.
 
 ## 7. O que fazer
@@ -168,3 +168,4 @@ Como validar que a spec foi atendida:
 | ---------- | ----------- | ------ |
 | 2026-11-19 | Criação da spec em modo lote (breakdown arquitetura/design/testes); linha de base medida no código. | Fundação de dados do mobile antes da `0018`. |
 | 2026-11-23 | Implementada em fatias por domínio (plano `.plans/mobile-fundacao-http-e-dados-plan.md`, ADR `0013`). Premissas registradas: cliente chamado `httpRequest`; fallback genérico único para erro HTTP/contrato; 204 validado com `safeParse(undefined)`; chaves órfãs de temporada normalizadas sob `catalog`. Roteiro manual (Expo web e Android) não executado por agente. | Execução da spec via implement-me (modo orquestrado). |
+| 2026-11-23 | Roteiro manual da seção 10 executado pela pessoa responsável em Expo web: passos 1 a 9 sem divergência (inclui 401 forçado, API desligada e deep link). Status passa a `concluída`. Android não relatado. | Fechar a pendência declarada no relatório da implementação. |

@@ -14,7 +14,7 @@
 | Formatação mobile | Ausente (sem Prettier nem equivalente em `devDependencies`) |
 | Tipos | Backend: C# com `Nullable` habilitado. Mobile: `tsc --noEmit` com `strict: true`; passa (último registro: 2026-11-04) |
 | Build | Backend: `dotnet build` / `dotnet test` em Release; passa (2026-11-19). Mobile: não há script de build; o bundle Android foi exportado com sucesso em 2026-11-05; o APK EAS de development concluiu |
-| Testes backend | xUnit 2.9.3 em `backend/Reelix.UnitTests`: **339 testes, 339 aprovados** (2026-11-23, integração das specs `0013`/`0017`; eram 202 em 2026-11-19). 13 deles exigem Docker (`PostgresAuthorizationIntegrationTests` e `UserAccountRepositoryPostgresTests`, `postgres:17-alpine`); o restante roda sem Docker |
+| Testes backend | xUnit 2.9.3 em `backend/Reelix.UnitTests`: **607 testes, 607 aprovados** (2026-11-24, após as specs `0013` e `0014`; eram 339 em 2026-11-23 e 202 em 2026-11-19). 118 deles exigem Docker (testes de integração com Postgres via Testcontainers, `postgres:17-alpine`; 489 rodam sem Docker); o restante roda sem Docker |
 | Testes mobile | **Ausentes.** Não há runner (nem jest, jest-expo, Testing Library, Playwright, Detox ou Vitest) nem script de teste em `mobile/package.json` |
 | Testes E2E | **Ausentes** |
 | Testes de arquitetura | **Ausentes** (ver `TESTING.md` §7) |
@@ -30,7 +30,7 @@ Backend, na raiz do repositório, com Docker em execução (daemon ativo, versã
 
 | Gate | Comando | Resultado | Observação |
 | --- | --- | --- | --- |
-| Testes backend | `dotnet test Reelix.sln --configuration Release --no-restore` | Passa | 339 testes, 339 aprovados, 0 falhos, 0 ignorados; ~7 s de teste (2026-11-23; em 2026-11-19: 202 testes, ~21 s com build) |
+| Testes backend | `dotnet test Reelix.sln --configuration Release --no-restore` | Passa | 607 testes, 607 aprovados, 0 falhos, 0 ignorados; ~11 s de teste (2026-11-24; em 2026-11-23: 339; em 2026-11-19: 202) |
 
 Ambiente da máquina nessa data: SDKs .NET `10.0.404` e `11.0.100` (não há `global.json`, então o `dotnet` usa por padrão o SDK mais recente instalado; a CI fixa `10.0.x`; confirme com `dotnet --version` e registre), Node 24.20, npm 12.2.1, Docker 29.9.3. Playwright não está instalado. Aviso `NU1900` local por um feed privado do Azure DevOps na configuração NuGet da máquina; não afeta a CI, que restaura só de `nuget.org`.
 
@@ -75,7 +75,7 @@ A inspeção visual em navegador não foi possível naquela auditoria: a URL com
 | .NET 10 SDK | Instalação local; a CI usa `10.0.x`. A máquina atual tem também o `11.0.100` (preview); o resultado em SDK 11 não substitui o da CI |
 | `dotnet-ef` 10.0.13 | Fixado em `.config/dotnet-tools.json`; `dotnet tool restore` (use `dotnet tool run dotnet-ef ...`) |
 | Node e npm | CI em Node 22; a máquina atual tem Node 24.20 e npm 12.2.1. Dependências do mobile: `npm ci` em `mobile/` |
-| Docker em execução | Só para os 10 testes `PostgresAuthorizationIntegrationTests` (imagem `postgres:17-alpine` baixada na primeira vez). Compilar, lint, `tsc` e os outros 192 testes não dependem dele. Teste com `docker info` |
+| Docker em execução | Só para os 118 testes que sobem Postgres (Testcontainers) (imagem `postgres:17-alpine` baixada na primeira vez). Compilar, lint, `tsc` e os outros 489 testes não dependem dele. Teste com `docker info` |
 | Projeto Supabase de **desenvolvimento** | E-mail e senha habilitados; Site URL e allowlist conforme `.specs/0001-authentication.md` (callback `reelix://auth/callback`). Use **só** o projeto de desenvolvimento |
 | `mobile/.env` | `Copy-Item mobile\.env.example mobile\.env` e preencher `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` e `EXPO_PUBLIC_API_URL`. O app **lança erro no import** se qualquer uma faltar; `EXPO_PUBLIC_API_URL` precisa ser HTTPS fora de `__DEV__` |
 | User Secrets da API | `Supabase:Url` e `ConnectionStrings:Reelix` (obrigatórios); `Catalog:Tmdb:AccessToken` e `Catalog:Omdb:ApiKey` (para o catálogo); `Supabase:JwtSecret` só se o projeto ainda emitir JWT HS256 legado. Comandos em §4 |
@@ -100,7 +100,7 @@ Backend, na raiz do repositório; mobile, em `mobile/`. Execute nesta ordem e re
 | --- | --- | --- | --- |
 | 1 | `dotnet restore Reelix.sln --source https://api.nuget.org/v3/index.json -warnaserror:NU1903,NU1904` | Restauração dos pacotes; vulnerabilidade NuGet alta/crítica (NU1903/NU1904) vira erro (é o mesmo comando da CI) | Sem erro. `NU1900` local (feed privado) é ruído conhecido |
 | 2 | `dotnet build Reelix.sln --configuration Release --no-restore` | Compilação de todos os projetos | Sem erro; avisos novos devem ser explicados |
-| 3 | `dotnet test Reelix.sln --configuration Release --no-restore` | xUnit: domínio, serviços, modelo/migration EF, HTTP in-memory e HTTP + Postgres (Docker) | Todos passam; **Docker ativo**, senão os 10 testes Postgres falham |
+| 3 | `dotnet test Reelix.sln --configuration Release --no-restore` | xUnit: domínio, serviços, modelo/migration EF, HTTP in-memory e HTTP + Postgres (Docker) | Todos passam; **Docker ativo**, senão os 118 testes Postgres falham |
 | 4 | `npm ci` (em `mobile/`) | Dependências e lockfile | Executar se `package.json` ou `package-lock.json` mudou |
 | 5 | `npm run lint` (em `mobile/`) | `expo lint` (ESLint com `eslint-config-expo` flat) | Zero erro |
 | 6 | `npx tsc --noEmit` (em `mobile/`) | Tipos, `strict: true` | Zero erro |
@@ -113,7 +113,7 @@ Outros comandos úteis (todos existem hoje):
 | Comando | Efeito |
 | --- | --- |
 | `dotnet test Reelix.sln --configuration Release --no-restore --filter "FullyQualifiedName~Reelix.UnitTests.Tracking"` | Roda só uma pasta/classe (não há `[Trait]`; filtre por nome) |
-| `dotnet test Reelix.sln --configuration Release --no-restore --filter "FullyQualifiedName!~PostgresAuthorizationIntegrationTests"` | Pula os 10 testes que exigem Docker |
+| `dotnet test Reelix.sln --configuration Release --no-restore --filter "FullyQualifiedName!~PostgresAuthorizationIntegrationTests"` | Pula os testes de integração com Postgres (exigem Docker) |
 | `dotnet test Reelix.sln --configuration Release --no-restore --logger "trx;LogFileName=backend-tests.trx"` | Gera TRX como a CI (o arquivo é gravado em `backend/Reelix.UnitTests/TestResults/`) |
 | `dotnet tool restore` | Restaura `dotnet-ef` 10.0.13 |
 | `dotnet tool run dotnet-ef migrations script --idempotent --no-build --configuration Release --project backend/Reelix.Infrastructure/Reelix.Infrastructure.csproj --startup-project backend/Reelix.Api/Reelix.Api.csproj --output artifacts/reelix-migrations.sql` | Gera o script idempotente (a CI faz o mesmo; **não conecta ao banco**; usa `Supabase__Url=https://migration-script.invalid` e uma connection string fictícia, como o workflow) |
@@ -288,7 +288,7 @@ Aplique apenas o que a mudança afeta, mas registre o que foi verificado. O mobi
 | --- | --- | --- |
 | 1 | **Sem testes automatizados do app mobile** (nenhum runner; REELIX-003) | Auth, navegação, mutações, privacidade e estados de erro podem regredir sem aviso; a verificação é só manual |
 | 2 | **Sem E2E** (Playwright não instalado) | A jornada app + API + banco só é exercitada à mão |
-| 3 | **Cobertura não medida** (`coverlet.collector` referenciado e sem uso) | Não há número nem piso; 339 testes não dizem quanto código é exercitado |
+| 3 | **Cobertura não medida** (`coverlet.collector` referenciado e sem uso) | Não há número nem piso; 607 testes não dizem quanto código é exercitado |
 | 4 | **Sem testes de arquitetura** nem de contrato OpenAPI | Regra de dependência entre camadas e contrato HTTP não são verificados por máquina |
 | 5 | **Workers sem teste** (`CommentModerationWorker`, `SocialNotificationWorker`, `NotificationDeliveryWorker`) | Moderação, notificações sociais e entrega push só por verificação manual |
 | 6 | 21 advisories npm moderados/baixos (3 low, 18 moderate) sem correção compatível (REELIX-019, bloqueado) | O gate `--audit-level=high` passa, mas o risco moderado segue aberto; não forçar downgrade |
@@ -297,7 +297,7 @@ Aplique apenas o que a mudança afeta, mas registre o que foi verificado. O mobi
 | 9 | **Acessibilidade sem verificação real:** nenhum teste com TalkBack/VoiceOver, contraste, Dynamic Type ou multiplataforma (REELIX-015) | Falhas de semântica/contraste podem existir |
 | 10 | Sem formatação/analisadores: nenhum `.editorconfig`, `dotnet format` nem Prettier; lint só no mobile | Estilo e avisos de compilador não são gates |
 | 11 | Sem `global.json`: o `dotnet` local usa o SDK mais recente (hoje 11.0.100, preview), enquanto a CI usa .NET 10 | Um teste pode passar local e falhar na CI (ou o inverso) |
-| 12 | 10 testes dependem de Docker, e as fábricas de teste alteram variáveis de ambiente (estado global) com as classes rodando em paralelo (nenhuma desativação de paralelismo configurada) | Falha confusa sem Docker; fábricas novas precisam sobrescrever a connection string por configuração em memória (`TESTING.md` §2.3) |
+| 12 | 118 testes dependem de Docker, e as fábricas de teste alteram variáveis de ambiente (estado global) com as classes rodando em paralelo (nenhuma desativação de paralelismo configurada) | Falha confusa sem Docker; fábricas novas precisam sobrescrever a connection string por configuração em memória (`TESTING.md` §2.3) |
 | 13 | Só existe o ambiente `Development` (migrations validadas apenas nele e em PostgreSQL descartável); sem staging | Novo ambiente exige repetir inventário, aplicação e smoke test |
 | 14 | Sem observabilidade (métricas, tracing, crash reporting, alertas) e sem teste de carga/performance | Problemas em runtime só aparecem por log; capacidade não medida |
 | 15 | Artefatos gerados versionados no Git: `backend/Reelix.UnitTests/TestResults/backend-tests.trx` e `artifacts/reelix-migrations.sql` | Ruído em diffs e risco de TRX/SQL desatualizado ser tomado como evidência |

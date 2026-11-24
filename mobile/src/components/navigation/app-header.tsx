@@ -1,26 +1,16 @@
-import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { UserDrawer } from '@/components/navigation/user-drawer';
-import { useErrorToast } from '@/providers/toast-provider';
-import { fetchNotificationUnreadCount } from '@/services/api-client';
+import { useUnreadCount } from '@/features/notifications/hooks/use-unread-count';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
-import { notificationsQueryKeys } from '@/features/notifications/query-keys';
-import Logo from '../../../assets/brand/logos/logo-white.svg';
-import NotificationsIcon from '../../../assets/brand/navigation-icons/notifications.svg';
-import SearchIcon from '../../../assets/brand/navigation-icons/search.svg';
+import Logo from '@/assets/brand/logos/logo-white.svg';
+import NotificationsIcon from '@/assets/brand/navigation-icons/notifications.svg';
+import SearchIcon from '@/assets/brand/navigation-icons/search.svg';
 
 export function AppHeader() {
   const router = useRouter();
-  const unreadCount = useQuery({
-    queryKey: notificationsQueryKeys.unreadCount,
-    queryFn: ({ signal }) => fetchNotificationUnreadCount(signal),
-    refetchInterval: 60_000,
-  });
-  useErrorToast(unreadCount.error, 'Não foi possível carregar o contador de notificações.');
-
-  const count = unreadCount.data?.count ?? 0;
+  const count = useUnreadCount();
 
   return (
     <View style={styles.header}>

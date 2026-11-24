@@ -1,6 +1,7 @@
 using System.Reflection;
 using Reelix.Application.Authentication;
 using Reelix.Application.Common;
+using Reelix.Application.Errors;
 using Reelix.Application.Gamification;
 using Reelix.Application.Notifications;
 using Reelix.Application.Social;
@@ -159,28 +160,24 @@ public sealed class CursorCodecTests
     [Fact]
     public async Task NotificationInbox_AcceptsTheOldCursorAndEmitsTheSameNextCursor()
     {
-        NotificationCursor? received = null;
         var items = Enumerable.Range(0, 26)
             .Select(index => new NotificationInboxItem(
                 index == 24 ? CursorId : Guid.NewGuid(),
-                Reelix.Domain.Notifications.NotificationCategory.Social,
+                NotificationCategoryKind.Social,
                 "Título",
                 "Mensagem",
                 "/social",
                 index == 24 ? Moment : Moment.AddDays(-index - 1),
                 null))
             .ToArray();
-        var repository = StubRepository<INotificationsRepository>.Create((method, args) =>
-        {
-            Assert.Equal(nameof(INotificationsRepository.GetInboxPageAsync), method.Name);
-            received = (NotificationCursor?)args![1];
-            return Task.FromResult<IReadOnlyList<NotificationInboxItem>>(items);
-        });
-        var service = new NotificationsService(new KnownAccounts(), repository, null!);
+        var notifications = new InboxSpy(items);
+        var useCase = new GetNotificationInboxUseCase(new KnownAccounts(), notifications);
 
-        var page = await service.GetInboxAsync(Guid.NewGuid(), NotificationGolden, CancellationToken.None);
+        var page = await useCase.ExecuteAsync(
+            new GetNotificationInboxQuery(Guid.NewGuid(), NotificationGolden),
+            CancellationToken.None);
 
-        Assert.Equal(new NotificationCursor(Moment, CursorId), received);
+        Assert.Equal(new NotificationCursor(Moment, CursorId), notifications.Received);
         Assert.Equal(NotificationGolden, page.NextCursor);
     }
 
@@ -189,10 +186,10 @@ public sealed class CursorCodecTests
     [InlineData("bm90LWpzb24")]
     public async Task NotificationInbox_RejectsAnInvalidCursorWithTheInboxMessage(string cursor)
     {
-        var service = new NotificationsService(new KnownAccounts(), null!, null!);
+        var useCase = new GetNotificationInboxUseCase(new KnownAccounts(), new InboxSpy([]));
 
         var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-            service.GetInboxAsync(Guid.NewGuid(), cursor, CancellationToken.None));
+            useCase.ExecuteAsync(new GetNotificationInboxQuery(Guid.NewGuid(), cursor), CancellationToken.None));
 
         Assert.Equal("encodedCursor", exception.ParamName);
         Assert.Equal(
@@ -203,20 +200,14 @@ public sealed class CursorCodecTests
     [Fact]
     public async Task Ranking_AcceptsTheOldCursor()
     {
-        GamificationRankingCursor? received = null;
-        var repository = StubRepository<IGamificationRepository>.Create((method, args) =>
-        {
-            Assert.Equal(nameof(IGamificationRepository.GetMonthlyRankingAsync), method.Name);
-            received = (GamificationRankingCursor?)args![3];
-            return Task.FromResult(new GamificationRankingPage(
-                true, DateTimeOffset.MinValue, DateTimeOffset.MinValue, 0, [], null));
-        });
-        var service = new GamificationService(repository, new KnownAccounts());
+        var ranking = new RankingSpy();
+        var useCase = new GetMonthlyRankingUseCase(new KnownAccounts(), ranking);
 
-        await service.GetMonthlyRankingAsync(
-            Guid.NewGuid(), 2026, 11, RankingGolden, 20, CancellationToken.None);
+        await useCase.ExecuteAsync(
+            new GetMonthlyRankingQuery(Guid.NewGuid(), 2026, 11, RankingGolden, 20),
+            CancellationToken.None);
 
-        Assert.Equal(new GamificationRankingCursor(5, CursorId), received);
+        Assert.Equal(new GamificationRankingCursor(5, CursorId), ranking.Received);
     }
 
     [Theory]
@@ -225,15 +216,56 @@ public sealed class CursorCodecTests
     [InlineData("NDI6bm90LWd1aWQ")]
     public async Task Ranking_RejectsAnInvalidCursorWithTheRankingMessage(string cursor)
     {
-        var service = new GamificationService(null!, new KnownAccounts());
+        var useCase = new GetMonthlyRankingUseCase(new KnownAccounts(), new RankingSpy());
 
-        var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-            service.GetMonthlyRankingAsync(Guid.NewGuid(), 2026, 11, cursor, 20, CancellationToken.None));
+        // Spec 0014: the use case throws a typed validation error (the message no longer carries
+        // the " (Parameter 'cursor')" suffix an ArgumentException appended).
+        var exception = await Assert.ThrowsAsync<ValidationError>(() =>
+            useCase.ExecuteAsync(
+                new GetMonthlyRankingQuery(Guid.NewGuid(), 2026, 11, cursor, 20),
+                CancellationToken.None));
 
-        Assert.Equal("cursor", exception.ParamName);
-        Assert.Equal(
-            "O cursor de paginação é inválido. (Parameter 'cursor')",
-            exception.Message);
+        Assert.Equal("O cursor de paginação é inválido.", exception.Message);
+    }
+
+    private sealed class InboxSpy(IReadOnlyList<NotificationInboxItem> items) : IUserNotifications
+    {
+        public NotificationCursor? Received { get; private set; }
+
+        public Task<IReadOnlyList<NotificationInboxItem>> ListPageAsync(
+            Guid accountId,
+            NotificationCursor? cursor,
+            int limit,
+            CancellationToken cancellationToken)
+        {
+            Received = cursor;
+            return Task.FromResult(items);
+        }
+
+        public Task<int> CountUnreadAsync(Guid accountId, CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
+        public Task<Reelix.Domain.Notifications.UserNotification?> FindOwnedAsync(
+            Guid accountId,
+            Guid notificationId,
+            CancellationToken cancellationToken) => throw new NotSupportedException();
+    }
+
+    private sealed class RankingSpy : IMonthlyRankingReader
+    {
+        public GamificationRankingCursor? Received { get; private set; }
+
+        public Task<MonthlyRankingData> GetAsync(
+            Guid viewerAccountId,
+            DateTimeOffset periodStart,
+            DateTimeOffset periodEnd,
+            GamificationRankingCursor? cursor,
+            int limit,
+            CancellationToken cancellationToken)
+        {
+            Received = cursor;
+            return Task.FromResult(MonthlyRankingData.Disabled);
+        }
     }
 
     private static ArgumentException Invalid(Exception? inner) => new("invalid", "cursor", inner);

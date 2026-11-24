@@ -16,4 +16,6 @@ public sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
     public override DateTimeOffset GetUtcNow() => _now;
 
     public void Advance(TimeSpan amount) => _now += amount;
+
+    public void Set(DateTimeOffset now) => _now = now;
 }

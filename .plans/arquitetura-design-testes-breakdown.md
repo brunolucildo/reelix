@@ -113,8 +113,8 @@ Q1 (exceções tipadas no lugar de `Result<T>`) e Q5 (URLs de provedores configu
 | Passo | Specs | Estado | Branch / PR | Observações |
 | ----- | ----- | ------ | ----------- | ----------- |
 | 0 | Fundação do processo (docs, skills, specs) | Concluído | PR #13 mesclado na `main` | — |
-| 1 | `0013` ‖ `0017` | **Integrado** em `orchestrate/0013-0017` (2026-11-23); aguardando PR e merge | `feat/0013-backend-fundacao-transversal`, `feat/0017-mobile-fundacao-http-e-dados` | Backend: 339 testes verdes (eram 202). Mobile: lint, tsc e audit passam. **Roteiro manual da `0017` ainda não executado** (`.claude/orchestrate/20261123-1316-0013-0017/0017.report.md`). ADRs: `0012` (backend) e `0013` (mobile). |
-| 2 | `0014` ‖ `0018` | Pendente | — | — |
+| 1 | `0013` ‖ `0017` | **Integrado** em `orchestrate/0013-0017` (2026-11-23); aguardando PR e merge | `feat/0013-backend-fundacao-transversal`, `feat/0017-mobile-fundacao-http-e-dados` | Backend: 339 testes verdes (eram 202). Mobile: lint, tsc e audit passam. **Roteiro manual da `0017` executado em Expo web em 2026-11-23: passos 1 a 9 ok** (Android não relatado; roteiro em `.claude/orchestrate/20261123-1316-0013-0017/0017.report.md`). ADRs: `0012` (backend) e `0013` (mobile). |
+| 2 | `0014` ‖ `0018` | **Integrado** em `orchestrate/0014-0018` (2026-11-24); aguardando PR e merge | `feat/0014-backend-gamification-notifications-casos-de-uso`, `feat/0018-mobile-features-e-telas-finas` | Backend: 607 testes verdes (eram 339; 118 com Docker). Mobile: lint, tsc, audit e `expo export -p web` passam. **Roteiro manual da `0018` não executado** (`.claude/orchestrate/20261123-1404-0014-0018/0018.report.md`). Achados da 0014 preservados (spec própria): ranking 500 para quem ligou o ranking; dashboards simultâneos 1x200 + 500 (40001); plataforma desconhecida 500 em Development. ADRs: `0014` (backend) e `0015` (mobile). |
 | 3 | `0015` ‖ `0019` | Pendente | — | — |
 | 4 | `0016`, depois `0020` | Pendente | — | A `0020` começa pelo plano de design (aprovação do usuário). |
 | 5 | `0021` ‖ `0022` | Pendente | — | — |

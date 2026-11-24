@@ -74,19 +74,20 @@ Regras:
 
 Expo Router em `mobile/src/app` (cada arquivo é uma rota; `_layout.tsx` define navegadores). Código não-rota fica **fora** de `src/app`.
 
-**Alvo (specs de arquitetura do mobile; `ARCHITECTURE.md` §4.3):**
+**Estrutura (spec `0018` aplicada; `ARCHITECTURE.md` §4.3):**
 
 ```text
 mobile/src/
   app/                    # rotas finas: compõem componentes e hooks da feature
-  features/<modulo>/      # api/ (chamadas + schemas zod), hooks/ (queries e mutations), components/
-  components/ui/          # primitivos reutilizáveis (Button, Text, Screen, Card, Input, Chip, EmptyState...)
-  lib/                    # http-client único, ApiError, formatação pt-BR, paginação, query keys base
-  providers/              # auth, toast, query
+  features/<modulo>/      # api/ (chamadas + schemas zod), hooks/ (queries e mutations), components/, query-keys.ts, schemas.ts (formulários)
+  components/ui/          # primitivos reutilizáveis (PrimaryButton, IconAction, ModalDialog, ConfirmDialog, ToggleRow, Chip, SmallButton, Pager...)
+  components/navigation/  # AppHeader, UserDrawer, BackButton (compartilhados; consomem hooks das features)
+  lib/                    # http-client único, ApiError, formatação pt-BR, paginação, stale-time
+  providers/              # auth, toast
   theme/                  # tokens
 ```
 
-**Hoje (spec `0017` aplicada):** `lib/http-client` único com `ApiError` e 401 global, `features/<modulo>/api` e `features/<modulo>/query-keys.ts` por domínio, `lib/format`, `lib/pagination` e `lib/query/stale-time`; `services/api-client.ts` é só um barrel temporário. Ainda organização por tipo (`components/<feature>`), só um hook (`use-tracking.ts`) e telas de 600 a 1000 linhas (spec `0018`). Código novo de dados nasce em `features/<modulo>/api`, chama `httpRequest` e usa a fábrica de chaves do módulo; nunca `fetch` direto, `queryKey` literal, `staleTime` numérico, `Intl`/`toLocale*` em tela nem texto técnico ("HTTP n") para o usuário. Regras:
+**Hoje:** `lib/http-client` único com `ApiError` e 401 global (spec `0017`) e, por feature, `api/`, `hooks/`, `components/` e `query-keys.ts` (spec `0018`): account, auth, catalog, gamification, home, lists, notifications, onboarding, profile, ratings, social e tracking. `catalog` é a base e não importa de outras features; parâmetros de rota do catálogo vêm de `features/catalog/route-params`. Código novo de dados nasce em `features/<modulo>/api`, chama `httpRequest`, usa a fábrica de chaves do módulo e é exposto por um hook em `features/<modulo>/hooks`; nunca `fetch` direto, `queryKey` literal, `staleTime` numérico, `Intl`/`toLocale*` em tela nem texto técnico ("HTTP n") para o usuário. Rota e componente nunca chamam `useQuery`/`useMutation`/`useQueryClient` nem importam valores de `api/` (só `import type`). Regras:
 
 - **Telas são composição.** Dados e mutations vivem em hooks da feature; formulário e validação em hook/schema; a tela só liga as peças e trata estados (carregando, vazio, erro).
 - **Um cliente HTTP** (`lib/http-client`): base da API, Bearer do Supabase, parse de `ProblemDetails`, erro tipado `ApiError { status, code?, title, detail }`, validação da resposta com zod. 401 tratado **globalmente** (limpar sessão/cache e pedir novo login), não tela a tela.

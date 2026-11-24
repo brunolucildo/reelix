@@ -1,0 +1,3 @@
+namespace Reelix.Application.Gamification;
+
+public sealed record UpdateGamificationPreferencesResult(GamificationPreferencesData Preferences);

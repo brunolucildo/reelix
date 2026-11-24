@@ -1,6 +1,6 @@
 # Plano — Mobile: fundação HTTP e dados
 
-- **Status:** implementado; roteiro manual da seção 10 da spec pendente (não executável por agente)
+- **Status:** concluído; roteiro manual da seção 10 executado em Expo web (2026-11-23), Android não relatado
 - **Slug:** mobile-fundacao-http-e-dados
 - **Spec:** `.specs/0017-mobile-fundacao-http-e-dados.md`
 - **Data:** 2026-11-23
@@ -87,7 +87,7 @@ R1 a R15 da spec (ver `.specs/0017-mobile-fundacao-http-e-dados.md` seção 4).
 - [x] `npm run lint` e `npx tsc --noEmit` passam ao final de cada fatia.
 - [x] Greps da tabela nos valores-alvo; `git diff` de `package.json` e `package-lock.json` vazio; `npm audit --audit-level=high` sem high/critical.
 - [x] ADR criado; ARCHITECTURE §4.3/§6.2, DEVELOPMENT §2.3 e DESIGN_SYSTEM atualizados.
-- [ ] Roteiro manual da seção 10 executado em Expo web e Android (pendente; pessoa responsável).
+- [x] Roteiro manual da seção 10 executado em Expo web (passos 1 a 9 ok, 2026-11-23). Android não relatado.
 
 ## Perguntas abertas
 

@@ -1,5 +1,5 @@
-import { AuthScreen } from '@/components/auth/auth-screen';
-import { SignInForm } from '@/components/auth/sign-in-form';
+import { AuthScreen } from '@/features/auth/components/auth-screen';
+import { SignInForm } from '@/features/auth/components/sign-in-form';
 
 export default function SignInScreen() {
   return (

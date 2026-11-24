@@ -39,7 +39,7 @@ public sealed class SocialEvent
         Guid recipientAccountId,
         DateTimeOffset now)
     {
-        if (eventType is not ("friend.requested" or "friend.accepted"))
+        if (!SocialEventType.IsKnown(eventType))
         {
             throw new ArgumentOutOfRangeException(nameof(eventType), "O evento social é inválido.");
         }
