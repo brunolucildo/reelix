@@ -39,7 +39,7 @@ Expo Push atrás de `IPushSender`; o adaptador traduz erro de transporte nos mes
 
 ## Decisões e premissas
 
-- Q1 opção A: o dashboard e os badges continuam gravando, pelo passo `AchievementReconciler`; ADR `.adrs/XXXX-0014-reconciliacao-explicita-ports-estreitos-e-erro-do-fornecedor-push.md` (número provisório).
+- Q1 opção A: o dashboard e os badges continuam gravando, pelo passo `AchievementReconciler`; ADR `.adrs/0014-reconciliacao-explicita-ports-estreitos-e-erro-do-fornecedor-push.md` (número provisório).
 - Limite transacional como port: `IAchievementReconciliationTransaction`, `ISocialEventOutbox`, `IPushDeliveryQueue` (lote reservado e confirmado); demais ports devolvem entidades rastreadas e `INotificationsUnitOfWork` confirma.
 - Espelhos de enum no Application (`AchievementStatus`, `NotificationCategoryKind`, `DevicePlatform`), guardados por teste.
 - Casos de uso de worker em `Application/Notifications/Workers/`.

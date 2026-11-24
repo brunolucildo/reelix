@@ -1,4 +1,4 @@
-# XXXX-0014 — Reconciliação explícita de conquistas, ports estreitos com limite transacional e erro do fornecedor push no adaptador
+# 0014 — Reconciliação explícita de conquistas, ports estreitos com limite transacional e erro do fornecedor push no adaptador
 
 - **Status:** proposto
 - **Data:** 2026-11-24
