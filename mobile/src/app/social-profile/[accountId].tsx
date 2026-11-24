@@ -1,31 +1,23 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/ui/primary-button';
-import { AchievementMedal } from '@/components/gamification/achievement-medal';
-import { TitlePosterCard } from '@/features/catalog/components/title-poster-card';
+import { AchievementMedal } from '@/features/gamification/components/achievement-medal';
 import { ModalDialog } from '@/components/ui/modal-dialog';
-import { SocialActivityCard } from '@/components/social/social-activity-card';
-import { UserAvatar } from '@/components/ui/user-avatar';
 import { BackButton } from '@/components/navigation/back-button';
-import { useErrorToast } from '@/providers/toast-provider';
-import { cancelFriendRequest, fetchCatalogTitleDetails, fetchFriendActivities, fetchFriendProfile, fetchPublicGamificationBadges, removeFriend, respondToFriendRequest, sendFriendRequest, type FriendProfileData, type PublicBadges } from '@/services/api-client';
+import type { PublicBadges } from '@/features/gamification/api/gamification-api';
+import { FavoritePoster } from '@/features/social/components/favorite-poster';
+import { FriendProfileHeader } from '@/features/social/components/friend-profile-header';
+import { SocialActivityCard } from '@/features/social/components/social-activity-card';
+import { type FriendProfileTab, useFriendProfile } from '@/features/social/hooks/use-friend-profile';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
-import { catalogQueryKeys } from '@/features/catalog/query-keys';
-import { socialQueryKeys } from '@/features/social/query-keys';
-import { gamificationQueryKeys } from '@/features/gamification/query-keys';
-import { getNextCursor } from '@/lib/pagination';
-import { staleTime } from '@/lib/query/stale-time';
 import { formatDate } from '@/lib/format';
 import OverviewIcon from '@/assets/brand/navigation-icons/profile.svg';
 import ActivityIcon from '@/assets/brand/navigation-icons/clock.svg';
 import FavoritesIcon from '@/assets/brand/navigation-icons/favorites.svg';
 import AchievementsIcon from '@/assets/brand/navigation-icons/achievements.svg';
-import FriendsIcon from '@/assets/brand/navigation-icons/friends.svg';
-import MoreIcon from '@/assets/brand/navigation-icons/more.svg';
 
 const profileTabs = [
   { key: 'overview', label: 'Visão geral', Icon: OverviewIcon },
@@ -36,8 +28,7 @@ const profileTabs = [
 
 export default function SocialProfileScreen() {
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const [tab, setTab] = useState<typeof profileTabs[number]['key']>('overview');
+  const [tab, setTab] = useState<FriendProfileTab>('overview');
   const [selectedBadge, setSelectedBadge] = useState<PublicBadges['badges'][number] | null>(null);
   const [manageFriendship, setManageFriendship] = useState(false);
   const [favoriteFilter, setFavoriteFilter] = useState<'all' | 'movie' | 'series'>('all');
@@ -47,50 +38,8 @@ export default function SocialProfileScreen() {
     else router.replace('/social');
   };
   const { accountId } = useLocalSearchParams<{ accountId: string }>();
-  const profile = useQuery({
-    queryKey: socialQueryKeys.friendProfile(accountId),
-    queryFn: ({ signal }) => fetchFriendProfile(accountId, signal),
-    enabled: Boolean(accountId),
-  });
-  const badges = useQuery({
-    queryKey: gamificationQueryKeys.publicBadges(accountId),
-    queryFn: ({ signal }) => fetchPublicGamificationBadges(accountId, signal),
-    enabled: Boolean(profile.data),
-  });
-  const canSeeActivities = Boolean(profile.data?.watchHistoryShared || profile.data?.ratingsShared);
-  const activities = useInfiniteQuery({
-    queryKey: socialQueryKeys.friendActivities(accountId),
-    queryFn: ({ pageParam, signal }) => fetchFriendActivities(accountId, pageParam ?? undefined, signal),
-    initialPageParam: null as string | null,
-    getNextPageParam: getNextCursor,
-    enabled: canSeeActivities && (tab === 'overview' || tab === 'activities'),
-  });
-  const relationshipAction = useMutation({
-    mutationFn: async (action: 'send' | 'cancel' | 'accept' | 'decline' | 'remove') => {
-      if (action === 'send') return sendFriendRequest(accountId);
-      const id = profile.data?.relationshipId;
-      if (!id) throw new Error('Atualize o perfil antes de continuar.');
-      if (action === 'cancel') return cancelFriendRequest(id);
-      if (action === 'remove') return removeFriend(id);
-      return respondToFriendRequest(id, action);
-    },
-    onSuccess: async (_, action) => {
-      setManageFriendship(false);
-      if (action === 'remove') {
-        queryClient.setQueryData<FriendProfileData>(socialQueryKeys.friendProfile(accountId), (current) => current ? { ...current, relationshipStatus: 'removed', favorites: [], favoritesShared: false, watchHistoryShared: false, ratingsShared: false } : current);
-      }
-      await queryClient.cancelQueries({ queryKey: socialQueryKeys.friendActivitiesAll });
-      await queryClient.cancelQueries({ queryKey: socialQueryKeys.feed });
-      queryClient.removeQueries({ queryKey: socialQueryKeys.friendActivitiesAll });
-      queryClient.removeQueries({ queryKey: socialQueryKeys.feed });
-      await queryClient.invalidateQueries({ queryKey: socialQueryKeys.all });
-    },
-    onError: () => { void profile.refetch(); },
-  });
-  useErrorToast(profile.error, 'Não foi possível carregar o perfil do amigo.');
-  useErrorToast(badges.error, 'Não foi possível carregar os badges compartilhados.');
-  useErrorToast(activities.error, 'Não foi possível carregar as atividades compartilhadas.');
-  useErrorToast(relationshipAction.error, 'Não foi possível atualizar a amizade.');
+  const { profile, badges, activities, canSeeActivities, relationshipAction, allActivities } =
+    useFriendProfile(accountId, tab, () => setManageFriendship(false));
 
   if (profile.isPending) {
     return (
@@ -110,10 +59,8 @@ export default function SocialProfileScreen() {
     );
   }
 
-  const allActivities = activities.data?.pages.flatMap((page) => page.items) ?? [];
   const favorites = profile.data.favorites.filter((favorite) => favoriteFilter === 'all' || favorite.contentType === favoriteFilter);
   const busy = relationshipAction.isPending || profile.isFetching;
-  const status = profile.data.relationshipStatus;
   const refresh = async () => {
     await Promise.all([profile.refetch(), badges.refetch(), ...(canSeeActivities ? [activities.refetch()] : [])]);
   };
@@ -130,29 +77,16 @@ export default function SocialProfileScreen() {
       onEndReachedThreshold={0.4}
       ListHeaderComponent={
       <View style={styles.container}>
-        <View style={styles.toolbar}>
-          <BackButton onPress={goBack} />
-          <Text style={styles.eyebrow}>PERFIL</Text>
-          {status === 'accepted' ? <Pressable accessibilityRole="button" accessibilityLabel="Gerenciar amizade" onPress={() => setManageFriendship(true)} style={styles.iconButton}><MoreIcon width={dimensions.iconSize} height={dimensions.iconSize} /></Pressable> : null}
-        </View>
-        <View style={styles.profileHeader}>
-        <View style={styles.avatarRing}>
-        <UserAvatar name={profile.data.displayName} avatarKey={profile.data.avatarKey} uri={profile.data.avatarUrl} size={dimensions.minimumTouchTarget * 2} />
-        </View>
-        <View style={styles.identity}>
-        <Text accessibilityRole="header" style={styles.title}>{profile.data.displayName}</Text>
-        <Text style={styles.eyebrow}>{profile.data.isSelf ? 'Seu perfil' : status === 'accepted' ? 'Na sua rede' : 'Perfil Reelix'}</Text>
-        </View>
-        </View>
-        {profile.data.biography ? <Text style={styles.body}>{profile.data.biography}</Text> : null}
-        <View style={styles.statistics}>
-          {profile.data.favoritesShared ? <Pressable accessibilityRole="button" accessibilityLabel="Ver favoritos compartilhados" onPress={() => setTab('favorites')} style={styles.stat}><Text style={styles.statValue}>{profile.data.favorites.length}{profile.data.favorites.length === 100 ? '+' : ''}</Text><Text style={styles.caption}>Favoritos compartilhados</Text></Pressable> : null}
-          {badges.data?.isPublic ? <Pressable accessibilityRole="button" accessibilityLabel="Ver conquistas públicas" onPress={() => setTab('badges')} style={styles.stat}><Text style={styles.statValue}>{badges.data.badges.length}</Text><Text style={styles.caption}>Conquistas públicas</Text></Pressable> : null}
-        </View>
-        {profile.data.isSelf ? <PrimaryButton label="Editar meu perfil" variant="secondary" onPress={() => router.push('/profile')} /> : status === 'accepted' ? <Pressable accessibilityRole="button" accessibilityLabel="Amigos, gerenciar amizade" onPress={() => setManageFriendship(true)} style={styles.friendButton}><FriendsIcon width={dimensions.iconSize} height={dimensions.iconSize} /><Text style={styles.friendLabel}>Amigos</Text></Pressable> : status === 'pending' ? profile.data.requestSentByMe ? <>
-          <PrimaryButton label="Solicitação enviada" disabled variant="secondary" onPress={() => {}} />
-          <PrimaryButton label="Cancelar solicitação" disabled={busy} loading={relationshipAction.isPending} variant="quiet" onPress={() => relationshipAction.mutate('cancel')} />
-        </> : <View style={styles.relationshipActions}><View style={styles.grow}><PrimaryButton label="Aceitar" disabled={busy} loading={relationshipAction.isPending} onPress={() => relationshipAction.mutate('accept')} /></View><View style={styles.grow}><PrimaryButton label="Recusar" disabled={busy} variant="secondary" onPress={() => relationshipAction.mutate('decline')} /></View></View> : <PrimaryButton label="Adicionar amigo" disabled={busy} loading={relationshipAction.isPending} onPress={() => relationshipAction.mutate('send')} />}
+        <FriendProfileHeader
+          profile={profile.data}
+          badges={badges.data}
+          busy={busy}
+          isActing={relationshipAction.isPending}
+          onAction={(action) => relationshipAction.mutate(action)}
+          onManage={() => setManageFriendship(true)}
+          onBack={goBack}
+          onSelectTab={setTab}
+        />
         <View accessibilityRole="tablist" style={styles.tabs}>
           {profileTabs.map(({ key, label, Icon }) => <Pressable key={key} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{ selected: tab === key }} onPress={() => setTab(key)} style={[styles.tab, tab === key && styles.tabSelected]}>
             <Icon width={dimensions.iconSize} height={dimensions.iconSize} />
@@ -223,24 +157,6 @@ export default function SocialProfileScreen() {
   );
 }
 
-function FavoritePoster({ favorite }: { favorite: FriendProfileData['favorites'][number] }) {
-  const router = useRouter();
-  const title = useQuery({
-    queryKey: catalogQueryKeys.title(favorite.provider, favorite.contentType, favorite.externalId),
-    queryFn: ({ signal }) => fetchCatalogTitleDetails(favorite.provider, favorite.contentType, favorite.externalId, signal),
-    staleTime: staleTime.catalog,
-  });
-  useErrorToast(title.error, 'Não foi possível carregar um favorito compartilhado.');
-  return <View style={styles.favorite}>
-    {title.data ? <TitlePosterCard title={title.data}><Text style={styles.badgeDate}>{favorite.contentType === 'movie' ? 'Filme' : 'Série'}</Text></TitlePosterCard> : <View style={styles.posterPlaceholder}>
-      {title.isPending ? <ActivityIndicator accessibilityLabel="Carregando favorito" color={colors.brand} /> : <>
-        <PrimaryButton label="Tentar novamente" variant="quiet" onPress={() => void title.refetch()} />
-        <Pressable accessibilityRole="button" accessibilityLabel="Abrir detalhes do favorito" onPress={() => router.push({ pathname: '/title/[provider]/[contentType]/[externalId]', params: { provider: favorite.provider, contentType: favorite.contentType, externalId: favorite.externalId } })} style={styles.tab}><Text style={styles.body}>Ver título</Text></Pressable>
-      </>}
-    </View>}
-  </View>;
-}
-
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   content: {
@@ -254,20 +170,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     gap: spacing.medium,
   },
-  toolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.small },
   iconButton: { width: dimensions.minimumTouchTarget, minHeight: dimensions.minimumTouchTarget, alignItems: 'center', justifyContent: 'center' },
-  profileHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.large },
-  avatarRing: { borderWidth: 2, borderColor: colors.brand, borderRadius: radii.pill, padding: spacing.extraSmall },
-  identity: { flex: 1, minWidth: 0, gap: spacing.small },
-  eyebrow: { color: colors.textSecondary, fontSize: typography.caption, fontFamily: fontFamily.medium },
-  statistics: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.large },
-  stat: { minHeight: dimensions.minimumTouchTarget, flexBasis: dimensions.posterWidth, flexGrow: 1, gap: spacing.extraSmall },
-  statValue: { color: colors.textPrimary, fontFamily: fontFamily.bold, fontSize: typography.section },
-  caption: { color: colors.textSecondary, fontFamily: fontFamily.regular, fontSize: typography.caption },
-  friendButton: { minHeight: dimensions.minimumTouchTarget, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.small, backgroundColor: colors.surface, borderRadius: radii.small, borderWidth: 1, borderColor: colors.border },
-  friendLabel: { color: colors.textPrimary, fontFamily: fontFamily.semiBold, fontSize: typography.bodySmall },
-  relationshipActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.small },
-  grow: { flex: 1, minWidth: dimensions.posterWidth },
   section: { gap: spacing.medium },
   sectionHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   filters: { flexDirection: 'row', gap: spacing.medium },
@@ -312,35 +215,9 @@ const styles = StyleSheet.create({
   tabLabel: { fontSize: typography.caption, fontFamily: fontFamily.medium, color: colors.textSecondary, textAlign: 'center' },
   tabLabelSelected: { color: colors.brandSecondary, fontFamily: fontFamily.bold },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.medium },
-  favorite: { width: dimensions.posterWidth, minHeight: dimensions.posterHeight + dimensions.minimumTouchTarget },
-  posterPlaceholder: { width: dimensions.posterWidth, height: dimensions.posterHeight, borderRadius: radii.small, backgroundColor: colors.surface, justifyContent: 'center' },
-  badgeTitle: {
-    color: colors.brandSecondary,
-    fontSize: typography.body,
-    fontFamily: fontFamily.bold,
-  },
   badgeDate: {
     color: colors.textSecondary,
     fontSize: typography.caption,
     fontFamily: fontFamily.regular,
-  },
-  avatar: {
-    width: dimensions.minimumTouchTarget * 2,
-    height: dimensions.minimumTouchTarget * 2,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surfaceElevated,
-  },
-  avatarFallback: {
-    width: dimensions.minimumTouchTarget * 2,
-    height: dimensions.minimumTouchTarget * 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.pill,
-    backgroundColor: colors.surfaceElevated,
-  },
-  avatarInitial: {
-    color: colors.textPrimary,
-    fontSize: typography.section,
-    fontFamily: fontFamily.bold,
   },
 });

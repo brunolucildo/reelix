@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 
 import { PrimaryButton } from '@/components/ui/primary-button';
-import { AchievementMedal } from '@/components/gamification/achievement-medal';
+import { AchievementMedal } from '@/features/gamification/components/achievement-medal';
 import { BackButton } from '@/components/navigation/back-button';
 import { useTrackingHistory } from '@/features/tracking/hooks/use-tracking';
 import { useErrorToast, useToast } from '@/providers/toast-provider';

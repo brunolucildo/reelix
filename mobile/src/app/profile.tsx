@@ -4,7 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, Tex
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { PrimaryButton } from '@/components/ui/primary-button';
-import { AchievementGrid } from '@/components/gamification/achievement-grid';
+import { AchievementGrid } from '@/features/gamification/components/achievement-grid';
 import { BackButton } from '@/components/navigation/back-button';
 import { avatarOptions, UserAvatar } from '@/components/ui/user-avatar';
 import { useErrorToast, useToast } from '@/providers/toast-provider';

@@ -5,7 +5,7 @@ import { ActivityIndicator, Animated, Modal, Pressable, ScrollView, StyleSheet, 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/ui/primary-button';
-import { AchievementGrid } from '@/components/gamification/achievement-grid';
+import { AchievementGrid } from '@/features/gamification/components/achievement-grid';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { useAuthSession } from '@/providers/auth-provider';
 import { ToastViewport, useErrorToast, useToast } from '@/providers/toast-provider';

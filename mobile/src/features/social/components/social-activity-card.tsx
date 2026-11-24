@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -7,23 +6,14 @@ import FilmIcon from '@/assets/brand/navigation-icons/films.svg';
 import RatingIcon from '@/assets/brand/navigation-icons/rating.svg';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { UserAvatar } from '@/components/ui/user-avatar';
-import { useErrorToast } from '@/providers/toast-provider';
-import { fetchCatalogTitleDetails, type SocialActivityData } from '@/services/api-client';
+import type { SocialActivityData } from '@/features/social/api/social-api';
+import { useActivityTitle } from '@/features/social/hooks/use-activity-title';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
-import { catalogQueryKeys } from '@/features/catalog/query-keys';
-import { staleTime } from '@/lib/query/stale-time';
 import { formatActivityTime } from '@/lib/format';
 
 export function SocialActivityCard({ activity, compact = false }: { activity: SocialActivityData; compact?: boolean }) {
   const router = useRouter();
-  const contentType = activity.targetType === 'series' ? 'series' : 'movie';
-  const title = useQuery({
-    queryKey: catalogQueryKeys.title(activity.provider, contentType, activity.externalId),
-    queryFn: ({ signal }) => fetchCatalogTitleDetails(activity.provider, contentType, activity.externalId, signal),
-    enabled: !compact && activity.targetType !== 'episode',
-    staleTime: staleTime.catalog,
-  });
-  useErrorToast(title.error, 'Não foi possível carregar os detalhes do título.');
+  const title = useActivityTitle(activity, compact);
   const typeLabel = activity.targetType === 'movie' ? 'Filme' : activity.targetType === 'series' ? 'Série' : 'Episódio';
   const isRating = activity.activityType === 'ratingUpdated';
   const Icon = isRating ? RatingIcon : FilmIcon;

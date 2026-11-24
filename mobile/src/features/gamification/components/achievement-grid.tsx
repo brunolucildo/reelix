@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { AchievementMedal } from '@/components/gamification/achievement-medal';
+import { AchievementMedal } from '@/features/gamification/components/achievement-medal';
 import { ModalDialog } from '@/components/ui/modal-dialog';
 import type { AchievementProgress } from '@/services/api-client';
 import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';
