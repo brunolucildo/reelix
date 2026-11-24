@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.RateLimiting;
-using Reelix.Api.Authentication;
-using Reelix.Application.Notifications;
+using Reelix.Api.Errors;
+using Reelix.Api.Notifications.Contracts;
+using Reelix.Api.Notifications.Handlers;
 
 namespace Reelix.Api.Notifications;
 
@@ -12,185 +13,55 @@ public static class NotificationsEndpoints
             .WithTags("Notifications")
             .RequireAuthorization();
 
-        group.MapGet("/preferences", GetPreferences)
+        group.MapGet("/preferences", GetNotificationPreferencesHandler.HandleAsync)
             .WithName("GetNotificationPreferences")
-            .Produces<NotificationPreferencesData>()
+            .WithApplicationProblems()
+            .Produces<NotificationPreferencesResponse>()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
-        group.MapPut("/preferences", UpdatePreferences)
+        group.MapPut("/preferences", UpdateNotificationPreferencesHandler.HandleAsync)
             .WithName("UpdateNotificationPreferences")
+            .WithApplicationProblems()
             .RequireRateLimiting("notifications-write")
-            .Produces<NotificationPreferencesData>()
+            .Produces<NotificationPreferencesResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status429TooManyRequests);
-        group.MapPost("/devices", RegisterDevice)
+        group.MapPost("/devices", RegisterNotificationDeviceHandler.HandleAsync)
             .WithName("RegisterNotificationDevice")
+            .WithApplicationProblems(
+                new ApplicationProblemOptions { ValidationTitle = "Registro de dispositivo inválido." })
             .RequireRateLimiting("notifications-write")
-            .Produces<NotificationDeviceData>(StatusCodes.Status201Created)
+            .Produces<NotificationDeviceResponse>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status409Conflict)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
             .ProducesProblem(StatusCodes.Status429TooManyRequests);
-        group.MapDelete("/devices/{deviceId:guid}", DeactivateDevice)
+        group.MapDelete("/devices/{deviceId:guid}", DeactivateNotificationDeviceHandler.HandleAsync)
             .WithName("DeactivateNotificationDevice")
+            .WithApplicationProblems()
             .RequireRateLimiting("notifications-write")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status429TooManyRequests);
-        group.MapGet("/inbox", GetInbox)
+        group.MapGet("/inbox", GetNotificationInboxHandler.HandleAsync)
             .WithName("GetNotificationInbox")
-            .Produces<NotificationInboxPage>()
+            .WithApplicationProblems(new ApplicationProblemOptions { ValidationTitle = "Cursor inválido." })
+            .Produces<NotificationInboxResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
-        group.MapGet("/inbox/unread-count", GetUnreadCount)
+        group.MapGet("/inbox/unread-count", GetNotificationUnreadCountHandler.HandleAsync)
             .WithName("GetNotificationUnreadCount")
-            .Produces<NotificationUnreadCount>()
+            .WithApplicationProblems()
+            .Produces<NotificationUnreadCountResponse>()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
-        group.MapPut("/inbox/{notificationId:guid}/read", MarkRead)
+        group.MapPut("/inbox/{notificationId:guid}/read", MarkNotificationReadHandler.HandleAsync)
             .WithName("MarkNotificationRead")
+            .WithApplicationProblems()
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status404NotFound);
         return group;
     }
-
-    private static async Task<IResult> GetPreferences(
-        HttpContext context,
-        NotificationsService service,
-        CancellationToken cancellationToken)
-    {
-        if (!TryGetUserId(context, out var userId))
-        {
-            return Results.Unauthorized();
-        }
-
-        return Results.Ok(await service.GetPreferencesAsync(userId, cancellationToken));
-    }
-
-    private static async Task<IResult> UpdatePreferences(
-        HttpContext context,
-        NotificationsService service,
-        UpdateNotificationPreferences preferences,
-        CancellationToken cancellationToken)
-    {
-        if (!TryGetUserId(context, out var userId))
-        {
-            return Results.Unauthorized();
-        }
-
-        return Results.Ok(await service.UpdatePreferencesAsync(userId, preferences, cancellationToken));
-    }
-
-    private static async Task<IResult> RegisterDevice(
-        HttpContext context,
-        NotificationsService service,
-        RegisterNotificationDevice registration,
-        CancellationToken cancellationToken)
-    {
-        if (!TryGetUserId(context, out var userId))
-        {
-            return Results.Unauthorized();
-        }
-
-        try
-        {
-            var device = await service.RegisterDeviceAsync(userId, registration, cancellationToken);
-            return Results.Created($"/api/v1/notifications/devices/{device.Id}", device);
-        }
-        catch (NotificationDeviceConflictException exception)
-        {
-            return Results.Problem(
-                statusCode: StatusCodes.Status409Conflict,
-                title: "Dispositivo já associado.",
-                detail: exception.Message);
-        }
-        catch (ArgumentException exception)
-        {
-            return Results.Problem(
-                statusCode: StatusCodes.Status400BadRequest,
-                title: "Registro de dispositivo inválido.",
-                detail: exception.Message);
-        }
-        catch (InvalidOperationException exception)
-        {
-            return Results.Problem(
-                statusCode: StatusCodes.Status503ServiceUnavailable,
-                title: "Notificações push indisponíveis.",
-                detail: exception.Message);
-        }
-    }
-
-    private static async Task<IResult> DeactivateDevice(
-        HttpContext context,
-        NotificationsService service,
-        Guid deviceId,
-        CancellationToken cancellationToken)
-    {
-        if (!TryGetUserId(context, out var userId))
-        {
-            return Results.Unauthorized();
-        }
-
-        return await service.DeactivateDeviceAsync(userId, deviceId, cancellationToken)
-            ? Results.NoContent()
-            : Results.NotFound();
-    }
-
-    private static async Task<IResult> GetInbox(
-        HttpContext context,
-        NotificationsService service,
-        string? cursor,
-        CancellationToken cancellationToken)
-    {
-        if (!TryGetUserId(context, out var userId))
-        {
-            return Results.Unauthorized();
-        }
-
-        try
-        {
-            return Results.Ok(await service.GetInboxAsync(userId, cursor, cancellationToken));
-        }
-        catch (ArgumentException exception)
-        {
-            return Results.Problem(
-                statusCode: StatusCodes.Status400BadRequest,
-                title: "Cursor inválido.",
-                detail: exception.Message);
-        }
-    }
-
-    private static async Task<IResult> GetUnreadCount(
-        HttpContext context,
-        NotificationsService service,
-        CancellationToken cancellationToken)
-    {
-        if (!TryGetUserId(context, out var userId))
-        {
-            return Results.Unauthorized();
-        }
-
-        return Results.Ok(await service.GetUnreadCountAsync(userId, cancellationToken));
-    }
-
-    private static async Task<IResult> MarkRead(
-        HttpContext context,
-        NotificationsService service,
-        Guid notificationId,
-        CancellationToken cancellationToken)
-    {
-        if (!TryGetUserId(context, out var userId))
-        {
-            return Results.Unauthorized();
-        }
-
-        return await service.MarkReadAsync(userId, notificationId, cancellationToken)
-            ? Results.NoContent()
-            : Results.NotFound();
-    }
-
-    private static bool TryGetUserId(HttpContext context, out Guid userId) =>
-        context.User.ReadSubjectId(out userId);
 }

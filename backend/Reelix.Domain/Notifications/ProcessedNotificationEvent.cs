@@ -19,6 +19,12 @@ public sealed class ProcessedNotificationEvent
 
     public DateTimeOffset ProcessedAt { get; private set; }
 
+    public static ProcessedNotificationEvent Create(
+        Guid eventId,
+        SocialEventOutcome outcome,
+        DateTimeOffset now) =>
+        Create(eventId, outcome.ToPersistedText(), now);
+
     public static ProcessedNotificationEvent Create(Guid eventId, string outcome, DateTimeOffset now)
     {
         if (eventId == Guid.Empty || outcome is not ("created" or "disabled" or "obsolete"))

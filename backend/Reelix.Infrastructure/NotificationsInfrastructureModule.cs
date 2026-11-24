@@ -13,7 +13,16 @@ public static class NotificationsInfrastructureModule
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddScoped<INotificationsRepository, NotificationsRepository>();
+        services.AddScoped<INotificationPreferencesStore, NotificationPreferencesStore>();
+        services.AddScoped<INotificationDevices, NotificationDeviceRegistry>();
+        services.AddScoped<INotificationDeviceLookup, NotificationDeviceLookup>();
+        services.AddScoped<INotificationDeliveries, NotificationDeliveryStore>();
+        services.AddScoped<IUserNotifications, UserNotificationStore>();
+        services.AddScoped<IFriendships, FriendshipLookup>();
+        services.AddScoped<INotificationsUnitOfWork, NotificationsUnitOfWork>();
+        services.AddScoped<ISocialEventOutbox, SocialEventOutbox>();
+        services.AddScoped<IPushDeliveryQueue, PushDeliveryQueue>();
+        services.AddSingleton<IJitterSource, RandomJitterSource>();
         services.AddOptions<ExpoPushOptions>()
             .Bind(configuration.GetSection(ExpoPushOptions.SectionName))
             .Validate(
@@ -25,7 +34,7 @@ public static class NotificationsInfrastructureModule
             .ValidateOnStart();
         services.AddSingleton<IPushRegistrationConfiguration>(serviceProvider =>
             serviceProvider.GetRequiredService<IOptions<ExpoPushOptions>>().Value);
-        services.AddHttpClient<IExpoPushClient, ExpoPushClient>(client =>
+        services.AddHttpClient<IPushSender, ExpoPushSender>(client =>
         {
             client.BaseAddress = new Uri("https://exp.host/--/api/v2/");
             client.Timeout = TimeSpan.FromSeconds(15);

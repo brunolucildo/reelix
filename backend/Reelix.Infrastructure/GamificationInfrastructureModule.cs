@@ -8,7 +8,13 @@ public static class GamificationInfrastructureModule
 {
     public static IServiceCollection AddGamificationInfrastructure(this IServiceCollection services)
     {
-        services.AddScoped<IGamificationRepository, GamificationRepository>();
+        services.AddScoped<IAchievementCatalog, AchievementCatalog>();
+        services.AddScoped<IUserAchievements, UserAchievementStore>();
+        services.AddScoped<IAchievementReconciliationTransaction, AchievementReconciliationTransaction>();
+        services.AddScoped<IGamificationStatisticsReader, GamificationStatisticsReader>();
+        services.AddScoped<IGamificationPreferencesStore, GamificationPreferencesStore>();
+        services.AddScoped<IMonthlyRankingReader, MonthlyRankingReader>();
+        services.AddScoped<IPublicBadgesReader, PublicBadgesReader>();
         return services;
     }
 }
