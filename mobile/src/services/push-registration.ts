@@ -6,7 +6,7 @@ import { AndroidImportance } from 'expo-notifications';
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
-import { deactivateNotificationDevice, registerNotificationDevice } from '@/services/api-client';
+import { deactivateNotificationDevice, registerNotificationDevice } from '@/features/notifications/api/notifications-api';
 
 const installationIdKey = 'reelix.push.installation-id';
 const deviceIdKeyPrefix = 'reelix.push.device-id.';

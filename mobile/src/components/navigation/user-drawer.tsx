@@ -1,27 +1,25 @@
-import { useQuery } from '@tanstack/react-query';
 import { type Href, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Animated, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { PrimaryButton } from '@/components/auth/primary-button';
-import { AchievementGrid } from '@/components/gamification/achievement-grid';
-import { UserAvatar } from '@/components/user-avatar';
+import { PrimaryButton } from '@/components/ui/primary-button';
+import { AchievementGrid } from '@/features/gamification/components/achievement-grid';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { useAuthSession } from '@/providers/auth-provider';
-import { ToastViewport, useErrorToast, useToast } from '@/providers/toast-provider';
-import { fetchGamificationDashboard, fetchProfile } from '@/services/api-client';
+import { ToastViewport, useToast } from '@/providers/toast-provider';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
-import { gamificationQueryKeys } from '@/features/gamification/query-keys';
-import { profileQueryKeys } from '@/features/profile/query-keys';
-import ProfileIcon from '../../../assets/brand/navigation-icons/profile.svg';
-import FavoritesIcon from '../../../assets/brand/navigation-icons/favorites.svg';
-import ListsIcon from '../../../assets/brand/navigation-icons/list-add.svg';
-import ClockIcon from '../../../assets/brand/navigation-icons/clock.svg';
-import FriendsIcon from '../../../assets/brand/navigation-icons/friends.svg';
-import AchievementsIcon from '../../../assets/brand/navigation-icons/achievements.svg';
-import SettingsIcon from '../../../assets/brand/navigation-icons/settings.svg';
-import CloseIcon from '../../../assets/brand/navigation-icons/close.svg';
-import RatingIcon from '../../../assets/brand/navigation-icons/rating.svg';
+import { useGamificationDashboard } from '@/features/gamification/hooks/use-gamification-dashboard';
+import { useProfile } from '@/features/profile/hooks/use-profile';
+import ProfileIcon from '@/assets/brand/navigation-icons/profile.svg';
+import FavoritesIcon from '@/assets/brand/navigation-icons/favorites.svg';
+import ListsIcon from '@/assets/brand/navigation-icons/list-add.svg';
+import ClockIcon from '@/assets/brand/navigation-icons/clock.svg';
+import FriendsIcon from '@/assets/brand/navigation-icons/friends.svg';
+import AchievementsIcon from '@/assets/brand/navigation-icons/achievements.svg';
+import SettingsIcon from '@/assets/brand/navigation-icons/settings.svg';
+import CloseIcon from '@/assets/brand/navigation-icons/close.svg';
+import RatingIcon from '@/assets/brand/navigation-icons/rating.svg';
 
 const destinations: { label: string; href: Href; Icon: typeof ProfileIcon }[] = [
   { label: 'Meu perfil', href: '/profile', Icon: ProfileIcon },
@@ -46,14 +44,8 @@ export function UserDrawer() {
   const [confirming, setConfirming] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [offset] = useState(() => new Animated.Value(-dimensions.drawerWidth));
-  const profile = useQuery({ queryKey: profileQueryKeys.profile, queryFn: fetchProfile, enabled: Boolean(session) });
-  const gamification = useQuery({
-    queryKey: gamificationQueryKeys.dashboard,
-    queryFn: ({ signal }) => fetchGamificationDashboard(signal),
-    enabled: Boolean(session) && visible,
-  });
-  useErrorToast(gamification.error, 'Não foi possível carregar suas conquistas.');
-  useErrorToast(profile.error, 'Não foi possível carregar seu perfil. Tente novamente.');
+  const profile = useProfile('Não foi possível carregar seu perfil. Tente novamente.', Boolean(session));
+  const gamification = useGamificationDashboard(Boolean(session) && visible);
   const name = profile.data?.displayName || 'Minha conta';
 
   const close = (after?: () => void) => {

@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PrimaryButton } from '@/components/auth/primary-button';
+import { PrimaryButton } from '@/components/ui/primary-button';
 import { BackButton } from '@/components/navigation/back-button';
 import { colors, fontFamily, spacing, typography } from '@/theme/tokens';
 

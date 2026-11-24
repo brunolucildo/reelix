@@ -16,7 +16,7 @@ O design system do Reelix é **React Native `StyleSheet` + tokens em TypeScript*
 | Tema | Só escuro (`userInterfaceStyle: "dark"`); sem tokens por tema |
 | Ícones e ilustrações | SVGs do kit `mobile/assets/brand/`, importados como componentes (`react-native-svg` + `react-native-svg-transformer`, `metro.config.js`) |
 | Imagens | `expo-image` (`Image` com `contentFit="cover"`, `transition={150}`) |
-| Componentes compartilhados | `PrimaryButton`, `AuthInput`, `AuthLink`, `AuthScreen`, `FormMessage`, `IconAction`, `ModalDialog`, `UserAvatar`, `AppHeader`, `BackButton`, `UserDrawer`, `TitlePosterCard`, `MediaTitleRow`, `AchievementMedal`, `AchievementGrid`, `ToastProvider` (§5) |
+| Componentes compartilhados | Primitivos em `components/ui`: `PrimaryButton`, `IconAction`, `ModalDialog`, `ConfirmDialog`, `UserAvatar`, `ToggleRow`, `Chip`/`SegmentButton`/`TabButton`, `SmallButton`, `Pager`, `LoadingState`/`RetryState`; navegação em `components/navigation` (`AppHeader`, `BackButton`, `UserDrawer`); por feature: `AuthInput`, `AuthLink`, `AuthScreen`, `FormMessage`, `TitlePosterCard`, `MediaTitleRow`, `AchievementMedal`, `AchievementGrid`; `ToastProvider` (§5) |
 | Componentes ausentes | Ver §5.5 |
 | Animação | `Animated` do RN (`useNativeDriver: false`); `react-native-reanimated` instalado sem uso |
 | Compilador | `experiments.reactCompiler: true` e `typedRoutes: true` em `app.json` |
@@ -30,19 +30,20 @@ Ao instalar ou mudar algo aqui, atualize esta tabela e `DESIGN.md` na mesma muda
 | Tipo | Local hoje | Exemplo |
 | --- | --- | --- |
 | Tokens | `mobile/src/theme/tokens.ts` | `colors`, `spacing` |
-| Componente compartilhado solto | `mobile/src/components/<nome>.tsx` | `icon-action.tsx`, `modal-dialog.tsx`, `user-avatar.tsx` |
-| Componente por domínio | `mobile/src/components/<dominio>/` | `auth/`, `discovery/`, `gamification/`, `navigation/`, `reviews/`, `social/` |
+| Primitivo compartilhado | `mobile/src/components/ui/<nome>.tsx` | `primary-button.tsx`, `icon-action.tsx`, `modal-dialog.tsx`, `confirm-dialog.tsx`, `toggle-row.tsx` |
+| Navegação compartilhada | `mobile/src/components/navigation/` | `app-header.tsx`, `user-drawer.tsx`, `back-button.tsx` |
+| Componente de feature | `mobile/src/features/<modulo>/components/` | `auth/`, `catalog/`, `gamification/`, `home/`, `lists/`, `ratings/`, `social/`, `tracking/` |
 | Provider com UI | `mobile/src/providers/` | `toast-provider.tsx` |
 | Tela (rota) | `mobile/src/app/` | `home.tsx`, `tracking.tsx` |
-| Dados e API | `mobile/src/features/<modulo>/api/`, `mobile/src/lib/`, `mobile/src/hooks/` | `http-client.ts`, `*-api.ts`, `use-tracking.ts` |
+| Dados e API | `mobile/src/features/<modulo>/{api,hooks}/`, `mobile/src/lib/` | `http-client.ts`, `*-api.ts`, `use-tracking.ts` |
 | Arte do kit de marca | `mobile/assets/brand/` | `navigation-icons/`, `badges/` |
 
 Regras:
 
 - Não ponha componente em `src/app/`: toda pasta e arquivo ali vira rota (Expo Router).
 - Se o componente é usado em mais de uma tela ou feature e não depende de regra de negócio nem de chamada de API, ele é um **primitivo**.
-- **Onde criar primitivos novos (convenção proposta, ainda não adotada):** `mobile/src/components/ui/<nome>.tsx`. A pasta não existe hoje; os primitivos de fato existentes estão espalhados (`components/auth/primary-button.tsx`, `components/icon-action.tsx`, `components/modal-dialog.tsx`). Mover o `PrimaryButton` para fora de `auth/` faz parte da spec futura; não faça isso numa mudança de tela.
-- Composição de feature (que chama API, usa React Query ou conhece o domínio) fica em `components/<dominio>/`, nunca em `components/ui/`.
+- **Primitivos** ficam em `mobile/src/components/ui/<nome>.tsx` (spec `0018`): `PrimaryButton`, `IconAction`, `ModalDialog`, `ConfirmDialog`, `UserAvatar`, `ToggleRow`, `Chip`/`SegmentButton`/`TabButton`, `SmallButton`, `Pager`, `LoadingState`/`RetryState`. Onde as cópias antigas diferiam em estilo, o primitivo preserva cada aparência por `variant`/props (`ToggleRow`: `divided`, `plain`, `privacy`; `Pager`: `pages`, `count`); unificar a aparência é da spec `0019`.
+- Composição de feature (que conhece o domínio) fica em `features/<modulo>/components/` e acessa dados só por hooks de `features/<modulo>/hooks/`; `components/ui/` nunca importa de `features/`.
 - Arquivo em `kebab-case.tsx`; export nomeado em `PascalCase` (não há `export default` nos componentes atuais; só as telas usam default, por exigência do Expo Router).
 
 ## 3. Tokens
@@ -116,14 +117,20 @@ Contagens de uso: quantidade de arquivos que importam o componente (grep de `imp
 
 | Componente | Arquivo | Props | Comportamento e acessibilidade |
 | --- | --- | --- | --- |
-| `PrimaryButton` | `components/auth/primary-button.tsx` (21 usos em todo o app, embora viva em `auth/`) | `label`, `onPress`, `loading?`, `disabled?`, `variant?` (`'primary'` padrão, `'secondary'`, `'quiet'`) | `Pressable` com `accessibilityRole="button"`, `accessibilityLabel={label}` e `busy`/`disabled`; `minHeight: 54`, `radii.medium`. `primary`: fundo `brand`, texto `background`. `secondary`: `surfaceElevated` com borda `border`, texto `textPrimary`. `quiet`: transparente, texto `error`. `loading` troca o texto por `ActivityIndicator` e desabilita; pressionado `opacity` 0,82, desabilitado 0,55. Sem ícone, `size` nem `style` |
-| `AuthInput<TValues>` | `components/auth/auth-input.tsx` (4 usos, só autenticação) | `control`, `name` (`react-hook-form`), `label`, `placeholder?`, `autoComplete?`, `keyboardType?`, `secureTextEntry?` (padrão `false`), `returnKeyType?` (padrão `'next'`) | Rótulo `bodySmall` acima; moldura de 54px (`surface`, borda `border`); borda `brandSecondary` no foco e `error` com erro; erro em `caption` com `accessibilityRole="alert"` e repetido em `accessibilityHint`. Com `secureTextEntry`, botão Mostrar/Ocultar (`minWidth: 76`, alto 44, label `Mostrar senha`/`Ocultar senha`, `selected`). Fixa `autoCapitalize="none"`, `autoCorrect={false}` e `textContentType` (`password`, `newPassword` ou `emailAddress`), então só serve a e-mail e senha |
-| `AuthLink` | `components/auth/auth-link.tsx` (4 usos) | `href` (`'/'`, `'/sign-up'` ou `'/forgot-password'`), `label`, `align?` (`'center'` padrão, `'left'`, `'right'`) | `Link` do `expo-router` com `accessibilityRole="link"`, `minHeight: 44`, texto `brandSecondary`. `href` é uma união fechada de três rotas |
-| `AuthScreen` | `components/auth/auth-screen.tsx` (6 usos) | `title`, `subtitle`, `children` | `ScrollView` centralizado, `maxWidth: 440`, logo horizontal (`accessibilityLabel` "Reelix — filmes e séries"), linha de marca de 40×3, título (`accessibilityRole="header"`, `display`, `extraBold`), cartão de formulário (`surface`, `radii.large`). Mostra `BackButton` quando `pathname !== '/'` |
-| `FormMessage` | `components/auth/form-message.tsx` (3 usos) | `message`, `tone` (`'error'` ou `'success'`) | `Text` com `accessibilityLiveRegion="polite"`; role `alert` no erro. Erro de **API** não usa este componente (usa toast); serve a mensagens inline de formulário |
-| `IconAction` | `components/icon-action.tsx` (5 usos) | `label`, `onPress`, `children` (o ícone), `selected?`, `disabled?`, `loading?`, `radio?` | Botão 44×44 (`radii.small`, borda de 2px). Papel: `button` sem `selected`, `checkbox` com `selected`, `radio` com `radio`. `selected` troca borda para `brand` e fundo para `brandSurface`. `loading` mostra `ActivityIndicator`. Mostra tooltip com o `label` em hover, foco e toque longo (largura `posterWidth + spacing.large`). Pressionado/desabilitado/carregando: `opacity` 0,65 |
-| `ModalDialog` | `components/modal-dialog.tsx` (5 usos) | `visible`, `title`, `onClose`, `busy?`, `children` | `Modal` transparente com `animationType="fade"`; overlay de tela cheia em `background` (**opaco**, não é scrim), diálogo `surface` com `radii.medium`, `maxWidth: drawerWidth * 2`, corpo em `ScrollView` e `KeyboardAvoidingView`. `accessibilityViewIsModal`; fechar por botão "Fechar janela" (44px), toque no fundo ou botão voltar do Android; com `busy` o fechamento fica bloqueado. Renderiza o próprio `ToastViewport` (o `Modal` cobre o do provider) |
-| `UserAvatar` | `components/user-avatar.tsx` (5 usos) | `name`, `avatarKey?`, `uri?`, `size?` (padrão `dimensions.minimumTouchTarget`) | Círculo (`radii.pill`). Ordem: SVG do `avatarOptions` pela chave, depois imagem `uri` (`expo-image`), depois inicial do nome (`pt-BR`). `accessibilityRole="image"` com label "Avatar de {nome}, {personagem}". Exporta `avatarOptions` (9 itens: `key`, `label`, `category`, `Graphic`) |
+| `PrimaryButton` | `components/ui/primary-button.tsx` (21 usos em todo o app) | `label`, `onPress`, `loading?`, `disabled?`, `variant?` (`'primary'` padrão, `'secondary'`, `'quiet'`) | `Pressable` com `accessibilityRole="button"`, `accessibilityLabel={label}` e `busy`/`disabled`; `minHeight: 54`, `radii.medium`. `primary`: fundo `brand`, texto `background`. `secondary`: `surfaceElevated` com borda `border`, texto `textPrimary`. `quiet`: transparente, texto `error`. `loading` troca o texto por `ActivityIndicator` e desabilita; pressionado `opacity` 0,82, desabilitado 0,55. Sem ícone, `size` nem `style` |
+| `AuthInput<TValues>` | `features/auth/components/auth-input.tsx` (4 usos, só autenticação) | `control`, `name` (`react-hook-form`), `label`, `placeholder?`, `autoComplete?`, `keyboardType?`, `secureTextEntry?` (padrão `false`), `returnKeyType?` (padrão `'next'`) | Rótulo `bodySmall` acima; moldura de 54px (`surface`, borda `border`); borda `brandSecondary` no foco e `error` com erro; erro em `caption` com `accessibilityRole="alert"` e repetido em `accessibilityHint`. Com `secureTextEntry`, botão Mostrar/Ocultar (`minWidth: 76`, alto 44, label `Mostrar senha`/`Ocultar senha`, `selected`). Fixa `autoCapitalize="none"`, `autoCorrect={false}` e `textContentType` (`password`, `newPassword` ou `emailAddress`), então só serve a e-mail e senha |
+| `AuthLink` | `features/auth/components/auth-link.tsx` (4 usos) | `href` (`'/'`, `'/sign-up'` ou `'/forgot-password'`), `label`, `align?` (`'center'` padrão, `'left'`, `'right'`) | `Link` do `expo-router` com `accessibilityRole="link"`, `minHeight: 44`, texto `brandSecondary`. `href` é uma união fechada de três rotas |
+| `AuthScreen` | `features/auth/components/auth-screen.tsx` (6 usos) | `title`, `subtitle`, `children` | `ScrollView` centralizado, `maxWidth: 440`, logo horizontal (`accessibilityLabel` "Reelix — filmes e séries"), linha de marca de 40×3, título (`accessibilityRole="header"`, `display`, `extraBold`), cartão de formulário (`surface`, `radii.large`). Mostra `BackButton` quando `pathname !== '/'` |
+| `FormMessage` | `features/auth/components/form-message.tsx` (3 usos) | `message`, `tone` (`'error'` ou `'success'`) | `Text` com `accessibilityLiveRegion="polite"`; role `alert` no erro. Erro de **API** não usa este componente (usa toast); serve a mensagens inline de formulário |
+| `IconAction` | `components/ui/icon-action.tsx` (5 usos) | `label`, `onPress`, `children` (o ícone), `selected?`, `disabled?`, `loading?`, `radio?` | Botão 44×44 (`radii.small`, borda de 2px). Papel: `button` sem `selected`, `checkbox` com `selected`, `radio` com `radio`. `selected` troca borda para `brand` e fundo para `brandSurface`. `loading` mostra `ActivityIndicator`. Mostra tooltip com o `label` em hover, foco e toque longo (largura `posterWidth + spacing.large`). Pressionado/desabilitado/carregando: `opacity` 0,65 |
+| `ModalDialog` | `components/ui/modal-dialog.tsx` (5 usos) | `visible`, `title`, `onClose`, `busy?`, `children` | `Modal` transparente com `animationType="fade"`; overlay de tela cheia em `background` (**opaco**, não é scrim), diálogo `surface` com `radii.medium`, `maxWidth: drawerWidth * 2`, corpo em `ScrollView` e `KeyboardAvoidingView`. `accessibilityViewIsModal`; fechar por botão "Fechar janela" (44px), toque no fundo ou botão voltar do Android; com `busy` o fechamento fica bloqueado. Renderiza o próprio `ToastViewport` (o `Modal` cobre o do provider) |
+| `UserAvatar` | `components/ui/user-avatar.tsx` (5 usos) | `name`, `avatarKey?`, `uri?`, `size?` (padrão `dimensions.minimumTouchTarget`) | Círculo (`radii.pill`). Ordem: SVG do `avatarOptions` pela chave, depois imagem `uri` (`expo-image`), depois inicial do nome (`pt-BR`). `accessibilityRole="image"` com label "Avatar de {nome}, {personagem}". Exporta `avatarOptions` (9 itens: `key`, `label`, `category`, `Graphic`) |
+| `ConfirmDialog` | `components/ui/confirm-dialog.tsx` (2 usos: tracking e comentários) | `visible`, `title`, `message`, `confirmLabel`, `onConfirm`, `onCancel`, `busy?` | Substitui `Alert.alert` (no-op no RN Web): `ModalDialog` com o texto, `PrimaryButton` de confirmação e "Cancelar" secundário; com `busy` o fechamento fica bloqueado. Única mudança visual da spec `0018` |
+| `ToggleRow` | `components/ui/toggle-row.tsx` (3 telas) | `label`, `description`, `value`, `onValueChange`, `disabled?`, `accessibilityHint?`, `variant?` (`divided` padrão, `plain`, `privacy`) | Linha com texto e `Switch` (`thumbColor` `white`, `trackColor` `surfaceElevated`/`brand`). As variantes preservam as três aparências antigas (conquistas, notificações, perfil) até a spec `0019` |
+| `Chip`, `SegmentButton`, `TabButton` | `components/ui/chip.tsx` | `label`, `selected` (`active` no `TabButton`), `onPress` | `Chip`: `checkbox`, 44px, seleção múltipla. `SegmentButton`: `button` com `selected`, 48px, `flex: 1`. `TabButton`: papel `tab`, pílula de 44px |
+| `SmallButton` | `components/ui/small-button.tsx` | `label`, `onPress`, `disabled?`, `accessibilityLabel?`, `iconOnly?` | Botão compacto de 44px (`surfaceElevated`, borda `border`); `iconOnly` usa glifo grande para setas |
+| `Pager` | `components/ui/pager.tsx` | `page`, `pageSize`, `totalCount`, `onChange`, `variant?` (`pages` padrão, `count`), `label?`, `unit?`, `isFetching?` | Paginação numerada. `pages` (listas): setas e "Página N de M", some com 1 página. `count` (tracking): "Página N · T unidade" e setas, com "Atualizando..." enquanto busca. O cálculo de páginas vem de `lib/pagination` (`getTotalPages`) |
+| `LoadingState`, `RetryState` | `components/ui/loading-state.tsx` | `label` / `onRetry` | `LoadingState`: `ActivityIndicator` com texto e live region `polite`. `RetryState`: `PrimaryButton` secundário "Tentar novamente"; o erro em si vai para o toast |
 
 ### 5.2 Navegação
 
@@ -148,15 +155,15 @@ Comportamento: só **um** toast por vez (um novo substitui o atual), some após 
 
 | Componente | Arquivo | Props | Papel |
 | --- | --- | --- | --- |
-| `TitlePosterCard` | `components/discovery/title-poster-card.tsx` (6 usos) | `title` (`id`, `provider`, `externalId`, `contentType`, `title`, `releaseDate`, `posterUrl`, `genres?`), `children?`, `actionLabel?` | Card 120×180 que abre `/title/...`; pôster ausente mostra "Pôster indisponível". Label "{actionLabel ?? 'Abrir detalhes de'} {título}" |
-| `MediaTitleRow` | `components/discovery/media-title-row.tsx` (2 usos) | `title` (`CatalogTitle`), `children?`, `layout?` (`'row'` ou `'poster'`) | Linha com pôster 64×96, tipo, ano e gêneros; `children` viram ações abaixo |
-| `AchievementMedal` | `components/gamification/achievement-medal.tsx` (3 usos) | `code`, `title`, `earned`, `size?` (64) | Mapeia 8 códigos para os SVGs de `badges/`; código desconhecido retorna `null`; bloqueada com `opacity` 0,35; `accessibilityRole="image"` |
-| `AchievementGrid` | `components/gamification/achievement-grid.tsx` (2 usos) | `achievements`, `compact?` | Grade de medalhas tocáveis que abre `ModalDialog` com detalhes |
-| `SocialActivityCard` | `components/social/social-activity-card.tsx` (2 usos) | `activity`, `compact?` | Atividade de amigo; busca o título por React Query, erro via toast |
-| `TitleCollectionActions` | `components/discovery/title-collection-actions.tsx` | `title` | Ações Quero assistir, favoritar e adicionar a lista (com `ModalDialog`) |
-| `RatingReviewSection` | `components/reviews/rating-review-section.tsx` | `targetId`, `targetType`, `seriesId?`, `allowRating?` (`true`) | Nota em meia estrela, comentário, audiência e spoiler; confirma exclusão com `Alert.alert` |
-| Seções da Home | `components/discovery/` | `DiscoveryFeedSection` (`title`, `type`, `category`, `genreIds?`), `FavoriteTitleSection` (`type`, `title`, `collection?`), `StartWatchingSection`, `TrackedSeriesSection` (`onOpenTracking`), `UpcomingCalendarSection` | Cada uma reimplementa seus blocos de carregando, vazio e erro |
-| `formatRatingStars` | `components/reviews/rating-stars.ts` | `score` | Função, não componente: devolve texto com `★`, `◐` e `☆` |
+| `TitlePosterCard` | `features/catalog/components/title-poster-card.tsx` (6 usos) | `title` (`id`, `provider`, `externalId`, `contentType`, `title`, `releaseDate`, `posterUrl`, `genres?`), `children?`, `actionLabel?` | Card 120×180 que abre `/title/...`; pôster ausente mostra "Pôster indisponível". Label "{actionLabel ?? 'Abrir detalhes de'} {título}" |
+| `MediaTitleRow` | `features/catalog/components/media-title-row.tsx` (2 usos) | `title` (`CatalogTitle`), `children?`, `layout?` (`'row'` ou `'poster'`) | Linha com pôster 64×96, tipo, ano e gêneros; `children` viram ações abaixo |
+| `AchievementMedal` | `features/gamification/components/achievement-medal.tsx` (3 usos) | `code`, `title`, `earned`, `size?` (64) | Mapeia 8 códigos para os SVGs de `badges/`; código desconhecido retorna `null`; bloqueada com `opacity` 0,35; `accessibilityRole="image"` |
+| `AchievementGrid` | `features/gamification/components/achievement-grid.tsx` (2 usos) | `achievements`, `compact?` | Grade de medalhas tocáveis que abre `ModalDialog` com detalhes |
+| `SocialActivityCard` | `features/social/components/social-activity-card.tsx` (2 usos) | `activity`, `compact?` | Atividade de amigo; busca o título por React Query, erro via toast |
+| `TitleCollectionActions` | `features/lists/components/title-collection-actions.tsx` | `title` | Ações Quero assistir, favoritar e adicionar a lista (com `ModalDialog`) |
+| `RatingReviewSection` | `features/ratings/components/rating-review-section.tsx` | `targetId`, `targetType`, `seriesId?`, `allowRating?` (`true`) | Nota em meia estrela, comentário, audiência e spoiler; confirma exclusão com `ConfirmDialog` |
+| Seções da Home | `features/home/components/` | `DiscoveryFeedSection` (`title`, `type`, `category`, `genreIds?`), `FavoriteTitleSection` (`type`, `title`, `collection?`), `StartWatchingSection`, `TrackedSeriesSection` (`onOpenTracking`), `UpcomingCalendarSection` | Cada uma reimplementa seus blocos de carregando, vazio e erro |
+| `formatRatingStars` | `features/ratings/rating-stars.ts` | `score` | Função, não componente: devolve texto com `★`, `◐` e `☆` |
 
 ### 5.5 Componentes ausentes hoje
 
@@ -168,15 +175,15 @@ Cada item abaixo foi procurado no código e não existe como componente comparti
 | `Screen` / layout de tela | `SafeAreaView` em 5 telas, `ScrollView` e `View` soltos nas demais; sem cabeçalho de tela compartilhado |
 | `Card` / `Surface` | `surface` + `radii` + `padding` repetidos (`formCard`, `status`, cartões de seção) |
 | `Input` genérico | `TextInput` cru em 8 arquivos (`lists`, `onboarding`, `profile`, `search`, `social`, `tracking`, `title-collection-actions`, `rating-review-section`), cada um com seu estilo; `AuthInput` só serve a autenticação |
-| `Chip` / `Tabs` | `Pressable` com `accessibilityRole="tab"` implementado em `home`, `search`, `social`, `social-profile` e no calendário |
+| `Tabs` | `Pressable` com `accessibilityRole="tab"` implementado em `home`, `search`, `social`, `social-profile` e no calendário (`TabButton` só cobre as listas); `Chip`, `SegmentButton` e `TabButton` já existem em `components/ui` |
 | `Skeleton` | Não existe; carregamento é `ActivityIndicator` (76 usos) |
 | `EmptyState` | Texto solto; `assets/brand/ui/empty-state.svg` sem uso |
-| `ErrorState` / `LoadingState` | Bloco "status" + "Tentar novamente" reescrito em cada seção (22 arquivos) |
-| `Pagination` / "carregar mais" | `onEndReached` em `FlatList` e botões como "Mais listas" |
-| `Switch` | `Switch` do RN em `gamification`, `notifications` e `profile`, repetindo `thumbColor` e `trackColor` |
+| `ErrorState` | Bloco "status" + "Tentar novamente" reescrito em cada seção (`LoadingState` e `RetryState` existem em `components/ui`, usados só pelo tracking) |
+| "Carregar mais" | `onEndReached` em `FlatList` e botões como "Mais listas" (`Pager` cobre só a paginação numerada) |
+| `Switch` genérico | `ToggleRow` (`components/ui`) envolve o `Switch` do RN com `thumbColor` e `trackColor` |
 | `Badge` | Badge de não lidas inline no `AppHeader` |
 | `Icon` | Cada SVG importado individualmente com `width`/`height` de `dimensions.iconSize` |
-| `ConfirmDialog` | `Alert.alert` (2), `ModalDialog` (1) e confirmação inline (1) |
+| Padrão único de confirmação | `ConfirmDialog` (`components/ui`) cobre "Desmarcar como assistido?" e "Excluir comentário?"; "Remover amizade?", "Excluir lista?" e o logout ainda usam `ModalDialog` ou confirmação inline |
 | `ProgressBar` | Trilha de progresso inline em `gamification.tsx` e `onboarding.tsx` |
 | `RatingStars` (controle) | Botões de estrela inline em `rating-review-section.tsx` e glifos em `rating-stars.ts` |
 | `Divider`, `SectionHeader` | Não procurados em detalhe; estilos repetidos |
@@ -213,10 +220,10 @@ Consolidação planejada na spec futura em `.specs/`; nada abaixo está em andam
 - [ ] Criar `Text` com variantes de `typography` e `lineHeight` tokenizado.
 - [ ] Criar `Screen` (área segura, `ScrollView`, cabeçalho, estados de carregamento/erro).
 - [ ] Criar `Card`/`Surface` e `Input` genérico (e desacoplar do `react-hook-form` ou criar variante controlada).
-- [ ] Criar `Chip`/`Tabs`, `Switch`, `Badge`, `ProgressBar`, `RatingStars` (controle) e `Icon`.
-- [ ] Criar `EmptyState`, `ErrorState`, `LoadingState` e `Skeleton`; aproveitar ou descartar `ui/empty-state.svg`.
-- [ ] Criar `ConfirmDialog` e unificar os quatro padrões de confirmação.
-- [ ] Mover `PrimaryButton` para o diretório de primitivos e passar a aceitar `style`.
+- [ ] Criar `Tabs` (unificar `TabButton` e os `Pressable` com papel `tab`), `Badge`, `ProgressBar`, `RatingStars` (controle) e `Icon`. (`Chip` e `ToggleRow` já existem, com as aparências antigas preservadas.)
+- [ ] Criar `EmptyState`, `ErrorState` e `Skeleton`; adotar `LoadingState`/`RetryState` nas demais telas; aproveitar ou descartar `ui/empty-state.svg`.
+- [ ] Adotar o `ConfirmDialog` nas confirmações que ainda usam `ModalDialog` ou inline (amizade, lista, logout).
+- [ ] Fazer o `PrimaryButton` (já em `components/ui`) aceitar `style`.
 - [ ] Trocar `←` e `×` por ícones do kit e `★◐☆` por controle acessível.
 - [ ] Tokens de sombra, elevação, `lineHeight`, duração e `zIndex`; remover os 2 hex fora de `tokens.ts` e o `fontSize: 24`.
 - [ ] Migrar paddings, margins, raios e dimensões numéricos para tokens.

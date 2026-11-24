@@ -3,10 +3,10 @@
 > Spec executável. Preencha todas as seções; `TODO` é lacuna, não requisito.
 > Use `create-spec` para criar, `refine-spec` para auditar e `implement-me` para executar.
 
-- **Status:** pronta
+- **Status:** implementada (roteiro manual da seção 10 pendente: não executado na execução orquestrada)
 - **Slug:** mobile-features-e-telas-finas
 - **Data:** 2026-11-19
-- **Atualizado em:** 2026-11-19
+- **Atualizado em:** 2026-11-24
 - **Owner:** Tech lead (a confirmar)
 - **Relacionados:** mapa `.plans/arquitetura-design-testes-breakdown.md` (D1, D6, D8, D10, D11; Q2, Q3, Q6); ADR 0008 (`.adrs/0008-tanstack-query-e-zod-para-estado-de-servidor-no-mobile.md`); `.docs/ARCHITECTURE.md` §4.3 e §6.2; `.docs/DEVELOPMENT.md` §2.3, §4 e §12; `.docs/DESIGN.md` e `.docs/DESIGN_SYSTEM.md`; depende de `0017`; specs vizinhas: `0019`/`0020` (design), `0022` (Jest/RNTL), `0023` (Playwright)
 
@@ -181,3 +181,4 @@ Telas menores sem hook direto ao fim (R2): `notifications` (365), `social-profil
 | Data       | O que mudou | Motivo |
 | ---------- | ----------- | ------ |
 | 2026-11-19 | Criação da spec em modo lote (breakdown arquitetura/design/testes); linha de base medida no código. | Features e telas finas depois da fundação de dados (`0017`). |
+| 2026-11-24 | Implementação em 12 commits (um por fatia). Premissas registradas: `SocialAvatar` mantido em `features/social` com `getInitials` (aparência diferente do `UserAvatar`); `isCatalogProvider` exposto às rotas por `features/catalog/route-params`; `ToggleRow` e `Pager` com `variant` para preservar as aparências antigas; o plano ficou em `.plans/mobile-features-e-telas-finas-plan.md` e o ADR em `.adrs/XXXX-0018-...` (número provisório). | Execução orquestrada (sem dispositivo, sem roteiro manual). |
