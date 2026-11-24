@@ -189,9 +189,9 @@ public sealed class NotificationsHttpCharacterizationTests(PostgresCharacterizat
         Assert.Equal("application/problem+json", response.ContentType);
         var problem = response.Json();
         Assert.Equal("Registro de dispositivo inválido.", problem.GetProperty("title").GetString());
-        // Spec 0014 (Q8) removes the " (Parameter 'expoPushToken')" suffix when the module migrates.
+        // Spec 0014 (Q8): the " (Parameter 'expoPushToken')" suffix is gone since the module migrated.
         Assert.Equal(
-            "O token Expo informado é inválido. (Parameter 'expoPushToken')",
+            "O token Expo informado é inválido.",
             problem.GetProperty("detail").GetString());
     }
 
@@ -210,7 +210,7 @@ public sealed class NotificationsHttpCharacterizationTests(PostgresCharacterizat
         var problem = response.Json();
         Assert.Equal("Registro de dispositivo inválido.", problem.GetProperty("title").GetString());
         Assert.Equal(
-            "Informe um token Expo. (Parameter 'registration')",
+            "Informe um token Expo.",
             problem.GetProperty("detail").GetString());
     }
 
@@ -348,9 +348,9 @@ public sealed class NotificationsHttpCharacterizationTests(PostgresCharacterizat
         Assert.Equal("application/problem+json", response.ContentType);
         var problem = response.Json();
         Assert.Equal("Cursor inválido.", problem.GetProperty("title").GetString());
-        // Spec 0014 (Q8) removes the " (Parameter 'encodedCursor')" suffix when the module migrates.
+        // Spec 0014 (Q8): the " (Parameter 'encodedCursor')" suffix is gone since the module migrated.
         Assert.Equal(
-            "O cursor da caixa de entrada é inválido. (Parameter 'encodedCursor')",
+            "O cursor da caixa de entrada é inválido.",
             problem.GetProperty("detail").GetString());
     }
 

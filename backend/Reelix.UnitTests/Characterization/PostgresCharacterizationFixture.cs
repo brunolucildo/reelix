@@ -7,7 +7,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -54,6 +56,9 @@ public sealed class PostgresCharacterizationFixture : IAsyncLifetime
     public FixedTimeProvider Clock { get; } = FixedTimeProvider.AtDefault();
 
     public FakeExpoHandler Expo { get; } = new();
+
+    /// <summary>Every SQL command the hosts send, so a test can prove a read wrote nothing.</summary>
+    public CommandLog Commands { get; } = new();
 
     /// <summary>Host with the Expo push feature enabled (registration and delivery).</summary>
     public CharacterizationApiFactory PushEnabled { get; private set; } = null!;
@@ -284,7 +289,9 @@ public sealed class CharacterizationApiFactory : WebApplicationFactory<Program>
             services.AddSingleton<TimeProvider>(_fixture.Clock);
             services.RemoveAll<DbContextOptions<ReelixDbContext>>();
             services.RemoveAll<ReelixDbContext>();
-            services.AddDbContext<ReelixDbContext>(options => options.UseNpgsql(_fixture.ConnectionString));
+            services.AddDbContext<ReelixDbContext>(options => options
+                .UseNpgsql(_fixture.ConnectionString)
+                .AddInterceptors(_fixture.Commands));
             services.ConfigureAll<HttpClientFactoryOptions>(options =>
                 options.HttpMessageHandlerBuilderActions.Add(
                     handler => handler.PrimaryHandler = _fixture.Expo));
@@ -340,6 +347,80 @@ public sealed class CharacterizationApiFactory : WebApplicationFactory<Program>
                 _environmentReleased = true;
                 ApiTestEnvironment.Release();
             }
+        }
+    }
+}
+
+/// <summary>Remembers the text of every command the host sends to the database.</summary>
+public sealed class CommandLog : DbCommandInterceptor
+{
+    private readonly object _gate = new();
+    private readonly List<string> _commands = [];
+
+    public void Clear()
+    {
+        lock (_gate)
+        {
+            _commands.Clear();
+        }
+    }
+
+    /// <summary>The commands that change data (INSERT, UPDATE or DELETE).</summary>
+    public IReadOnlyList<string> Writes()
+    {
+        lock (_gate)
+        {
+            return _commands
+                .Where(text => text.TrimStart().StartsWith("INSERT", StringComparison.OrdinalIgnoreCase) ||
+                    text.TrimStart().StartsWith("UPDATE", StringComparison.OrdinalIgnoreCase) ||
+                    text.TrimStart().StartsWith("DELETE", StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+        }
+    }
+
+    public override InterceptionResult<DbDataReader> ReaderExecuting(
+        DbCommand command,
+        CommandEventData eventData,
+        InterceptionResult<DbDataReader> result)
+    {
+        Record(command);
+        return result;
+    }
+
+    public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+        DbCommand command,
+        CommandEventData eventData,
+        InterceptionResult<DbDataReader> result,
+        CancellationToken cancellationToken = default)
+    {
+        Record(command);
+        return ValueTask.FromResult(result);
+    }
+
+    public override InterceptionResult<int> NonQueryExecuting(
+        DbCommand command,
+        CommandEventData eventData,
+        InterceptionResult<int> result)
+    {
+        Record(command);
+        return result;
+    }
+
+    public override ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(
+        DbCommand command,
+        CommandEventData eventData,
+        InterceptionResult<int> result,
+        CancellationToken cancellationToken = default)
+    {
+        Record(command);
+        return ValueTask.FromResult(result);
+    }
+
+    private void Record(DbCommand command)
+    {
+        lock (_gate)
+        {
+            _commands.Add(command.CommandText);
         }
     }
 }

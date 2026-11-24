@@ -122,7 +122,8 @@ public sealed class GamificationReadFlowsCharacterizationTests(PostgresCharacter
     [InlineData("year=2030&month=13", "Informe um ano e mês válidos.")]
     [InlineData("year=2030&month=6&limit=0", "O limite deve estar entre 1 e 50.")]
     [InlineData("year=2030&month=6&limit=51", "O limite deve estar entre 1 e 50.")]
-    [InlineData("year=2030&month=6&cursor=abc", "O cursor de paginação é inválido. (Parameter 'cursor')")]
+    // Spec 0014 (Q8): the " (Parameter 'cursor')" suffix is gone since the module migrated.
+    [InlineData("year=2030&month=6&cursor=abc", "O cursor de paginação é inválido.")]
     public async Task Ranking_RejectsAnInvalidQuery(string query, string expectedDetail)
     {
         var viewer = await Fixture.CreateAccountAsync();

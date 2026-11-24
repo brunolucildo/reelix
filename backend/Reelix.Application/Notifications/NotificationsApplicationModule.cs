@@ -6,9 +6,15 @@ public static class NotificationsApplicationModule
 {
     public static IServiceCollection AddNotificationsApplication(this IServiceCollection services)
     {
-        services.AddScoped<NotificationsService>();
-        services.AddScoped<SocialNotificationProcessor>();
-        services.AddScoped<NotificationDeliveryProcessor>();
+        services.AddScoped<GetNotificationPreferencesUseCase>();
+        services.AddScoped<UpdateNotificationPreferencesUseCase>();
+        services.AddScoped<RegisterNotificationDeviceUseCase>();
+        services.AddScoped<DeactivateNotificationDeviceUseCase>();
+        services.AddScoped<GetNotificationInboxUseCase>();
+        services.AddScoped<GetNotificationUnreadCountUseCase>();
+        services.AddScoped<MarkNotificationReadUseCase>();
+        services.AddScoped<ProcessSocialEventsUseCase>();
+        services.AddScoped<DeliverPushNotificationsUseCase>();
         return services;
     }
 }

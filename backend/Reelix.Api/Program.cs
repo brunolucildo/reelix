@@ -6,6 +6,7 @@ using Reelix.Api.Gamification;
 using Reelix.Api.Hosting;
 using Reelix.Api.Lists;
 using Reelix.Api.Notifications;
+using Reelix.Api.Notifications.Workers;
 using Reelix.Api.Ratings;
 using Reelix.Api.RateLimiting;
 using Reelix.Api.Social;

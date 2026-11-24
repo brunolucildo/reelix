@@ -18,9 +18,10 @@ internal static class WorkerHarness
         CancellationToken cancellationToken = default)
     {
         await using var scope = services.CreateAsyncScope();
-        return await scope.ServiceProvider
-            .GetRequiredService<SocialNotificationProcessor>()
-            .ProcessBatchAsync(cancellationToken);
+        var result = await scope.ServiceProvider
+            .GetRequiredService<ProcessSocialEventsUseCase>()
+            .ExecuteAsync(new ProcessSocialEventsCommand(), cancellationToken);
+        return result.Processed;
     }
 
     public static async Task<int> DeliverPushAsync(
@@ -28,9 +29,10 @@ internal static class WorkerHarness
         CancellationToken cancellationToken = default)
     {
         await using var scope = services.CreateAsyncScope();
-        return await scope.ServiceProvider
-            .GetRequiredService<NotificationDeliveryProcessor>()
-            .ProcessBatchAsync(cancellationToken);
+        var result = await scope.ServiceProvider
+            .GetRequiredService<DeliverPushNotificationsUseCase>()
+            .ExecuteAsync(new DeliverPushNotificationsCommand(), cancellationToken);
+        return result.Processed;
     }
 }
 

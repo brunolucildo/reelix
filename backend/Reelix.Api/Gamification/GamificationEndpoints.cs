@@ -1,12 +1,9 @@
 using Microsoft.AspNetCore.RateLimiting;
-using Reelix.Api.Authentication;
-using Reelix.Application.Gamification;
+using Reelix.Api.Errors;
+using Reelix.Api.Gamification.Contracts;
+using Reelix.Api.Gamification.Handlers;
 
 namespace Reelix.Api.Gamification;
-
-public sealed record UpdateGamificationPreferencesRequest(
-    bool BadgesPublic,
-    bool RankingEnabled);
 
 public static class GamificationEndpoints
 {
@@ -17,148 +14,37 @@ public static class GamificationEndpoints
             .WithTags("Gamification")
             .RequireAuthorization();
 
-        group.MapGet("/dashboard", GetDashboard)
+        group.MapGet("/dashboard", GetGamificationDashboardHandler.HandleAsync)
             .WithName("GetGamificationDashboard")
-            .Produces<GamificationDashboard>()
+            .WithApplicationProblems()
+            .Produces<GamificationDashboardResponse>()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
-        group.MapPut("/preferences", UpdatePreferences)
+        group.MapPut("/preferences", UpdateGamificationPreferencesHandler.HandleAsync)
             .WithName("UpdateGamificationPreferences")
+            .WithApplicationProblems()
             .RequireRateLimiting("social-write")
-            .Produces<GamificationPreferencesData>()
+            .Produces<GamificationPreferencesResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
-        group.MapGet("/statistics", GetStatistics)
+        group.MapGet("/statistics", GetGamificationStatisticsHandler.HandleAsync)
             .WithName("GetGamificationStatistics")
-            .Produces<GamificationStatistics>()
+            .WithApplicationProblems(new ApplicationProblemOptions { ValidationTitle = "Período inválido." })
+            .Produces<GamificationStatisticsResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
-        group.MapGet("/users/{accountId:guid}/badges", GetPublicBadges)
+        group.MapGet("/users/{accountId:guid}/badges", GetPublicBadgesHandler.HandleAsync)
             .WithName("GetPublicGamificationBadges")
-            .Produces<PublicBadgesData>()
+            .WithApplicationProblems()
+            .Produces<PublicBadgesResponse>()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
-        group.MapGet("/friends/ranking", GetMonthlyRanking)
+        group.MapGet("/friends/ranking", GetMonthlyRankingHandler.HandleAsync)
             .WithName("GetMonthlyFriendsRanking")
-            .Produces<GamificationRankingPage>()
+            .WithApplicationProblems(
+                new ApplicationProblemOptions { ValidationTitle = "Consulta de ranking inválida." })
+            .Produces<MonthlyRankingResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         return group;
     }
-
-    private static async Task<IResult> GetDashboard(
-        HttpContext context,
-        GamificationService service,
-        CancellationToken cancellationToken)
-    {
-        if (!TryGetAccountId(context, out var accountId))
-        {
-            return Results.Unauthorized();
-        }
-
-        return Results.Ok(await service.GetDashboardAsync(accountId, cancellationToken));
-    }
-
-    private static async Task<IResult> UpdatePreferences(
-        HttpContext context,
-        GamificationService service,
-        UpdateGamificationPreferencesRequest request,
-        CancellationToken cancellationToken)
-    {
-        if (!TryGetAccountId(context, out var accountId))
-        {
-            return Results.Unauthorized();
-        }
-
-        return Results.Ok(await service.UpdatePreferencesAsync(
-            accountId,
-            request.BadgesPublic,
-            request.RankingEnabled,
-            cancellationToken));
-    }
-
-    private static async Task<IResult> GetStatistics(
-        HttpContext context,
-        GamificationService service,
-        DateTimeOffset start,
-        DateTimeOffset end,
-        CancellationToken cancellationToken)
-    {
-        if (!TryGetAccountId(context, out var accountId))
-        {
-            return Results.Unauthorized();
-        }
-
-        try
-        {
-            return Results.Ok(await service.GetStatisticsAsync(
-                accountId,
-                start,
-                end,
-                cancellationToken));
-        }
-        catch (ArgumentException exception)
-        {
-            return Results.Problem(
-                statusCode: StatusCodes.Status400BadRequest,
-                title: "Período inválido.",
-                detail: exception.Message);
-        }
-    }
-
-    private static async Task<IResult> GetPublicBadges(
-        HttpContext context,
-        GamificationService service,
-        Guid accountId,
-        CancellationToken cancellationToken)
-    {
-        if (!TryGetAccountId(context, out _))
-        {
-            return Results.Unauthorized();
-        }
-
-        try
-        {
-            return Results.Ok(await service.GetPublicBadgesAsync(accountId, cancellationToken));
-        }
-        catch (KeyNotFoundException)
-        {
-            return Results.NotFound();
-        }
-    }
-
-    private static async Task<IResult> GetMonthlyRanking(
-        HttpContext context,
-        GamificationService service,
-        int year,
-        int month,
-        string? cursor,
-        int? limit,
-        CancellationToken cancellationToken)
-    {
-        if (!TryGetAccountId(context, out var accountId))
-        {
-            return Results.Unauthorized();
-        }
-
-        try
-        {
-            return Results.Ok(await service.GetMonthlyRankingAsync(
-                accountId,
-                year,
-                month,
-                cursor,
-                limit ?? 20,
-                cancellationToken));
-        }
-        catch (ArgumentException exception)
-        {
-            return Results.Problem(
-                statusCode: StatusCodes.Status400BadRequest,
-                title: "Consulta de ranking inválida.",
-                detail: exception.Message);
-        }
-    }
-
-    private static bool TryGetAccountId(HttpContext context, out Guid accountId) =>
-        context.User.ReadSubjectId(out accountId);
 }
