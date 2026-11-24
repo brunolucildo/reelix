@@ -141,25 +141,26 @@ Regras de qualidade do alvo: `CancellationToken` em toda operação de I/O; `GET
 
 ### 4.3 Mobile: composição hoje e alvo
 
-**Hoje** (spec `0017` aplicada: fundação HTTP e dados; telas e hooks seguem para a `0018`):
+**Hoje** (specs `0017` e `0018` aplicadas: fundação de dados, organização por feature e telas finas):
 
 ```text
 mobile/src/
-  app/          # rotas do Expo Router; telas grandes com dados, estado e UI juntos
-  components/   # por tipo: auth/, discovery/, social/, reviews/, navigation/, gamification/
-  features/     # <modulo>/api/*-api.ts (schemas zod + funções) e <modulo>/query-keys.ts: account, onboarding,
-                #   catalog, profile, social, notifications, gamification, ratings, lists, tracking
-  hooks/        # só use-tracking.ts
+  app/          # rotas do Expo Router, finas (maior arquivo: 223 linhas): compõem hooks e componentes da feature
+  components/   # só ui/ (primitivos: PrimaryButton, IconAction, ModalDialog, ConfirmDialog, UserAvatar, ToggleRow,
+                #   Chip, SmallButton, Pager, LoadingState...) e navigation/ (AppHeader, UserDrawer, BackButton)
+  features/     # <modulo>/{api,hooks,components}: account, auth, catalog, gamification, home, lists, notifications,
+                #   onboarding, profile, ratings, social, tracking; mais query-keys.ts e schemas.ts (zod + RHF) quando há formulário
   lib/          # api-error.ts, http-client.ts, format.ts, pagination.ts, query/ (createQueryClient, stale-time)
   providers/    # auth-provider.tsx, toast-provider.tsx
-  schemas/      # só auth-forms.ts
-  services/     # api-client.ts (barrel temporário de 10 linhas), api-url.ts, supabase.ts, ...
+  services/     # api-url.ts, auth-errors.ts, auth-redirect.ts, push-registration.ts, supabase.ts
   theme/        # tokens.ts
 ```
 
-Fundação de dados (spec `0017`, ADR `0013`): **um** cliente HTTP (`lib/http-client`, `httpRequest`) é o único ponto com `fetch` à API; erro tipado `ApiError` (`status`, `title`, `detail`) mais erros de rede e de contrato, traduzidos por `toUserMessage`; 401 tratado globalmente no `QueryClient` (`createQueryClient`: sessão local encerrada sem revogar push, cache limpo, um toast, sem retry de 401); fábricas de query key por domínio (`features/<modulo>/query-keys.ts`) com uma chave por recurso (detalhe de título em `catalogQueryKeys.title`); `lib/pagination`, `lib/query/stale-time` e `lib/format` (pt-BR). `services/api-client.ts` reexporta os nomes anteriores e some quando as telas passarem a importar de `features/` (spec `0018`).
+Fundação de dados (spec `0017`, ADR `0013`): **um** cliente HTTP (`lib/http-client`, `httpRequest`) é o único ponto com `fetch` à API; erro tipado `ApiError` (`status`, `title`, `detail`) mais erros de rede e de contrato, traduzidos por `toUserMessage`; 401 tratado globalmente no `QueryClient` (`createQueryClient`: sessão local encerrada sem revogar push, cache limpo, um toast, sem retry de 401); fábricas de query key por domínio (`features/<modulo>/query-keys.ts`) com uma chave por recurso (detalhe de título em `catalogQueryKeys.title`); `lib/pagination`, `lib/query/stale-time` e `lib/format` (pt-BR).
 
-**Alvo** (specs de arquitetura do mobile): organização por feature (`features/<modulo>/{api,hooks,components}`), um `http-client` único com erro tipado `ApiError`, fábricas de query key por feature, hooks de query/mutation por feature, telas finas que só compõem, primitivos de UI compartilhados em `components/ui`, formulários com zod + React Hook Form, utilidades de formatação em `lib/`, tratamento global de 401 no `QueryClient`.
+Organização por feature (spec `0018`; ADR `XXXX-0018` em `.adrs/`, número definitivo atribuído na integração): telas só compõem. Dados e mutations vivem em hooks de `features/<modulo>/hooks` (cada mutation invalida o cache por prefixo da fábrica); nenhuma rota ou componente usa `useQuery`/`useMutation`/`useQueryClient` nem importa valores da camada `api` (só `import type`; os parâmetros de rota do catálogo vêm de `features/catalog/route-params`). `catalog` é a base e não importa de outras features. Os `Redirect` de sessão saíram das telas (`Stack.Protected` em `_layout.tsx` é a única guarda; ficam só os dois `Redirect` de onboarding em `home` e `onboarding`). Formulários não-auth usam React Hook Form + zod (`features/<modulo>/schemas.ts`); confirmações destrutivas usam `ConfirmDialog`. Imports de assets usam `@/assets/...`.
+
+**Alvo** (specs seguintes): primitivos com evolução visual (`0019`) e telas redesenhadas (`0020`) sobre a base de `components/ui`; testes automatizados (`0022`, `0023`).
 
 Regras que já valem (e a refatoração deve preservar): erros de API/rede/carregamento/salvamento em **toast** (`useToast().showError` ou `useErrorToast`); validação por campo, limites e sucesso **inline**; só tokens de `src/theme/tokens.ts`; copy em pt-BR sem revelar informação sensível; alvos de toque de 44 px; dados reais (sem simular módulos). Detalhes em `DESIGN.md` e `DESIGN_SYSTEM.md`.
 
@@ -283,14 +284,14 @@ ADRs vivem em `./.adrs/` (`0001` a `0011`, registros retroativos). Crie `./.adrs
 
 ### 6.2 Arquitetura do mobile (auditoria de 2026-11-19)
 
-1. **Telas "god component":** `lists.tsx` 995 linhas, `tracking.tsx` 903, `onboarding.tsx` 748, `gamification.tsx` 638, `rating-review-section.tsx` 771; dados, estado de formulário e UI no mesmo arquivo (`tracking.tsx` tem 18 `useState`).
-2. ~~**Três clientes HTTP duplicados** (`apiRequest`, `trackingRequest`, `request`) e `api-client.ts` monolítico de 848 linhas (schemas e fetch de ~12 domínios).~~ **Resolvido pela spec `0017`:** `lib/http-client` único; `api-client.ts` dividido por domínio em `features/<modulo>/api/` (barrel de 10 linhas).
-3. **Camada de hooks quase inexistente:** só `use-tracking.ts` (**pendente, spec `0018`**). ~~93 `queryKey` inline sem fábrica, com o mesmo título sob chaves diferentes e cache fragmentado; `getNextPageParam` reescrito 10 vezes.~~ **Resolvido pela `0017`:** fábricas por domínio, uma chave por título, `lib/pagination`.
+1. ~~**Telas "god component":** `lists.tsx` 995 linhas, `tracking.tsx` 903, `onboarding.tsx` 748, `gamification.tsx` 638, `rating-review-section.tsx` 771; dados, estado de formulário e UI no mesmo arquivo.~~ **Resolvido pela spec `0018`:** rotas de no máximo 223 linhas (maior: `social-profile/[accountId].tsx`), componentes de feature de no máximo 238 e hooks de no máximo 186; cada tela virou composição de hooks e componentes de `features/<modulo>/`.
+2. ~~**Três clientes HTTP duplicados** (`apiRequest`, `trackingRequest`, `request`) e `api-client.ts` monolítico de 848 linhas (schemas e fetch de ~12 domínios).~~ **Resolvido pela spec `0017`:** `lib/http-client` único; `api-client.ts` dividido por domínio em `features/<modulo>/api/`. O barrel temporário foi removido pela `0018`.
+3. ~~**Camada de hooks quase inexistente:** só `use-tracking.ts`.~~ **Resolvido pela spec `0018`:** hooks de query/mutation por feature em `features/<modulo>/hooks` (0 `useQuery`/`useMutation`/`useQueryClient` em rotas e componentes). ~~93 `queryKey` inline sem fábrica, com o mesmo título sob chaves diferentes e cache fragmentado; `getNextPageParam` reescrito 10 vezes.~~ **Resolvido pela `0017`:** fábricas por domínio, uma chave por título, `lib/pagination`.
 4. ~~**Erro e sessão espalhados:** `useErrorToast` 79 vezes, "Sua sessão expirou" 11 vezes, sem `ApiError` tipado nem tratamento global de 401.~~ **Resolvido pela spec `0017`:** `ApiError`, `toUserMessage`, mensagem de sessão em uma constante e 401 global no `QueryClient` (`useErrorToast` segue em uso e ignora 401).
-5. **Guardas duplicadas:** 8 telas repetem `Redirect` apesar de `Stack.Protected`.
-6. **Primitivos de UI mal localizados e duplicados:** `PrimaryButton` em `components/auth/`; toggles, chips, pager e estados de loading/erro reimplementados por tela.
-7. **Formulários não-auth sem zod/RHF** (validação manual com `useState`).
-8. ~~**Formatação e paginação duplicadas** (~20 usos de `Intl.DateTimeFormat`/`toLocale*`), sem módulo `lib/`.~~ **Resolvido pela spec `0017`:** `lib/format`, `lib/pagination` e `lib/query/stale-time` (as três cópias de iniciais viram `getInitials` na `0018`).
+5. ~~**Guardas duplicadas:** 8 telas repetem `Redirect` apesar de `Stack.Protected`.~~ **Resolvido pela spec `0018`:** os 7 `Redirect` de sessão saíram; `Stack.Protected` é a única guarda de sessão (restam os 2 `Redirect` de onboarding, que não são de sessão).
+6. ~~**Primitivos de UI mal localizados e duplicados:** `PrimaryButton` em `components/auth/`; toggles, chips, pager e estados de loading/erro reimplementados por tela.~~ **Resolvido pela spec `0018`:** primitivos em `components/ui` (as cópias com aparências diferentes foram preservadas por `variant`; unificar é da `0019`).
+7. ~~**Formulários não-auth sem zod/RHF** (validação manual com `useState`).~~ **Resolvido pela spec `0018`:** lists, profile, tracking (data assistida), ratings (comentário) e onboarding usam React Hook Form + zod; buscas de campo único sem envio (`search`, busca do social, busca de títulos) continuam fora do RHF por premissa da spec.
+8. ~~**Formatação e paginação duplicadas** (~20 usos de `Intl.DateTimeFormat`/`toLocale*`), sem módulo `lib/`.~~ **Resolvido pelas specs `0017` e `0018`:** `lib/format`, `lib/pagination` e `lib/query/stale-time`; as três cópias de iniciais viraram `getInitials`.
 
 **Já está bem feito (preservar):** disciplina de tokens (zero hex em telas e componentes), validação zod de toda resposta, autenticação (PKCE, `Stack.Protected`, signOut que revoga push e limpa cache), convenção toast × inline cumprida, acessibilidade acima da média (164 `accessibilityRole`, 103 `accessibilityLabel`), `trackingQueryKeys` como modelo de fábrica.
 
