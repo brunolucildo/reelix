@@ -10,7 +10,10 @@ import { staleTime } from '@/lib/query/stale-time';
 import { useErrorToast } from '@/providers/toast-provider';
 
 /** Catalog details for each history entry (same order), sharing the title cache with the catalog. */
-export function useHistoryTitles(items: TrackingHistoryPage['items']) {
+export function useHistoryTitles(
+  items: TrackingHistoryPage['items'],
+  errorMessage = 'Não foi possível carregar alguns títulos do histórico.',
+) {
   const results = useQueries({
     queries: items.map((entry) => {
       const contentType = entry.type === 'movie' ? 'movie' as const : 'series' as const;
@@ -30,7 +33,7 @@ export function useHistoryTitles(items: TrackingHistoryPage['items']) {
   });
   useErrorToast(
     results.find((result) => result.error)?.error,
-    'Não foi possível carregar alguns títulos do histórico.',
+    errorMessage,
   );
   return results;
 }
