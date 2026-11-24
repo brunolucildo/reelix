@@ -11,7 +11,7 @@ import { isCatalogProvider } from '@/features/catalog/api/catalog-api';
 import { TitleHeader } from '@/features/catalog/components/title-header';
 import { useCatalogTitle } from '@/features/catalog/hooks/use-catalog-title';
 import { MovieReviews } from '@/features/ratings/components/movie-reviews';
-import { RatingReviewSection } from '@/components/reviews/rating-review-section';
+import { RatingReviewSection } from '@/features/ratings/components/rating-review-section';
 import { MovieWatchedAction } from '@/features/tracking/components/movie-watched-action';
 import { SeriesSeasonsSection } from '@/features/tracking/components/series-seasons-section';
 import { useViewerId } from '@/providers/auth-provider';

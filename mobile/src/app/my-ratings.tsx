@@ -1,23 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PrimaryButton } from '@/components/ui/primary-button';
-import { TitlePosterCard } from '@/features/catalog/components/title-poster-card';
 import { BackButton } from '@/components/navigation/back-button';
-import { formatRatingStars } from '@/components/reviews/rating-stars';
-import { useErrorToast } from '@/providers/toast-provider';
-import { fetchCatalogTitleDetails, fetchOwnRatings, type OwnRatingEntry } from '@/services/api-client';
-import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';
-import { catalogQueryKeys } from '@/features/catalog/query-keys';
-import { ratingsQueryKeys } from '@/features/ratings/query-keys';
-import { staleTime } from '@/lib/query/stale-time';
-import { formatDate } from '@/lib/format';
+import { OwnRatingCard } from '@/features/ratings/components/own-rating-card';
+import { useOwnRatings } from '@/features/ratings/hooks/use-own-ratings';
+import { colors, fontFamily, spacing, typography } from '@/theme/tokens';
 
 export default function MyRatingsScreen() {
   const [page, setPage] = useState(1);
-  const ratings = useQuery({ queryKey: ratingsQueryKeys.ownRatings(page), queryFn: ({ signal }) => fetchOwnRatings(page, signal) });
-  useErrorToast(ratings.error, 'Não foi possível carregar suas avaliações. Tente novamente.');
+  const ratings = useOwnRatings(page);
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -27,7 +19,7 @@ export default function MyRatingsScreen() {
         {ratings.isError ? <PrimaryButton label="Tentar novamente" onPress={() => void ratings.refetch()} /> : null}
         {ratings.data?.totalCount === 0 ? <Text style={styles.body}>Você ainda não avaliou títulos.</Text> : null}
         <View style={styles.cards}>
-          {ratings.data?.items.map((rating) => <RatingCard key={rating.id} rating={rating} />)}
+          {ratings.data?.items.map((rating) => <OwnRatingCard key={rating.id} rating={rating} />)}
         </View>
         {ratings.data && ratings.data.totalCount > ratings.data.pageSize ? (
           <View style={styles.pagination}>
@@ -64,46 +56,12 @@ export default function MyRatingsScreen() {
   );
 }
 
-function RatingCard({ rating }: { rating: OwnRatingEntry }) {
-  const type = rating.targetType === 'episode' ? 'series' : rating.targetType;
-  const externalId = rating.targetType === 'episode' ? rating.seriesExternalId : rating.externalId;
-  const title = useQuery({
-    queryKey: catalogQueryKeys.title(rating.provider, type, externalId),
-    queryFn: ({ signal }) => fetchCatalogTitleDetails(rating.provider, type, externalId!, signal),
-    enabled: Boolean(externalId),
-    staleTime: staleTime.catalog,
-  });
-  useErrorToast(title.error, 'Não foi possível carregar os detalhes de um título avaliado.');
-  const details = (
-    <>
-      <Text accessibilityLabel={`Avaliação de ${rating.score} de 5 estrelas`} style={styles.score}>
-        {formatRatingStars(rating.score)}
-      </Text>
-      <Text style={styles.body}>{rating.audience === 'private' ? 'Privada' : 'Pública'}{rating.targetType === 'episode' ? ' · Episódio' : ''}</Text>
-      <Text style={styles.body}>{formatDate(rating.updatedAt)}</Text>
-    </>
-  );
-  return (
-    <View style={styles.card}>
-      {title.data ? <TitlePosterCard title={title.data}>{details}</TitlePosterCard> : (
-        <>
-          {title.isFetching ? <ActivityIndicator color={colors.brand} /> : <Text style={styles.body}>Título ainda não disponível.</Text>}
-          {details}
-        </>
-      )}
-      {title.isError ? <PrimaryButton label="Atualizar título" variant="secondary" onPress={() => void title.refetch()} /> : null}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.medium, gap: spacing.large },
   title: { fontFamily: fontFamily.bold, fontSize: typography.title, color: colors.textPrimary },
   body: { fontFamily: fontFamily.regular, fontSize: typography.caption, color: colors.textSecondary },
-  score: { fontFamily: fontFamily.bold, fontSize: typography.body, color: colors.brandSecondary },
   cards: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.medium },
-  card: { width: dimensions.posterWidth, gap: spacing.small },
   pagination: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.medium },
   pageButton: {
     width: 44,

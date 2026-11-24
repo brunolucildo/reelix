@@ -3,7 +3,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { BackButton } from '@/components/navigation/back-button';
-import { RatingReviewSection } from '@/components/reviews/rating-review-section';
+import { RatingReviewSection } from '@/features/ratings/components/rating-review-section';
 import { usePendingEpisodes } from '@/features/tracking/hooks/use-tracking';
 import { isCatalogProvider } from '@/features/catalog/api/catalog-api';
 import { useCatalogSeason } from '@/features/catalog/hooks/use-catalog-seasons';
