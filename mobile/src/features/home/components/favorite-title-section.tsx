@@ -1,15 +1,10 @@
-import { useQuery, useQueries } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { useErrorToast } from '@/providers/toast-provider';
 import { IconAction } from '@/components/ui/icon-action';
 import ClockIcon from '@/assets/brand/navigation-icons/clock.svg';
-import { fetchFavorites, fetchTitleDetails, fetchWatchlist } from '@/features/lists/api/lists-api';
+import { useHomeCollection } from '@/features/lists/hooks/use-home-collection';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
-import { catalogQueryKeys } from '@/features/catalog/query-keys';
-import { listsQueryKeys } from '@/features/lists/query-keys';
-import { staleTime } from '@/lib/query/stale-time';
 import { TitlePosterCard } from '@/features/catalog/components/title-poster-card';
 
 type Props = {
@@ -21,39 +16,8 @@ type Props = {
 export function FavoriteTitleSection({ type, title, collection = 'favorites' }: Props) {
   const router = useRouter();
   const isWatchlist = collection === 'watchlist';
-  const favorites = useQuery({
-    queryKey: listsQueryKeys.home(collection, type),
-    queryFn: async () => {
-      if (!isWatchlist) return fetchFavorites(1, 100);
-      const firstPage = await fetchWatchlist(1, false);
-      const items = [...firstPage.items];
-      let page = 1;
-      while (items.filter((item) => item.contentType === type).length < 8 && page * firstPage.pageSize < firstPage.totalCount) {
-        page += 1;
-        const nextPage = await fetchWatchlist(page, false);
-        items.push(...nextPage.items);
-      }
-      return { ...firstPage, items };
-    },
-    staleTime: staleTime.short,
-  });
-  const references = (favorites.data?.items ?? [])
-    .filter((reference) => reference.contentType === type)
-    .slice(0, 8);
-  const titleDetails = useQueries({
-    queries: references.map((reference) => ({
-      queryKey: catalogQueryKeys.title(reference.provider, reference.contentType, reference.externalId),
-      queryFn: ({ signal }: { signal: AbortSignal }) => fetchTitleDetails(reference, signal),
-      staleTime: staleTime.catalog,
-    })),
-  });
-  const detailError = titleDetails.find((result) => result.error)?.error ?? null;
-
-  useErrorToast(favorites.error, isWatchlist ? 'Não foi possível carregar Quero assistir. Tente novamente.' : 'Não foi possível carregar seus favoritos. Tente novamente.');
-  useErrorToast(detailError, isWatchlist ? 'Não foi possível carregar alguns títulos de Quero assistir. Tente novamente.' : 'Não foi possível carregar alguns títulos favoritos. Tente novamente.');
-
-  const items = titleDetails.flatMap((result) => result.data ? [result.data] : []);
-  const isLoadingDetails = titleDetails.some((result) => result.isPending);
+  const { favorites, references, titleDetails, detailError, items, isLoadingDetails } =
+    useHomeCollection(collection, type);
 
   return (
     <View style={styles.section}>

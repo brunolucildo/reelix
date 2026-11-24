@@ -5,7 +5,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import { BackButton } from '@/components/navigation/back-button';
 import { IconAction } from '@/components/ui/icon-action';
 import { PrimaryButton } from '@/components/ui/primary-button';
-import { TitleCollectionActions } from '@/components/discovery/title-collection-actions';
+import { TitleCollectionActions } from '@/features/lists/components/title-collection-actions';
 import EyeIcon from '@/assets/brand/navigation-icons/eye.svg';
 import { isCatalogProvider } from '@/features/catalog/api/catalog-api';
 import { TitleHeader } from '@/features/catalog/components/title-header';

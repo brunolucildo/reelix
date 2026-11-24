@@ -1,4 +1,3 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -9,79 +8,18 @@ import CheckIcon from '@/assets/brand/navigation-icons/check.svg';
 import { IconAction } from '@/components/ui/icon-action';
 import { ModalDialog } from '@/components/ui/modal-dialog';
 import { PrimaryButton } from '@/components/ui/primary-button';
-import { useErrorToast } from '@/providers/toast-provider';
-import {
-  createCustomList, fetchCustomLists, fetchTitleStatuses, removeFavorite, removeWatchlistTitle,
-  setCustomListTitle, setFavorite, setWatchlistTitle,
-} from '@/features/lists/api/lists-api';
 import type { CatalogTitle } from '@/features/catalog/api/catalog-api';
+import { useTitleCollectionActions } from '@/features/lists/hooks/use-title-collection-actions';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
-import { listsQueryKeys } from '@/features/lists/query-keys';
-import { socialQueryKeys } from '@/features/social/query-keys';
-import { getNextPageByCount } from '@/lib/pagination';
 
 export function TitleCollectionActions({ title }: { title: CatalogTitle }) {
-  const queryClient = useQueryClient();
   const [listPickerVisible, setListPickerVisible] = useState(false);
   const [listName, setListName] = useState('');
   const [nameFocused, setNameFocused] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
-  const [addedLists, setAddedLists] = useState<string[]>([]);
-  const status = useQuery({
-    queryKey: listsQueryKeys.titleStatus([title.id]),
-    queryFn: () => fetchTitleStatuses([title.id]),
-  });
-  const lists = useInfiniteQuery({
-    queryKey: listsQueryKeys.titlePicker,
-    queryFn: ({ pageParam }) => fetchCustomLists(pageParam),
-    initialPageParam: 1,
-    getNextPageParam: getNextPageByCount,
-    enabled: listPickerVisible,
-  });
-  const refresh = async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: listsQueryKeys.all }),
-      queryClient.invalidateQueries({ queryKey: socialQueryKeys.friendProfileAll }),
-    ]);
-  };
-  const relation = status.data?.find((item) => item.titleId === title.id);
-  const update = useMutation({
-    mutationFn: async (target: 'favorite' | 'watchlist') => {
-      if (!relation) throw new Error('Atualize o estado do título antes de continuar.');
-      if (target === 'favorite') return relation.isFavorite ? removeFavorite(title.id) : setFavorite(title);
-      return relation.isInWatchlist ? removeWatchlistTitle(title.id) : setWatchlistTitle(title);
-    },
-    onSuccess: refresh,
-  });
-  const addToList = useMutation({
-    mutationFn: async (listId: string) => ({ listId, result: await setCustomListTitle(listId, title) }),
-    onSuccess: async ({ listId, result }) => {
-      setAddedLists((current) => [...new Set([...current, listId])]);
-      setFeedback(result.added ? 'Título adicionado à lista.' : 'Este título já está nesta lista.');
-      await refresh();
-    },
-  });
-  const createList = useMutation({
-    mutationFn: async () => {
-      const list = await createCustomList(listName.trim(), '');
-      await setCustomListTitle(list.id, title);
-      return list;
-    },
-    onSuccess: async (list) => {
-      setAddedLists((current) => [...current, list.id]);
-      setListName('');
-      setFeedback('Lista criada e título adicionado.');
-      await refresh();
-    },
-    onError: () => { void queryClient.invalidateQueries({ queryKey: listsQueryKeys.customAll }); },
-  });
-  useErrorToast(status.error, 'Não foi possível verificar seus títulos salvos.');
-  useErrorToast(lists.error, 'Não foi possível carregar suas listas.');
-  useErrorToast(update.error, 'Não foi possível salvar o título.');
-  useErrorToast(addToList.error, 'Não foi possível adicionar à lista.');
-  useErrorToast(createList.error, 'Não foi possível criar a lista e adicionar o título.');
-  const busy = update.isPending || status.isFetching || !relation;
-  const listBusy = addToList.isPending || createList.isPending;
+  const {
+    status, relation, lists, update, addToList, createList,
+    feedback, setFeedback, addedLists, busy, listBusy,
+  } = useTitleCollectionActions(title, listPickerVisible);
 
   return <>
     <View style={styles.actions}>
@@ -101,7 +39,7 @@ export function TitleCollectionActions({ title }: { title: CatalogTitle }) {
       {lists.hasNextPage ? <PrimaryButton label="Mais listas" variant="secondary" loading={lists.isFetchingNextPage} onPress={() => void lists.fetchNextPage()} /> : null}
       <Text style={styles.heading}>Nova lista</Text>
       <TextInput accessibilityLabel="Nome da nova lista" placeholder="Nome da lista" placeholderTextColor={colors.textSecondary} value={listName} onChangeText={setListName} maxLength={80} onFocus={() => setNameFocused(true)} onBlur={() => setNameFocused(false)} style={[styles.input, nameFocused && styles.inputFocused]} editable={!listBusy} />
-      <PrimaryButton label="Criar e adicionar" disabled={!listName.trim() || listBusy} loading={createList.isPending} onPress={() => { setFeedback(null); createList.mutate(); }} />
+      <PrimaryButton label="Criar e adicionar" disabled={!listName.trim() || listBusy} loading={createList.isPending} onPress={() => { setFeedback(null); createList.mutate(listName.trim(), { onSuccess: () => setListName('') }); }} />
       {feedback ? <Text accessibilityLiveRegion="polite" style={styles.success}>{feedback}</Text> : null}
     </ModalDialog>
   </>;

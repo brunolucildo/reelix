@@ -1,12 +1,8 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { useErrorToast } from '@/providers/toast-provider';
-import { fetchCatalogDiscovery, type CatalogDiscoveryCategory } from '@/services/api-client';
+import type { CatalogDiscoveryCategory } from '@/features/catalog/api/catalog-api';
+import { useDiscoveryFeed } from '@/features/home/hooks/use-discovery-feed';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
-import { catalogQueryKeys } from '@/features/catalog/query-keys';
-import { getNextPageByTotal } from '@/lib/pagination';
-import { staleTime } from '@/lib/query/stale-time';
 import { TitlePosterCard } from '@/features/catalog/components/title-poster-card';
 
 type Props = {
@@ -17,26 +13,7 @@ type Props = {
 };
 
 export function DiscoveryFeedSection({ title, type, category, genreIds = [] }: Props) {
-  const normalizedGenreIds = [...genreIds].sort((a, b) => a - b);
-  const feed = useInfiniteQuery({
-    queryKey: catalogQueryKeys.discovery(type, category, normalizedGenreIds),
-    queryFn: ({ pageParam, signal }) =>
-      fetchCatalogDiscovery(type, category, normalizedGenreIds, pageParam, signal),
-    initialPageParam: 1,
-    getNextPageParam: getNextPageByTotal,
-    staleTime: staleTime.catalog,
-  });
-  useErrorToast(feed.error, `Não foi possível carregar "${title}". Tente novamente.`);
-
-  const seenIds = new Set<string>();
-  const items = (feed.data?.pages.flatMap((page) => page.items) ?? []).filter((item) => {
-    if (seenIds.has(item.id)) {
-      return false;
-    }
-
-    seenIds.add(item.id);
-    return true;
-  });
+  const { feed, items } = useDiscoveryFeed(title, type, category, genreIds);
 
   return (
     <View style={styles.section}>
