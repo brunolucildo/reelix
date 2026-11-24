@@ -5,7 +5,7 @@ import { PrimaryButton } from '@/components/ui/primary-button';
 import { BackButton } from '@/components/navigation/back-button';
 import { RatingReviewSection } from '@/features/ratings/components/rating-review-section';
 import { usePendingEpisodes } from '@/features/tracking/hooks/use-tracking';
-import { isCatalogProvider } from '@/features/catalog/api/catalog-api';
+import { isCatalogProvider } from '@/features/catalog/route-params';
 import { useCatalogSeason } from '@/features/catalog/hooks/use-catalog-seasons';
 import { useViewerId } from '@/providers/auth-provider';
 import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';

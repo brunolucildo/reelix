@@ -3,11 +3,11 @@ import { useForm } from 'react-hook-form';
 import { View } from 'react-native';
 import { router } from 'expo-router';
 
-import { AuthInput } from '@/components/auth/auth-input';
-import { FormMessage } from '@/components/auth/form-message';
+import { AuthInput } from '@/features/auth/components/auth-input';
+import { FormMessage } from '@/features/auth/components/form-message';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { useToast } from '@/providers/toast-provider';
-import { resetPasswordSchema, type ResetPasswordValues } from '@/schemas/auth-forms';
+import { resetPasswordSchema, type ResetPasswordValues } from '@/features/auth/schemas';
 import { getAuthFailureMessage } from '@/services/auth-errors';
 import { supabase } from '@/services/supabase';
 import { spacing } from '@/theme/tokens';

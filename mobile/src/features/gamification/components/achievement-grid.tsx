@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AchievementMedal } from '@/features/gamification/components/achievement-medal';
 import { ModalDialog } from '@/components/ui/modal-dialog';
-import type { AchievementProgress } from '@/services/api-client';
+import type { AchievementProgress } from '@/features/gamification/api/gamification-api';
 import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';
 import { formatDate } from '@/lib/format';
 

@@ -2,11 +2,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { StyleSheet, View } from 'react-native';
 
-import { AuthInput } from '@/components/auth/auth-input';
-import { AuthLink } from '@/components/auth/auth-link';
+import { AuthInput } from '@/features/auth/components/auth-input';
+import { AuthLink } from '@/features/auth/components/auth-link';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { useToast } from '@/providers/toast-provider';
-import { signInSchema, type SignInValues } from '@/schemas/auth-forms';
+import { signInSchema, type SignInValues } from '@/features/auth/schemas';
 import { getAuthFailureMessage } from '@/services/auth-errors';
 import { supabase } from '@/services/supabase';
 import { spacing } from '@/theme/tokens';

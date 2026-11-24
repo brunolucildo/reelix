@@ -3,8 +3,8 @@ import { ActivityIndicator } from 'react-native';
 import * as Linking from 'expo-linking';
 import { router, useLocalSearchParams } from 'expo-router';
 
-import { AuthScreen } from '@/components/auth/auth-screen';
-import { AuthLink } from '@/components/auth/auth-link';
+import { AuthScreen } from '@/features/auth/components/auth-screen';
+import { AuthLink } from '@/features/auth/components/auth-link';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useToast } from '@/providers/toast-provider';
 import { supabase } from '@/services/supabase';

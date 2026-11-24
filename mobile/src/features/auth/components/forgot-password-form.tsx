@@ -3,12 +3,12 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { View } from 'react-native';
 
-import { AuthInput } from '@/components/auth/auth-input';
-import { AuthLink } from '@/components/auth/auth-link';
-import { FormMessage } from '@/components/auth/form-message';
+import { AuthInput } from '@/features/auth/components/auth-input';
+import { AuthLink } from '@/features/auth/components/auth-link';
+import { FormMessage } from '@/features/auth/components/form-message';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { useToast } from '@/providers/toast-provider';
-import { emailSchema, type EmailValues } from '@/schemas/auth-forms';
+import { emailSchema, type EmailValues } from '@/features/auth/schemas';
 import { getAuthFailureMessage } from '@/services/auth-errors';
 import { createAuthRedirectUrl } from '@/services/auth-redirect';
 import { supabase } from '@/services/supabase';

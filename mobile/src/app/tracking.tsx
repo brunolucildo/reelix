@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { AuthScreen } from '@/components/auth/auth-screen';
+import { AuthScreen } from '@/features/auth/components/auth-screen';
 import { BackButton } from '@/components/navigation/back-button';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EpisodeRegistrationSection } from '@/features/tracking/components/episode-registration-section';

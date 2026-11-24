@@ -7,7 +7,7 @@ import { IconAction } from '@/components/ui/icon-action';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { TitleCollectionActions } from '@/features/lists/components/title-collection-actions';
 import EyeIcon from '@/assets/brand/navigation-icons/eye.svg';
-import { isCatalogProvider } from '@/features/catalog/api/catalog-api';
+import { isCatalogContentType, isCatalogProvider } from '@/features/catalog/route-params';
 import { TitleHeader } from '@/features/catalog/components/title-header';
 import { useCatalogTitle } from '@/features/catalog/hooks/use-catalog-title';
 import { MovieReviews } from '@/features/ratings/components/movie-reviews';
@@ -102,10 +102,6 @@ export default function CatalogTitleScreen() {
       ) : null}
     </ScrollView>
   );
-}
-
-function isCatalogContentType(value: unknown): value is 'movie' | 'series' {
-  return value === 'movie' || value === 'series';
 }
 
 const styles = StyleSheet.create({

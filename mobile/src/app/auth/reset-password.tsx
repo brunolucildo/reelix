@@ -1,17 +1,10 @@
 import { useState } from 'react';
-import { Redirect } from 'expo-router';
 
-import { AuthScreen } from '@/components/auth/auth-screen';
-import { ResetPasswordForm } from '@/components/auth/reset-password-form';
-import { useAuthSession } from '@/providers/auth-provider';
+import { AuthScreen } from '@/features/auth/components/auth-screen';
+import { ResetPasswordForm } from '@/features/auth/components/reset-password-form';
 
 export default function ResetPasswordScreen() {
-  const { session } = useAuthSession();
   const [completed, setCompleted] = useState(false);
-
-  if (!session) {
-    return <Redirect href="/" />;
-  }
 
   return (
     <AuthScreen
