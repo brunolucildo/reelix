@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PrimaryButton } from '@/components/ui/primary-button';
-import { TitlePosterCard } from '@/components/discovery/title-poster-card';
+import { TitlePosterCard } from '@/features/catalog/components/title-poster-card';
 import { BackButton } from '@/components/navigation/back-button';
 import { formatRatingStars } from '@/components/reviews/rating-stars';
 import { useErrorToast } from '@/providers/toast-provider';

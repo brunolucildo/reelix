@@ -1,7 +1,7 @@
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { useTrackedSeries } from '@/hooks/use-tracking';
+import { useTrackedSeries } from '@/features/tracking/hooks/use-tracking';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogSeason, fetchCatalogSeasons } from '@/services/api-client';
 import {
@@ -14,7 +14,7 @@ import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/th
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { listsQueryKeys } from '@/features/lists/query-keys';
 import { staleTime } from '@/lib/query/stale-time';
-import { TitlePosterCard } from './title-poster-card';
+import { TitlePosterCard } from '@/features/catalog/components/title-poster-card';
 
 export function StartWatchingSection() {
   const favorites = useQuery({

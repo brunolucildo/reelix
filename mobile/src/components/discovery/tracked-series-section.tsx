@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { useSeriesProgress, useTrackedSeries } from '@/hooks/use-tracking';
+import { useSeriesProgress, useTrackedSeries } from '@/features/tracking/hooks/use-tracking';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogSeason, fetchCatalogTitleDetails } from '@/services/api-client';
 import type { TrackedSeriesPage } from '@/features/tracking/api/tracking-api';

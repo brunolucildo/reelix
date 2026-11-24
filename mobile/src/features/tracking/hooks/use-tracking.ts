@@ -140,3 +140,24 @@ export function useRemoveWatchedEpisode() {
     void
   >(({ seriesId, episodeId }) => removeWatchedEpisode(seriesId, episodeId));
 }
+
+/** Watched status of a movie plus the toggle that also writes the new status to the cache. */
+export function useMovieWatchedToggle(titleId: string) {
+  const queryClient = useQueryClient();
+  const status = useMovieTrackingStatus(titleId);
+  const markWatched = useMarkMovieWatched();
+  const removeWatched = useRemoveWatchedMovie();
+  const isWatched = status.data === true;
+
+  const toggle = () => {
+    const setStatus = (watched: boolean) => () =>
+      queryClient.setQueryData(trackingQueryKeys.movieStatus(titleId), watched);
+    if (isWatched) {
+      removeWatched.mutate(titleId, { onSuccess: setStatus(false) });
+    } else {
+      markWatched.mutate({ titleId }, { onSuccess: setStatus(true) });
+    }
+  };
+
+  return { status, isWatched, isBusy: markWatched.isPending || removeWatched.isPending, toggle };
+}

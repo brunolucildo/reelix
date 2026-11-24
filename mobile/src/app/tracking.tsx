@@ -8,7 +8,7 @@ ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-na
 import { AuthScreen } from '@/components/auth/auth-screen';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { BackButton } from '@/components/navigation/back-button';
-import { MediaTitleRow } from '@/components/discovery/media-title-row';
+import { MediaTitleRow } from '@/features/catalog/components/media-title-row';
 import {
   useMarkMovieWatched,
   useMarkEpisodeWatched,
@@ -17,7 +17,7 @@ import {
   useRemoveWatchedMovie,
   useTrackedSeries,
   useTrackingHistory,
-} from '@/hooks/use-tracking';
+} from '@/features/tracking/hooks/use-tracking';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogTitleDetails, searchCatalog } from '@/services/api-client';

@@ -154,3 +154,8 @@ export function useAuthSession(): AuthContextValue {
 
   return context;
 }
+
+/** Id of the signed-in account, or null while the session is gone (one frame during sign-out). */
+export function useViewerId(): string | null {
+  return useAuthSession().session?.user.id ?? null;
+}

@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { CatalogTitle } from '@/services/api-client';
+import type { CatalogTitle } from '@/features/catalog/api/catalog-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 
 export function MediaTitleRow({

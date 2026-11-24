@@ -1,20 +1,17 @@
-import { useQuery } from '@tanstack/react-query';
-import { Redirect, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { BackButton } from '@/components/navigation/back-button';
 import { RatingReviewSection } from '@/components/reviews/rating-review-section';
-import { usePendingEpisodes } from '@/hooks/use-tracking';
-import { useAuthSession } from '@/providers/auth-provider';
-import { useErrorToast } from '@/providers/toast-provider';
-import { fetchCatalogSeason, isCatalogProvider } from '@/services/api-client';
+import { usePendingEpisodes } from '@/features/tracking/hooks/use-tracking';
+import { isCatalogProvider } from '@/features/catalog/api/catalog-api';
+import { useCatalogSeason } from '@/features/catalog/hooks/use-catalog-seasons';
+import { useViewerId } from '@/providers/auth-provider';
 import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';
-import { catalogQueryKeys } from '@/features/catalog/query-keys';
-import { staleTime } from '@/lib/query/stale-time';
 
 export default function CatalogEpisodeScreen() {
-  const { session } = useAuthSession();
+  const viewerId = useViewerId();
   const params = useLocalSearchParams<{
     provider?: string;
     externalSeriesId?: string;
@@ -33,19 +30,14 @@ export default function CatalogEpisodeScreen() {
   const isValid = provider !== null && externalSeriesId !== null &&
     seasonNumber !== null && episodeId !== null;
 
-  const season = useQuery({
-    queryKey: catalogQueryKeys.season(provider, externalSeriesId, seasonNumber),
-    queryFn: ({ signal }) => {
-      if (!provider || !externalSeriesId || seasonNumber === null) {
-        throw new Error('O endereço deste episódio é inválido.');
-      }
-
-      return fetchCatalogSeason(provider, externalSeriesId, seasonNumber, signal);
-    },
+  const season = useCatalogSeason({
+    provider,
+    externalSeriesId,
+    seasonNumber,
     enabled: isValid,
-    staleTime: staleTime.catalog,
+    invalidMessage: 'O endereço deste episódio é inválido.',
+    errorMessage: 'Não foi possível carregar os detalhes do episódio.',
   });
-  useErrorToast(season.error, 'Não foi possível carregar os detalhes do episódio.');
   const pendingEpisodes = usePendingEpisodes(
     season.data?.seriesId ?? '',
     seasonNumber ?? -1,
@@ -53,10 +45,6 @@ export default function CatalogEpisodeScreen() {
   );
   const isWatched = pendingEpisodes.data !== undefined &&
     !pendingEpisodes.data.some((item) => item.episodeId === episodeId);
-
-  if (!session) {
-    return <Redirect href="/" />;
-  }
 
   if (!isValid) {
     return (
@@ -117,7 +105,7 @@ export default function CatalogEpisodeScreen() {
         <Text style={styles.secondaryText}>Marque este episódio como assistido para avaliá-lo.</Text>
       ) : null}
       <RatingReviewSection
-        key={`episode:${episode.id}:${session.user.id}`}
+        key={`episode:${episode.id}:${viewerId}`}
         targetId={episode.id}
         targetType="episode"
         seriesId={season.data.seriesId}

@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/ui/primary-button';
-import { MediaTitleRow } from '@/components/discovery/media-title-row';
+import { MediaTitleRow } from '@/features/catalog/components/media-title-row';
 import { BackButton } from '@/components/navigation/back-button';
 import { ModalDialog } from '@/components/ui/modal-dialog';
 import { useAuthSession } from '@/providers/auth-provider';

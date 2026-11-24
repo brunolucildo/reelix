@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { AchievementMedal } from '@/components/gamification/achievement-medal';
-import { TitlePosterCard } from '@/components/discovery/title-poster-card';
+import { TitlePosterCard } from '@/features/catalog/components/title-poster-card';
 import { ModalDialog } from '@/components/ui/modal-dialog';
 import { SocialActivityCard } from '@/components/social/social-activity-card';
 import { UserAvatar } from '@/components/ui/user-avatar';

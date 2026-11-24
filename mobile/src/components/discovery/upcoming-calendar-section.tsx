@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { useTrackedSeries } from '@/hooks/use-tracking';
+import { useTrackedSeries } from '@/features/tracking/hooks/use-tracking';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogSeason, fetchCatalogSeasons, fetchCatalogTitleDetails } from '@/services/api-client';
 import type { TrackedSeriesPage } from '@/features/tracking/api/tracking-api';

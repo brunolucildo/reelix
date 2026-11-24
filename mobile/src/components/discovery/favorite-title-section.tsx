@@ -10,7 +10,7 @@ import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/th
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { listsQueryKeys } from '@/features/lists/query-keys';
 import { staleTime } from '@/lib/query/stale-time';
-import { TitlePosterCard } from './title-poster-card';
+import { TitlePosterCard } from '@/features/catalog/components/title-poster-card';
 
 type Props = {
   type: 'movie' | 'series';
