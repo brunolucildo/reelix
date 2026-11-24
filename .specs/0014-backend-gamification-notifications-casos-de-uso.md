@@ -3,10 +3,10 @@
 > Spec executável. Preencha todas as seções; `TODO` é lacuna, não requisito.
 > Use `create-spec` para criar, `refine-spec` para auditar e `implement-me` para executar.
 
-- **Status:** pronta
+- **Status:** concluída (implementada em 2026-11-24; ver `.plans/backend-gamification-notifications-casos-de-uso-plan.md`)
 - **Slug:** backend-gamification-notifications-casos-de-uso
 - **Data:** 2026-11-19
-- **Atualizado em:** 2026-11-19
+- **Atualizado em:** 2026-11-24
 - **Owner:** Tech lead (a confirmar)
 - **Relacionados:** `.plans/arquitetura-design-testes-breakdown.md` (D1–D5, D10–D11); `.adrs/0001-*`, `.adrs/0006-*`, `.adrs/0007-*`, ADR `0012` (proposto, entregue pela `0013`); depende da `0013`; vizinhas `0015` e `0016` (fronteiras de tabela); specs retroativas `0010` (notificações) e `0011` (gamificação); `.docs/ARCHITECTURE.md` §4.9, §4.10 e §6.1 (itens 1, 5 e 8).
 
@@ -136,9 +136,16 @@ Linha de base de 2026-11-19 (`audit-slices.mjs --scope backend`: Gamification 2 
 | Premissa: ausência de linha em `notification_preferences` equivale a categorias desligadas (padrão do Domain e do `ProcessSocialEvent`/`ClaimPushDeliveries`) | `GET` sem escrita é neutro | Não | Tech lead |
 | Premissa: limite transacional como port estreito (ex.: lote de eventos reservado e confirmado), formato no plano | Preserva atomicidade | Não | Plano |
 | Premissa: `ExpoPushToken` permanece como campo do contrato HTTP (ADR 0006); só o port perde o nome do fornecedor | Contrato JSON | Não | Tech lead |
+| Premissa (execução, 2026-11-24): o `AchievementReconciler` é chamado pelos casos de uso do dashboard e dos badges (opção A da Q1, sem mudança de contrato); a escrita de `gamification_preferences` ao atualizar preferências fica no adaptador `GamificationPreferencesStore`, e `SaveChangesAsync` em Gamification existe só nos dois adaptadores de escrita (`UserAchievementStore`, `GamificationPreferencesStore`) | G7 | Não | Tech lead |
+| Premissa (execução): os dois casos de uso de worker ficam em `Application/Notifications/Workers/` (não em `UseCases/`), porque não têm handler HTTP e o auditor trata todo `*UseCase` de `UseCases/` sem handler como órfão (G1 exit 0) | G1 | Não | Plano |
+| Premissa (execução): o jitter do backoff vem do port `IJitterSource` (adaptador com `Random.Shared`) e entra como parâmetro em `PushRetryPolicy`; o `detail` de 400 de Gamification e Notifications perde o sufixo ` (Parameter '…')` (Q8 do épico) | R5, R9 | Não | Tech lead |
+| **Achado F1 (Batch 0, preexistente, preservado):** `GET /gamification/friends/ranking` de quem ligou o ranking responde 500: o EF Core não traduz `OrderByDescending` sobre a projeção `RankingCandidate`. A regra de posição e de cursor ficou no caso de uso (testada com port falso); o teste HTTP fixa o 500 e inverte quando alguém corrigir o defeito | R1, R10 | Não (correção é spec própria) | Tech lead |
+| **Achado F2 (Batch 0, preexistente, preservado):** 8 `GET /gamification/dashboard` simultâneos da mesma conta: 1 responde 200 e os demais 500 (PostgreSQL 40001 `could not serialize access due to concurrent update`, do `RepeatableRead` + lock da conta). O invariante de 1 linha por (conta, definição) vale; o critério "200 em todos" do R1 não é atendível sem corrigir o defeito | R1, R8 | Não (correção é spec própria) | Tech lead |
+| Achado F3 (Batch 0): em `Development` o corpo JSON com `platform` desconhecido em `POST /notifications/devices` vira 500 (o framework relança a exceção de binding e o `UseExceptionHandler` a reporta); em produção é 400. Comportamento do host, não do módulo | R4 | Não | — |
 
 ## 12. Refinamento
 
 | Data       | O que mudou | Motivo |
 | ---------- | ----------- | ------ |
 | 2026-11-19 | Criação em modo lote; linha de base do auditor e de `grep`; `INotificationsRepository` medido em 12 operações (o pedido dizia ~14) | Épico arquitetura-design-testes, spec 2 de 4 do backend |
+| 2026-11-24 | Execução pelo `implement-me` (modo orquestrado): Batch 0 com 91 testes de caracterização sobre PostgreSQL (mais 14 de leitura sem escrita, depois da migração); premissas de execução e achados F1 a F3 registrados em §11; status `concluída` | Spec 0014 do épico arquitetura-design-testes |
