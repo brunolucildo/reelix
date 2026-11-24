@@ -71,3 +71,38 @@ export function localDateKey(date: Date): string {
 export function getInitials(name: string, fallback = '?'): string {
   return name.trim().slice(0, 1).toLocaleUpperCase(LOCALE) || fallback;
 }
+
+/** ISO timestamp as the local "DD/MM/AAAA HH:mm" text shown in date inputs. */
+export function toLocalDateTimeInput(value: string): string {
+  const date = new Date(value);
+  const pad = (part: number) => String(part).padStart(2, '0');
+  const year = String(date.getFullYear()).padStart(4, '0');
+  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${year} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/** Parses "DD/MM/AAAA HH:mm" (local time) into an ISO timestamp, or null when invalid. */
+export function parseLocalDateTimeInput(value: string): string | null {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})$/.exec(value);
+  if (!match) {
+    return null;
+  }
+
+  const [day, month, year, hour, minute] = match.slice(1).map(Number);
+  if (year < 1 || month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59) {
+    return null;
+  }
+
+  const date = new Date(0);
+  date.setFullYear(year, month - 1, day);
+  date.setHours(hour, minute, 0, 0);
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day ||
+    date.getHours() !== hour ||
+    date.getMinutes() !== minute
+  ) {
+    return null;
+  }
+  return date.toISOString();
+}
