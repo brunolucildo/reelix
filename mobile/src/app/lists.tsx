@@ -13,10 +13,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { PrimaryButton } from '@/components/auth/primary-button';
+import { PrimaryButton } from '@/components/ui/primary-button';
 import { MediaTitleRow } from '@/components/discovery/media-title-row';
 import { BackButton } from '@/components/navigation/back-button';
-import { ModalDialog } from '@/components/modal-dialog';
+import { ModalDialog } from '@/components/ui/modal-dialog';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast, useToast } from '@/providers/toast-provider';
 import {
@@ -45,13 +45,13 @@ import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/th
 import { catalogQueryKeys } from '@/features/catalog/query-keys';
 import { listsQueryKeys } from '@/features/lists/query-keys';
 import { staleTime } from '@/lib/query/stale-time';
-import AddListIcon from '../../assets/brand/navigation-icons/list-add.svg';
-import FavoritesIcon from '../../assets/brand/navigation-icons/favorites.svg';
-import ClockIcon from '../../assets/brand/navigation-icons/clock.svg';
-import CheckIcon from '../../assets/brand/navigation-icons/check.svg';
-import TrashIcon from '../../assets/brand/navigation-icons/trash.svg';
-import ArrowUpIcon from '../../assets/brand/navigation-icons/arrow-up.svg';
-import ArrowDownIcon from '../../assets/brand/navigation-icons/arrow-down.svg';
+import AddListIcon from '@/assets/brand/navigation-icons/list-add.svg';
+import FavoritesIcon from '@/assets/brand/navigation-icons/favorites.svg';
+import ClockIcon from '@/assets/brand/navigation-icons/clock.svg';
+import CheckIcon from '@/assets/brand/navigation-icons/check.svg';
+import TrashIcon from '@/assets/brand/navigation-icons/trash.svg';
+import ArrowUpIcon from '@/assets/brand/navigation-icons/arrow-up.svg';
+import ArrowDownIcon from '@/assets/brand/navigation-icons/arrow-down.svg';
 
 type Section = 'favorites' | 'watchlist' | 'lists';
 

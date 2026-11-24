@@ -3,8 +3,8 @@ import { useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useErrorToast } from '@/providers/toast-provider';
-import { IconAction } from '@/components/icon-action';
-import ClockIcon from '../../../assets/brand/navigation-icons/clock.svg';
+import { IconAction } from '@/components/ui/icon-action';
+import ClockIcon from '@/assets/brand/navigation-icons/clock.svg';
 import { fetchFavorites, fetchTitleDetails, fetchWatchlist } from '@/features/lists/api/lists-api';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
 import { catalogQueryKeys } from '@/features/catalog/query-keys';

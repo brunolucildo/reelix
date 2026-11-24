@@ -4,12 +4,12 @@ import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { PrimaryButton } from '@/components/auth/primary-button';
+import { PrimaryButton } from '@/components/ui/primary-button';
 import { AchievementMedal } from '@/components/gamification/achievement-medal';
 import { TitlePosterCard } from '@/components/discovery/title-poster-card';
-import { ModalDialog } from '@/components/modal-dialog';
+import { ModalDialog } from '@/components/ui/modal-dialog';
 import { SocialActivityCard } from '@/components/social/social-activity-card';
-import { UserAvatar } from '@/components/user-avatar';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { BackButton } from '@/components/navigation/back-button';
 import { useErrorToast } from '@/providers/toast-provider';
 import { cancelFriendRequest, fetchCatalogTitleDetails, fetchFriendActivities, fetchFriendProfile, fetchPublicGamificationBadges, removeFriend, respondToFriendRequest, sendFriendRequest, type FriendProfileData, type PublicBadges } from '@/services/api-client';
@@ -20,12 +20,12 @@ import { gamificationQueryKeys } from '@/features/gamification/query-keys';
 import { getNextCursor } from '@/lib/pagination';
 import { staleTime } from '@/lib/query/stale-time';
 import { formatDate } from '@/lib/format';
-import OverviewIcon from '../../../assets/brand/navigation-icons/profile.svg';
-import ActivityIcon from '../../../assets/brand/navigation-icons/clock.svg';
-import FavoritesIcon from '../../../assets/brand/navigation-icons/favorites.svg';
-import AchievementsIcon from '../../../assets/brand/navigation-icons/achievements.svg';
-import FriendsIcon from '../../../assets/brand/navigation-icons/friends.svg';
-import MoreIcon from '../../../assets/brand/navigation-icons/more.svg';
+import OverviewIcon from '@/assets/brand/navigation-icons/profile.svg';
+import ActivityIcon from '@/assets/brand/navigation-icons/clock.svg';
+import FavoritesIcon from '@/assets/brand/navigation-icons/favorites.svg';
+import AchievementsIcon from '@/assets/brand/navigation-icons/achievements.svg';
+import FriendsIcon from '@/assets/brand/navigation-icons/friends.svg';
+import MoreIcon from '@/assets/brand/navigation-icons/more.svg';
 
 const profileTabs = [
   { key: 'overview', label: 'Visão geral', Icon: OverviewIcon },

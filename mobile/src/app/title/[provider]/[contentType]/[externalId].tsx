@@ -12,14 +12,14 @@ import {
   View,
 } from 'react-native';
 
-import { PrimaryButton } from '@/components/auth/primary-button';
+import { PrimaryButton } from '@/components/ui/primary-button';
 import { BackButton } from '@/components/navigation/back-button';
-import { IconAction } from '@/components/icon-action';
+import { IconAction } from '@/components/ui/icon-action';
 import { TitleCollectionActions } from '@/components/discovery/title-collection-actions';
-import EyeIcon from '../../../../../assets/brand/navigation-icons/eye.svg';
-import CheckIcon from '../../../../../assets/brand/navigation-icons/check.svg';
-import RatingIcon from '../../../../../assets/brand/navigation-icons/rating.svg';
-import SeriesIcon from '../../../../../assets/brand/navigation-icons/series.svg';
+import EyeIcon from '@/assets/brand/navigation-icons/eye.svg';
+import CheckIcon from '@/assets/brand/navigation-icons/check.svg';
+import RatingIcon from '@/assets/brand/navigation-icons/rating.svg';
+import SeriesIcon from '@/assets/brand/navigation-icons/series.svg';
 import { RatingReviewSection } from '@/components/reviews/rating-review-section';
 import {
   useMarkMovieWatched,

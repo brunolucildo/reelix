@@ -2,13 +2,13 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import ClockIcon from '../../../assets/brand/navigation-icons/clock.svg';
-import FavoritesIcon from '../../../assets/brand/navigation-icons/favorites.svg';
-import ListIcon from '../../../assets/brand/navigation-icons/list-add.svg';
-import CheckIcon from '../../../assets/brand/navigation-icons/check.svg';
-import { IconAction } from '@/components/icon-action';
-import { ModalDialog } from '@/components/modal-dialog';
-import { PrimaryButton } from '@/components/auth/primary-button';
+import ClockIcon from '@/assets/brand/navigation-icons/clock.svg';
+import FavoritesIcon from '@/assets/brand/navigation-icons/favorites.svg';
+import ListIcon from '@/assets/brand/navigation-icons/list-add.svg';
+import CheckIcon from '@/assets/brand/navigation-icons/check.svg';
+import { IconAction } from '@/components/ui/icon-action';
+import { ModalDialog } from '@/components/ui/modal-dialog';
+import { PrimaryButton } from '@/components/ui/primary-button';
 import { useErrorToast } from '@/providers/toast-provider';
 import {
   createCustomList, fetchCustomLists, fetchTitleStatuses, removeFavorite, removeWatchlistTitle,

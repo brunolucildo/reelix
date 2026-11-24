@@ -3,10 +3,10 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import FilmIcon from '../../../assets/brand/navigation-icons/films.svg';
-import RatingIcon from '../../../assets/brand/navigation-icons/rating.svg';
-import { PrimaryButton } from '@/components/auth/primary-button';
-import { UserAvatar } from '@/components/user-avatar';
+import FilmIcon from '@/assets/brand/navigation-icons/films.svg';
+import RatingIcon from '@/assets/brand/navigation-icons/rating.svg';
+import { PrimaryButton } from '@/components/ui/primary-button';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { useErrorToast } from '@/providers/toast-provider';
 import { fetchCatalogTitleDetails, type SocialActivityData } from '@/services/api-client';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';

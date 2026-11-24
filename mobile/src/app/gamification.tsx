@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 
-import { PrimaryButton } from '@/components/auth/primary-button';
+import { PrimaryButton } from '@/components/ui/primary-button';
 import { AchievementMedal } from '@/components/gamification/achievement-medal';
 import { BackButton } from '@/components/navigation/back-button';
 import { useTrackingHistory } from '@/hooks/use-tracking';

@@ -3,10 +3,10 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { PrimaryButton } from '@/components/auth/primary-button';
+import { PrimaryButton } from '@/components/ui/primary-button';
 import { AchievementGrid } from '@/components/gamification/achievement-grid';
 import { BackButton } from '@/components/navigation/back-button';
-import { avatarOptions, UserAvatar } from '@/components/user-avatar';
+import { avatarOptions, UserAvatar } from '@/components/ui/user-avatar';
 import { useErrorToast, useToast } from '@/providers/toast-provider';
 import {
   fetchGamificationDashboard,
@@ -19,8 +19,8 @@ import { gamificationQueryKeys } from '@/features/gamification/query-keys';
 import { ratingsQueryKeys } from '@/features/ratings/query-keys';
 import { socialQueryKeys } from '@/features/social/query-keys';
 import { profileQueryKeys } from '@/features/profile/query-keys';
-import TmdbLogo from '../../assets/brand/logos/tmdb-logo-blue.svg';
-import CheckIcon from '../../assets/brand/navigation-icons/check.svg';
+import TmdbLogo from '@/assets/brand/logos/tmdb-logo-blue.svg';
+import CheckIcon from '@/assets/brand/navigation-icons/check.svg';
 
 type ProfileDraft = Omit<ProfileData, 'avatarUrl' | 'avatarKey' | 'displayName' | 'biography'> & {
   displayName: string;

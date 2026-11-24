@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 
-import { PrimaryButton } from '@/components/auth/primary-button';
+import { PrimaryButton } from '@/components/ui/primary-button';
 import { DiscoveryFeedSection } from '@/components/discovery/discovery-feed-section';
 import { FavoriteTitleSection } from '@/components/discovery/favorite-title-section';
 import { StartWatchingSection } from '@/components/discovery/start-watching-section';

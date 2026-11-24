@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 
-import { PrimaryButton } from '@/components/auth/primary-button';
+import { PrimaryButton } from '@/components/ui/primary-button';
 import { BackButton } from '@/components/navigation/back-button';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast, useToast } from '@/providers/toast-provider';

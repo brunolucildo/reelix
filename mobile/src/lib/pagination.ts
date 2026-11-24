@@ -16,3 +16,8 @@ export function getNextPageByCount(lastPage: {
 export function getNextPageByTotal(lastPage: { page: number; totalPages: number }): number | undefined {
   return lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined;
 }
+
+/** Number of pages for a numbered pager (at least 1, even when there are no items). */
+export function getTotalPages(totalCount: number, pageSize: number): number {
+  return Math.max(1, Math.ceil(totalCount / pageSize));
+}

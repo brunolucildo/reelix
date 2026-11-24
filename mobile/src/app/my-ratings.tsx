@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PrimaryButton } from '@/components/auth/primary-button';
+import { PrimaryButton } from '@/components/ui/primary-button';
 import { TitlePosterCard } from '@/components/discovery/title-poster-card';
 import { BackButton } from '@/components/navigation/back-button';
 import { formatRatingStars } from '@/components/reviews/rating-stars';

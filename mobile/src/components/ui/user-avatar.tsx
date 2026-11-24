@@ -1,15 +1,16 @@
 import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
-import Noir from '../../assets/brand/avatars/noir.svg';
-import Cosmic from '../../assets/brand/avatars/cosmic.svg';
-import Phantom from '../../assets/brand/avatars/phantom.svg';
-import Comedy from '../../assets/brand/avatars/comedy.svg';
-import Animation from '../../assets/brand/avatars/animation.svg';
-import Adventure from '../../assets/brand/avatars/adventure.svg';
-import Robot from '../../assets/brand/avatars/robot.svg';
-import Vampire from '../../assets/brand/avatars/vampire.svg';
-import Maestro from '../../assets/brand/avatars/maestro.svg';
+import Noir from '@/assets/brand/avatars/noir.svg';
+import Cosmic from '@/assets/brand/avatars/cosmic.svg';
+import Phantom from '@/assets/brand/avatars/phantom.svg';
+import Comedy from '@/assets/brand/avatars/comedy.svg';
+import Animation from '@/assets/brand/avatars/animation.svg';
+import Adventure from '@/assets/brand/avatars/adventure.svg';
+import Robot from '@/assets/brand/avatars/robot.svg';
+import Vampire from '@/assets/brand/avatars/vampire.svg';
+import Maestro from '@/assets/brand/avatars/maestro.svg';
+import { getInitials } from '@/lib/format';
 import { colors, dimensions, fontFamily, radii, typography } from '@/theme/tokens';
 
 export const avatarOptions = [
@@ -28,7 +29,7 @@ export function UserAvatar({ name, avatarKey, uri, size = dimensions.minimumTouc
   const option = avatarOptions.find((item) => item.key === avatarKey);
   const Graphic = option?.Graphic;
   return <View accessibilityRole="image" accessibilityLabel={`Avatar de ${name}${option ? `, ${option.label}` : ''}`} style={[styles.avatar, { width: size, height: size }]}>
-    {Graphic ? <Graphic width={size} height={size} /> : uri ? <Image source={{ uri }} contentFit="cover" style={{ width: size, height: size }} /> : <Text style={styles.initial}>{name.trim().slice(0, 1).toLocaleUpperCase('pt-BR') || '?'}</Text>}
+    {Graphic ? <Graphic width={size} height={size} /> : uri ? <Image source={{ uri }} contentFit="cover" style={{ width: size, height: size }} /> : <Text style={styles.initial}>{getInitials(name)}</Text>}
   </View>;
 }
 

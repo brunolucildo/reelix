@@ -1,13 +1,13 @@
 import { StyleSheet, View } from 'react-native';
 
-import CollectorMedal from '../../../assets/brand/badges/collector.svg';
-import CriticMedal from '../../../assets/brand/badges/critic.svg';
-import ExplorerMedal from '../../../assets/brand/badges/explorer.svg';
-import FirstFilmMedal from '../../../assets/brand/badges/first-film.svg';
-import FriendMedal from '../../../assets/brand/badges/friend.svg';
-import LegendMedal from '../../../assets/brand/badges/legend.svg';
-import MarathonMedal from '../../../assets/brand/badges/marathon.svg';
-import SeriesFanMedal from '../../../assets/brand/badges/series-fan.svg';
+import CollectorMedal from '@/assets/brand/badges/collector.svg';
+import CriticMedal from '@/assets/brand/badges/critic.svg';
+import ExplorerMedal from '@/assets/brand/badges/explorer.svg';
+import FirstFilmMedal from '@/assets/brand/badges/first-film.svg';
+import FriendMedal from '@/assets/brand/badges/friend.svg';
+import LegendMedal from '@/assets/brand/badges/legend.svg';
+import MarathonMedal from '@/assets/brand/badges/marathon.svg';
+import SeriesFanMedal from '@/assets/brand/badges/series-fan.svg';
 
 type Props = {
   code: string;

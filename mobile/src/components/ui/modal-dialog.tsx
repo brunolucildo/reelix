@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ToastViewport } from '@/providers/toast-provider';
 import { colors, dimensions, fontFamily, radii, spacing, typography } from '@/theme/tokens';
-import CloseIcon from '../../assets/brand/navigation-icons/close.svg';
+import CloseIcon from '@/assets/brand/navigation-icons/close.svg';
 
 type Props = {
   visible: boolean;

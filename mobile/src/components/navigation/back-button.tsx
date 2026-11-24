@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { IconAction } from '@/components/icon-action';
+import { IconAction } from '@/components/ui/icon-action';
 import { useAuthSession } from '@/providers/auth-provider';
 import { colors, dimensions, fontFamily, spacing, typography } from '@/theme/tokens';
-import HomeIcon from '../../../assets/brand/navigation-icons/home.svg';
+import HomeIcon from '@/assets/brand/navigation-icons/home.svg';
 
 type Props = {
   onPress?: () => void;

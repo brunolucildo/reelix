@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 
 import { AuthInput } from '@/components/auth/auth-input';
 import { FormMessage } from '@/components/auth/form-message';
-import { PrimaryButton } from '@/components/auth/primary-button';
+import { PrimaryButton } from '@/components/ui/primary-button';
 import { useToast } from '@/providers/toast-provider';
 import { resetPasswordSchema, type ResetPasswordValues } from '@/schemas/auth-forms';
 import { getAuthFailureMessage } from '@/services/auth-errors';

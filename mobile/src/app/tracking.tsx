@@ -6,7 +6,7 @@ import { Alert,
 ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AuthScreen } from '@/components/auth/auth-screen';
-import { PrimaryButton } from '@/components/auth/primary-button';
+import { PrimaryButton } from '@/components/ui/primary-button';
 import { BackButton } from '@/components/navigation/back-button';
 import { MediaTitleRow } from '@/components/discovery/media-title-row';
 import {

@@ -6,7 +6,7 @@ import { View } from 'react-native';
 import { AuthInput } from '@/components/auth/auth-input';
 import { AuthLink } from '@/components/auth/auth-link';
 import { FormMessage } from '@/components/auth/form-message';
-import { PrimaryButton } from '@/components/auth/primary-button';
+import { PrimaryButton } from '@/components/ui/primary-button';
 import { useToast } from '@/providers/toast-provider';
 import { signUpSchema, type SignUpValues } from '@/schemas/auth-forms';
 import { getAuthFailureMessage } from '@/services/auth-errors';

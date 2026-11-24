@@ -13,13 +13,13 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import FeedIcon from '../../assets/brand/navigation-icons/home.svg';
-import RequestsIcon from '../../assets/brand/navigation-icons/profile.svg';
-import FriendsIcon from '../../assets/brand/navigation-icons/friends.svg';
-import SearchIcon from '../../assets/brand/navigation-icons/search.svg';
-import ActivityIcon from '../../assets/brand/navigation-icons/clock.svg';
-import { PrimaryButton } from '@/components/auth/primary-button';
-import { ModalDialog } from '@/components/modal-dialog';
+import FeedIcon from '@/assets/brand/navigation-icons/home.svg';
+import RequestsIcon from '@/assets/brand/navigation-icons/profile.svg';
+import FriendsIcon from '@/assets/brand/navigation-icons/friends.svg';
+import SearchIcon from '@/assets/brand/navigation-icons/search.svg';
+import ActivityIcon from '@/assets/brand/navigation-icons/clock.svg';
+import { PrimaryButton } from '@/components/ui/primary-button';
+import { ModalDialog } from '@/components/ui/modal-dialog';
 import { SocialActivityCard } from '@/components/social/social-activity-card';
 import { BackButton } from '@/components/navigation/back-button';
 import { useErrorToast } from '@/providers/toast-provider';

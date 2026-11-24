@@ -10,11 +10,11 @@ import {
   View,
 } from 'react-native';
 
-import { PrimaryButton } from '@/components/auth/primary-button';
-import { IconAction } from '@/components/icon-action';
-import { UserAvatar } from '@/components/user-avatar';
-import LockIcon from '../../../assets/brand/navigation-icons/lock.svg';
-import GlobeIcon from '../../../assets/brand/navigation-icons/globe.svg';
+import { PrimaryButton } from '@/components/ui/primary-button';
+import { IconAction } from '@/components/ui/icon-action';
+import { UserAvatar } from '@/components/ui/user-avatar';
+import LockIcon from '@/assets/brand/navigation-icons/lock.svg';
+import GlobeIcon from '@/assets/brand/navigation-icons/globe.svg';
 import { formatRatingStars } from '@/components/reviews/rating-stars';
 import { useAuthSession } from '@/providers/auth-provider';
 import { useErrorToast } from '@/providers/toast-provider';
