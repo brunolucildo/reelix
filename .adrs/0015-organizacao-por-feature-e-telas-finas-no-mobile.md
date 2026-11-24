@@ -1,9 +1,9 @@
-# XXXX — Organização por feature, hooks de dados e telas finas no mobile
+# 0015 — Organização por feature, hooks de dados e telas finas no mobile
 
 - **Status:** aceito
 - **Data:** 2026-11-24
 - **Origem:** spec `0018` (`.specs/0018-mobile-features-e-telas-finas.md`); complementa o ADR 0013
-- **Nota de numeração:** o prefixo `XXXX` é provisório; o orquestrador atribui o número definitivo na integração.
+- **Nota de numeração:** número definitivo atribuído pelo orquestrador na integração (era provisório `XXXX`).
 
 ## Contexto
 

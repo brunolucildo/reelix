@@ -57,7 +57,7 @@ R1 a R13 da spec (estrutura, zero acesso a dados em rotas/componentes, invalida�
 
 ## Arquivos previstos
 
-`mobile/src/**` (movimentação e novos hooks/componentes), `.docs/ARCHITECTURE.md` (§4.3 e §6.2), `.docs/DEVELOPMENT.md` (§2.3), `.docs/DESIGN_SYSTEM.md`, `.adrs/XXXX-0018-organizacao-por-feature-e-telas-finas-no-mobile.md`, `.specs/0018-...md`, este plano.
+`mobile/src/**` (movimentação e novos hooks/componentes), `.docs/ARCHITECTURE.md` (§4.3 e §6.2), `.docs/DEVELOPMENT.md` (§2.3), `.docs/DESIGN_SYSTEM.md`, `.adrs/0015-organizacao-por-feature-e-telas-finas-no-mobile.md`, `.specs/0018-...md`, este plano.
 
 ## Testes
 
